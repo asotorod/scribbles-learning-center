@@ -1,0 +1,152 @@
+.gallery-intro {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto 60px;
+  font-size: 18px;
+  color: var(--gray-600);
+}
+
+.gallery-loading {
+  text-align: center;
+  padding: 60px;
+  color: var(--gray-500);
+  font-size: 18px;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.gallery-item {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  aspect-ratio: 4/3;
+}
+
+.gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: var(--transition);
+}
+
+.gallery-item:hover img {
+  transform: scale(1.1);
+}
+
+.gallery-item-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+  display: flex;
+  align-items: flex-end;
+  padding: 20px;
+  opacity: 0;
+  transition: var(--transition);
+}
+
+.gallery-item:hover .gallery-item-overlay {
+  opacity: 1;
+}
+
+.gallery-item-overlay span {
+  color: var(--white);
+  font-weight: 600;
+  font-size: 16px;
+}
+
+/* Lightbox */
+.lightbox {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.9);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+}
+
+.lightbox-close svg {
+  width: 32px;
+  height: 32px;
+  color: var(--white);
+}
+
+.lightbox-content {
+  max-width: 90vw;
+  max-height: 90vh;
+  text-align: center;
+}
+
+.lightbox-content img {
+  max-width: 100%;
+  max-height: 80vh;
+  border-radius: var(--radius);
+}
+
+.lightbox-caption {
+  color: var(--white);
+  margin-top: 20px;
+  font-size: 18px;
+}
+
+/* Virtual Tour CTA */
+.virtual-tour-cta {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.virtual-tour-cta h2 {
+  font-size: 36px;
+  margin-bottom: 16px;
+}
+
+.virtual-tour-cta p {
+  font-size: 18px;
+  color: var(--gray-600);
+  margin-bottom: 32px;
+}
+
+/* Responsive */
+@media (max-width: 968px) {
+  .gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .gallery-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lightbox {
+    padding: 20px;
+  }
+
+  .lightbox-close {
+    top: 15px;
+    right: 15px;
+  }
+}

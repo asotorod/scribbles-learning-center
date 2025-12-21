@@ -1,0 +1,149 @@
+{
+  "hero": {
+    "title": "Where Little Minds Grow Big",
+    "subtitle": "A nurturing home away from home for your child in Edgewater, NJ",
+    "image": "https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=1920",
+    "ctaPrimary": "Schedule a Tour",
+    "ctaSecondary": "Our Programs"
+  },
+  "about": {
+    "title": "About Scribbles Learning Center",
+    "subtitle": "Nurturing Young Minds Since 2010",
+    "story": "Scribbles Learning Center is a family-owned childcare facility dedicated to providing a safe, loving, and educational environment for children. For over 15 years, we've been a trusted partner for families in Edgewater and surrounding communities.",
+    "mission": "Our mission is to create a nurturing home away from home where every child can learn, grow, and thrive. We believe in fostering curiosity, creativity, and confidence through play-based learning and individualized attention.",
+    "values": [
+      { "id": 1, "title": "Safety First", "description": "Video-monitored rooms and secure entry systems keep your child protected." },
+      { "id": 2, "title": "Family Atmosphere", "description": "We treat every child as if they were our own family member." },
+      { "id": 3, "title": "Quality Education", "description": "Curriculum aligned with NJ Preschool Teaching & Learning Standards." },
+      { "id": 4, "title": "Flexibility", "description": "Part-time and full-time schedules to meet your family's needs." }
+    ]
+  },
+  "programs": [
+    {
+      "id": 1,
+      "title": "Infant Care",
+      "slug": "infant",
+      "ageRange": "6 weeks - 18 months",
+      "description": "A gentle, nurturing environment for your baby's first experiences with learning. Our trained caregivers focus on sensory development, early language skills, and creating secure attachments.",
+      "features": ["Low teacher-to-child ratios", "Daily activity reports", "Flexible feeding schedules", "Safe sleep practices"],
+      "image": "https://images.unsplash.com/photo-1544126592-807ade215a0b?w=800",
+      "color": "#FFB3B3"
+    },
+    {
+      "id": 2,
+      "title": "Toddler Program",
+      "slug": "toddler",
+      "ageRange": "18 months - 3 years",
+      "description": "Active exploration and discovery for curious toddlers! We encourage independence, language development, and social skills through structured play and creative activities.",
+      "features": ["Potty training support", "Language-rich environment", "Music and movement", "Outdoor playground time"],
+      "image": "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=800",
+      "color": "#A8E6E2"
+    },
+    {
+      "id": 3,
+      "title": "Preschool",
+      "slug": "preschool",
+      "ageRange": "3 - 5 years",
+      "description": "Kindergarten readiness through play-based learning. Our comprehensive curriculum covers literacy, math, science, and social-emotional development.",
+      "features": ["Pre-reading and writing skills", "STEM activities", "Creative arts", "Social skills development"],
+      "image": "https://images.unsplash.com/photo-1544427920-c49ccfb85579?w=800",
+      "color": "#FFE66D"
+    },
+    {
+      "id": 4,
+      "title": "After School Care",
+      "slug": "after-school",
+      "ageRange": "5 - 12 years",
+      "description": "A safe and enriching environment for school-age children. We provide homework help, recreational activities, and a healthy snack.",
+      "features": ["Homework assistance", "Indoor and outdoor activities", "Healthy snacks", "Flexible pickup times"],
+      "image": "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800",
+      "color": "#C4B5FD"
+    }
+  ],
+  "staff": [
+    {
+      "id": 1,
+      "name": "Maria Rodriguez",
+      "role": "Director",
+      "bio": "With over 20 years in early childhood education, Maria founded Scribbles with a vision of creating a home-like learning environment.",
+      "image": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400",
+      "credentials": ["CDA Certified", "CPR/First Aid"]
+    },
+    {
+      "id": 2,
+      "name": "Angela Thompson",
+      "role": "Lead Infant Teacher",
+      "bio": "Angela brings 10 years of experience caring for infants. Her gentle approach helps babies feel safe and loved.",
+      "image": "https://images.unsplash.com/photo-1580894732444-8ecded7900cd?w=400",
+      "credentials": ["CDA Certified", "CPR/First Aid"]
+    },
+    {
+      "id": 3,
+      "name": "Jennifer Kim",
+      "role": "Preschool Teacher",
+      "bio": "Jennifer's creative curriculum and warm personality make learning fun for our preschoolers.",
+      "image": "https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?w=400",
+      "credentials": ["B.A. Early Childhood Education", "CPR/First Aid"]
+    }
+  ],
+  "testimonials": [
+    {
+      "id": 1,
+      "quote": "It is a family run daycare and they are very flexible and accommodating to any special request for your child.",
+      "author": "Happy Parent",
+      "rating": 5
+    },
+    {
+      "id": 2,
+      "quote": "They showed our son so much care, love, and attention, which was shown in his development and peacefulness when we dropped him off.",
+      "author": "Grateful Family",
+      "rating": 5
+    },
+    {
+      "id": 3,
+      "quote": "My family has become a part of their family and learning community. Their love and care cannot be beat!",
+      "author": "Scribbles Mom",
+      "rating": 5
+    },
+    {
+      "id": 4,
+      "quote": "Scribbles is an absolutely amazing child care center! The classrooms are spacious and the staff treat the children with love and respect.",
+      "author": "Long-time Parent",
+      "rating": 5
+    }
+  ],
+  "gallery": [
+    { "id": 1, "image": "https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=600", "caption": "Learning through play" },
+    { "id": 2, "image": "https://images.unsplash.com/photo-1544126592-807ade215a0b?w=600", "caption": "Our infant room" },
+    { "id": 3, "image": "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=600", "caption": "Art time" },
+    { "id": 4, "image": "https://images.unsplash.com/photo-1544427920-c49ccfb85579?w=600", "caption": "Circle time" },
+    { "id": 5, "image": "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600", "caption": "Reading corner" },
+    { "id": 6, "image": "https://images.unsplash.com/photo-1526662092594-e98c1e356d6a?w=600", "caption": "Outdoor play" }
+  ],
+  "pricing": {
+    "note": "Contact us for current rates and availability. We participate in subsidized childcare programs.",
+    "programs": [
+      { "id": 1, "name": "Infant Care", "fullTime": "Contact for rates", "partTime": "Contact for rates" },
+      { "id": 2, "name": "Toddler Program", "fullTime": "Contact for rates", "partTime": "Contact for rates" },
+      { "id": 3, "name": "Preschool", "fullTime": "Contact for rates", "partTime": "Contact for rates" },
+      { "id": 4, "name": "After School", "fullTime": "N/A", "partTime": "Contact for rates" }
+    ]
+  },
+  "contact": {
+    "address": "725 River Rd, Suite 103",
+    "city": "Edgewater",
+    "state": "NJ",
+    "zip": "07020",
+    "phone": "(201) 945-9445",
+    "email": "info@scribbleslearningcenter.com",
+    "hours": {
+      "weekdays": "7:30 AM - 6:30 PM",
+      "saturday": "Closed",
+      "sunday": "Closed"
+    },
+    "social": {
+      "facebook": "https://facebook.com/scribbleslearningcenter",
+      "instagram": "https://instagram.com/scribbleslearning"
+    }
+  }
+}

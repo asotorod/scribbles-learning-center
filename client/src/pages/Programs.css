@@ -1,0 +1,149 @@
+.programs-intro {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto 60px;
+  font-size: 18px;
+  color: var(--gray-600);
+  line-height: 1.8;
+}
+
+.program-detail {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+  padding: 60px 0;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.program-detail:last-child {
+  border-bottom: none;
+}
+
+.program-detail.reverse {
+  direction: rtl;
+}
+
+.program-detail.reverse > * {
+  direction: ltr;
+}
+
+.program-detail-image {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+
+.program-detail-image img {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+}
+
+.program-detail-badge {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--dark);
+}
+
+.program-detail-content h2 {
+  font-size: 36px;
+  margin-bottom: 20px;
+  color: var(--dark);
+}
+
+.program-description {
+  font-size: 18px;
+  color: var(--gray-600);
+  line-height: 1.8;
+  margin-bottom: 30px;
+}
+
+.program-detail-content h4 {
+  font-size: 18px;
+  margin-bottom: 16px;
+  color: var(--dark);
+}
+
+.program-features {
+  list-style: none;
+}
+
+.program-features li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  font-size: 16px;
+  color: var(--gray-700);
+}
+
+.program-features svg {
+  width: 22px;
+  height: 22px;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+/* Enrollment CTA */
+.enrollment-cta {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.enrollment-cta h2 {
+  font-size: 42px;
+  margin-bottom: 16px;
+  color: var(--white);
+}
+
+.enrollment-cta p {
+  font-size: 18px;
+  margin-bottom: 32px;
+  color: rgba(255,255,255,0.9);
+}
+
+.enrollment-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-outline-white {
+  background: transparent;
+  color: var(--white);
+  border: 2px solid var(--white);
+}
+
+.btn-outline-white:hover {
+  background: var(--white);
+  color: var(--primary);
+}
+
+/* Responsive */
+@media (max-width: 968px) {
+  .program-detail {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .program-detail.reverse {
+    direction: ltr;
+  }
+
+  .program-detail-image img {
+    height: 300px;
+  }
+
+  .program-detail-content h2 {
+    font-size: 28px;
+  }
+}
