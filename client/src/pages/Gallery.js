@@ -1,27 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Hero from '../components/Hero';
-import { contentAPI } from '../services/api';
 import './Gallery.css';
 
-const Gallery = () => {
-  const [gallery, setGallery] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedImage, setSelectedImage] = useState(null);
+// Default gallery with daycare stock images
+const defaultGallery = [
+  { id: 1, image: "https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=600", caption: "Learning through play" },
+  { id: 2, image: "https://images.unsplash.com/photo-1566004100631-35d015d6a491?w=600", caption: "Creative activities" },
+  { id: 3, image: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=600", caption: "Art time fun" },
+  { id: 4, image: "https://images.unsplash.com/photo-1544776193-352d25ca82cd?w=600", caption: "Circle time" },
+  { id: 5, image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600", caption: "Reading corner" },
+  { id: 6, image: "https://images.unsplash.com/photo-1544377193-33dcf4d68fb5?w=600", caption: "Building blocks" },
+  { id: 7, image: "https://images.unsplash.com/photo-1560969184-10fe8719e047?w=600", caption: "Outdoor playground" },
+  { id: 8, image: "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=600", caption: "Music and movement" },
+  { id: 9, image: "https://images.unsplash.com/photo-1484820540004-14229fe36ca4?w=600", caption: "Snack time" }
+];
 
-  useEffect(() => {
-    const fetchGallery = async () => {
-      try {
-        const response = await contentAPI.getSection('gallery');
-        setGallery(response.data);
-      } catch (error) {
-        console.error('Error fetching gallery:', error);
-        setGallery(defaultGallery);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchGallery();
-  }, []);
+const Gallery = () => {
+  const [gallery] = useState(defaultGallery);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const openLightbox = (image) => {
     setSelectedImage(image);
@@ -38,7 +34,7 @@ const Gallery = () => {
       <Hero
         title="Gallery"
         subtitle="Take a peek inside our learning center"
-        backgroundImage="https://images.unsplash.com/photo-1526662092594-e98c1e356d6a?w=1920"
+        backgroundImage="https://images.unsplash.com/photo-1544776193-352d25ca82cd?w=1920"
         size="medium"
         ctaPrimary="Schedule a Tour"
         ctaPrimaryLink="/contact"
@@ -50,24 +46,20 @@ const Gallery = () => {
             <p>See the magic happen! Browse through photos of our classrooms, activities, and the happy faces at Scribbles Learning Center.</p>
           </div>
 
-          {loading ? (
-            <div className="gallery-loading">Loading gallery...</div>
-          ) : (
-            <div className="gallery-grid">
-              {gallery.map((item) => (
-                <div 
-                  key={item.id} 
-                  className="gallery-item"
-                  onClick={() => openLightbox(item)}
-                >
-                  <img src={item.image} alt={item.caption} />
-                  <div className="gallery-item-overlay">
-                    <span>{item.caption}</span>
-                  </div>
+          <div className="gallery-grid">
+            {gallery.map((item) => (
+              <div 
+                key={item.id} 
+                className="gallery-item"
+                onClick={() => openLightbox(item)}
+              >
+                <img src={item.image} alt={item.caption} />
+                <div className="gallery-item-overlay">
+                  <span>{item.caption}</span>
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -100,14 +92,5 @@ const Gallery = () => {
     </main>
   );
 };
-
-const defaultGallery = [
-  { id: 1, image: "https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=600", caption: "Learning through play" },
-  { id: 2, image: "https://images.unsplash.com/photo-1544126592-807ade215a0b?w=600", caption: "Our infant room" },
-  { id: 3, image: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=600", caption: "Art time" },
-  { id: 4, image: "https://images.unsplash.com/photo-1544427920-c49ccfb85579?w=600", caption: "Circle time" },
-  { id: 5, image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600", caption: "Reading corner" },
-  { id: 6, image: "https://images.unsplash.com/photo-1526662092594-e98c1e356d6a?w=600", caption: "Outdoor play" }
-];
 
 export default Gallery;
