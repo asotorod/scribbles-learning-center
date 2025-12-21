@@ -97,7 +97,7 @@ const Home = () => {
       <Hero
         title="Where Little Minds Grow Big"
         subtitle="A nurturing home away from home for your child in Edgewater, NJ"
-        backgroundImage="https://images.unsplash.com/photo-1544776193-352d25ca82cd?w=1920"
+        backgroundImage="https://images.unsplash.com/photo-1602536052359-ef94c21c5948?w=1920"
         ctaPrimary="Schedule a Tour"
         ctaPrimaryLink="/contact"
         ctaSecondary="Our Programs"
