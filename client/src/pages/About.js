@@ -1,35 +1,55 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Hero from '../components/Hero';
-import { contentAPI } from '../services/api';
 import './About.css';
 
+// Static content - no API needed for demo
+const about = {
+  title: "About Scribbles Learning Center",
+  subtitle: "Nurturing Young Minds Since 2010",
+  story: "Scribbles Learning Center is a family-owned childcare facility dedicated to providing a safe, loving, and educational environment for children. With over 15 years of experience caring for the children of Edgewater and surrounding communities, we've become a trusted partner for hundreds of families.",
+  mission: "Our mission is to create a nurturing home away from home where every child can learn, grow, and thrive. We believe every child is unique and deserves individualized attention to reach their full potential.",
+  values: [
+    { id: 1, title: "Safety First", description: "Video-monitored rooms and secure entry systems keep your child protected." },
+    { id: 2, title: "Family Atmosphere", description: "We treat every child as if they were our own family member." },
+    { id: 3, title: "Quality Education", description: "Curriculum aligned with NJ Preschool Teaching & Learning Standards." },
+    { id: 4, title: "Flexibility", description: "Part-time and full-time schedules to meet your family's needs." }
+  ]
+};
+
+const staff = [
+  {
+    id: 1,
+    name: "Maria Rodriguez",
+    role: "Director & Founder",
+    bio: "With over 20 years in early childhood education, Maria founded Scribbles to create the loving environment she always envisioned for children.",
+    image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400",
+    credentials: ["CDA Certified", "CPR/First Aid"]
+  },
+  {
+    id: 2,
+    name: "Sarah Johnson",
+    role: "Lead Preschool Teacher",
+    bio: "Sarah brings creativity and enthusiasm to our preschool classroom, preparing children for kindergarten success.",
+    image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400",
+    credentials: ["B.A. Early Childhood", "NJ Certified"]
+  },
+  {
+    id: 3,
+    name: "Emily Chen",
+    role: "Infant Room Supervisor",
+    bio: "Emily's gentle approach and expertise in infant development make her a favorite among our youngest learners and their families.",
+    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400",
+    credentials: ["Infant/Toddler CDA", "CPR/First Aid"]
+  }
+];
+
 const About = () => {
-  const [content, setContent] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const response = await contentAPI.getAll();
-        setContent(response.data);
-      } catch (error) {
-        console.error('Error fetching content:', error);
-        setContent(defaultContent);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchContent();
-  }, []);
-
-  const { about, staff } = content || defaultContent;
-
   return (
     <main>
       <Hero
         title="About Us"
         subtitle="Learn about our story, mission, and the dedicated team behind Scribbles"
-        backgroundImage="https://images.unsplash.com/photo-1544427920-c49ccfb85579?w=1920"
+        backgroundImage="https://plus.unsplash.com/premium_photo-1681842152160-cb5e5d470ddd?q=80&w=2456&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
         size="medium"
         ctaPrimary="Schedule a Tour"
         ctaPrimaryLink="/contact"
@@ -40,10 +60,10 @@ const About = () => {
         <div className="container">
           <div className="about-story">
             <div className="about-story-content">
-              <h2>{about?.title || "About Scribbles Learning Center"}</h2>
-              <p className="story-subtitle">{about?.subtitle || "Nurturing Young Minds Since 2010"}</p>
-              <p>{about?.story}</p>
-              <p>{about?.mission}</p>
+              <h2>{about.title}</h2>
+              <p className="story-subtitle">{about.subtitle}</p>
+              <p>{about.story}</p>
+              <p>{about.mission}</p>
             </div>
             <div className="about-story-image">
               <img 
@@ -63,7 +83,7 @@ const About = () => {
             <p>The principles that guide everything we do</p>
           </div>
           <div className="values-grid">
-            {about?.values?.map((value) => (
+            {about.values.map((value) => (
               <div key={value.id} className="value-card">
                 <h3>{value.title}</h3>
                 <p>{value.description}</p>
@@ -81,7 +101,7 @@ const About = () => {
             <p>Dedicated educators who love what they do</p>
           </div>
           <div className="staff-grid">
-            {staff?.map((member) => (
+            {staff.map((member) => (
               <div key={member.id} className="staff-card">
                 <div className="staff-image">
                   <img src={member.image} alt={member.name} />
@@ -91,7 +111,7 @@ const About = () => {
                   <p className="staff-role">{member.role}</p>
                   <p className="staff-bio">{member.bio}</p>
                   <div className="staff-credentials">
-                    {member.credentials?.map((cred, i) => (
+                    {member.credentials.map((cred, i) => (
                       <span key={i} className="credential-badge">{cred}</span>
                     ))}
                   </div>
@@ -144,22 +164,6 @@ const About = () => {
       </section>
     </main>
   );
-};
-
-const defaultContent = {
-  about: {
-    title: "About Scribbles Learning Center",
-    subtitle: "Nurturing Young Minds Since 2010",
-    story: "Scribbles Learning Center is a family-owned childcare facility dedicated to providing a safe, loving, and educational environment for children.",
-    mission: "Our mission is to create a nurturing home away from home where every child can learn, grow, and thrive.",
-    values: [
-      { id: 1, title: "Safety First", description: "Video-monitored rooms and secure entry systems keep your child protected." },
-      { id: 2, title: "Family Atmosphere", description: "We treat every child as if they were our own family member." },
-      { id: 3, title: "Quality Education", description: "Curriculum aligned with NJ Preschool Teaching & Learning Standards." },
-      { id: 4, title: "Flexibility", description: "Part-time and full-time schedules to meet your family's needs." }
-    ]
-  },
-  staff: []
 };
 
 export default About;
