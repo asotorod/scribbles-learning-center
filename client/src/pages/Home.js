@@ -1,65 +1,66 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Hero from '../components/Hero';
+import { programsAPI, contentAPI } from '../services/api';
 import './Home.css';
 
-// Static content - no API needed for demo
-const programs = [
+// Default programs data using design system colors
+const defaultPrograms = [
   {
     id: 1,
-    title: "Infant Care",
+    name: "Infant Care",
     slug: "infant",
-    ageRange: "6 weeks - 18 months",
-    description: "A gentle, nurturing environment for your baby's first experiences with learning.",
-    image: "https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=800",
-    color: "#FFB3B3"
+    age_range: "6 weeks - 18 months",
+    short_description: "A gentle, nurturing environment for your baby's first experiences with learning.",
+    image_url: "https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=800",
+    color: "#E79897" // Peony
   },
   {
     id: 2,
-    title: "Toddler Program",
+    name: "Toddler Program",
     slug: "toddler",
-    ageRange: "18 months - 3 years",
-    description: "Active exploration and discovery for curious toddlers!",
-    image: "https://images.unsplash.com/photo-1566004100631-35d015d6a491?w=800",
-    color: "#A8E6E2"
+    age_range: "18 months - 3 years",
+    short_description: "Active exploration and discovery for curious toddlers!",
+    image_url: "https://images.unsplash.com/photo-1566004100631-35d015d6a491?w=800",
+    color: "#C6C09C" // Pistachio
   },
   {
     id: 3,
-    title: "Preschool",
+    name: "Preschool",
     slug: "preschool",
-    ageRange: "3 - 5 years",
-    description: "Kindergarten readiness through play-based learning.",
-    image: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=800",
-    color: "#FFE66D"
+    age_range: "3 - 5 years",
+    short_description: "Kindergarten readiness through play-based learning.",
+    image_url: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=800",
+    color: "#FCC88A" // Honey
   },
   {
     id: 4,
-    title: "After School Care",
-    slug: "after-school",
-    ageRange: "5 - 12 years",
-    description: "A safe and enriching environment for school-age children.",
-    image: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=800",
-    color: "#C4B5FD"
+    name: "Summer Camp",
+    slug: "summer-camp",
+    age_range: "5 - 12 years",
+    short_description: "Fun-filled summer adventures with learning and outdoor activities.",
+    image_url: "https://images.unsplash.com/photo-1472162072942-cd5147eb3902?w=800",
+    color: "#768E78" // Fern
   }
 ];
 
-const testimonials = [
+const defaultTestimonials = [
   {
     id: 1,
-    quote: "It is a family run daycare and they are very flexible and accommodating to any special request for your child.",
-    author: "Happy Parent",
+    content: "It is a family run daycare and they are very flexible and accommodating to any special request for your child.",
+    author_name: "Happy Parent",
     rating: 5
   },
   {
     id: 2,
-    quote: "They showed our son so much care, love, and attention, which was shown in his development and peacefulness when we dropped him off.",
-    author: "Grateful Family",
+    content: "They showed our son so much care, love, and attention, which was shown in his development and peacefulness when we dropped him off.",
+    author_name: "Grateful Family",
     rating: 5
   },
   {
     id: 3,
-    quote: "My family has become a part of their family and learning community. Their love and care cannot be beat!",
-    author: "Scribbles Mom",
+    content: "My family has become a part of their family and learning community. Their love and care cannot be beat!",
+    author_name: "Scribbles Mom",
     rating: 5
   }
 ];
@@ -69,35 +70,68 @@ const features = [
     icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
     title: "Safe & Secure",
     description: "Video-monitored rooms and secure entry systems for your peace of mind.",
-    color: "#FFB3B3"
+    color: "#E79897" // Peony
   },
   {
     icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
     title: "Family Atmosphere",
     description: "We treat every child as if they were our own family member.",
-    color: "#A8E6E2"
+    color: "#C6C09C" // Pistachio
   },
   {
     icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>,
     title: "Quality Education",
     description: "Curriculum aligned with NJ Preschool Teaching & Learning Standards.",
-    color: "#FFE66D"
+    color: "#FCC88A" // Honey
   },
   {
-    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
-    title: "Flexible Hours",
-    description: "Part-time and full-time schedules to meet your family's needs.",
-    color: "#C4B5FD"
+    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>,
+    title: "Healthcare On-Site",
+    description: "Pediatrician and dentist located right in our building for convenience.",
+    color: "#768E78" // Fern
   }
 ];
 
 const Home = () => {
+  const [programs, setPrograms] = useState(defaultPrograms);
+  const [testimonials, setTestimonials] = useState(defaultTestimonials);
+  const [activeTestimonial, setActiveTestimonial] = useState(0);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveTestimonial(prev => (prev + 1) % testimonials.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [testimonials.length]);
+
+  const fetchData = async () => {
+    try {
+      const [programsRes, testimonialsRes] = await Promise.all([
+        programsAPI.getAll().catch(() => null),
+        contentAPI.getSection('testimonials').catch(() => null),
+      ]);
+
+      if (programsRes?.data?.data) {
+        setPrograms(programsRes.data.data);
+      }
+      if (testimonialsRes?.data?.data) {
+        setTestimonials(testimonialsRes.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
   return (
     <main>
       <Hero
         title="Where Little Minds Grow Big"
-        subtitle="A nurturing home away from home for your child in Edgewater, NJ"
-        backgroundImage="https://plus.unsplash.com/premium_photo-1681842152160-cb5e5d470ddd?q=80&w=2456&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        subtitle="A nurturing home away from home for your child in Edgewater, NJ since 2008"
+        backgroundImage="https://plus.unsplash.com/premium_photo-1681842152160-cb5e5d470ddd?q=80&w=2456&auto=format&fit=crop"
         ctaPrimary="Schedule a Tour"
         ctaPrimaryLink="/contact"
         ctaSecondary="Our Programs"
@@ -136,14 +170,14 @@ const Home = () => {
             {programs.map((program) => (
               <Link to={`/programs#${program.slug}`} key={program.id} className="program-card">
                 <div className="program-image">
-                  <img src={program.image} alt={program.title} />
+                  <img src={program.image_url} alt={program.name} />
                   <div className="program-badge" style={{ background: program.color }}>
-                    {program.ageRange}
+                    {program.age_range}
                   </div>
                 </div>
                 <div className="program-content">
-                  <h3>{program.title}</h3>
-                  <p>{program.description}</p>
+                  <h3>{program.name}</h3>
+                  <p>{program.short_description}</p>
                   <span className="program-link">Learn More →</span>
                 </div>
               </Link>
@@ -155,12 +189,31 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Testimonials */}
+      {/* Testimonials Carousel */}
       <section className="section section-primary">
         <div className="container">
           <div className="section-header light">
             <h2>What Parents Say</h2>
             <p>Real stories from our Scribbles family</p>
+          </div>
+          <div className="testimonials-carousel">
+            <div className="testimonial-main">
+              <div className="testimonial-stars">
+                {'★'.repeat(testimonials[activeTestimonial]?.rating || 5)}
+              </div>
+              <blockquote>"{testimonials[activeTestimonial]?.content}"</blockquote>
+              <p className="testimonial-author">— {testimonials[activeTestimonial]?.author_name}</p>
+            </div>
+            <div className="testimonial-dots">
+              {testimonials.map((_, index) => (
+                <button
+                  key={index}
+                  className={`testimonial-dot ${index === activeTestimonial ? 'active' : ''}`}
+                  onClick={() => setActiveTestimonial(index)}
+                  aria-label={`View testimonial ${index + 1}`}
+                />
+              ))}
+            </div>
           </div>
           <div className="testimonials-grid">
             {testimonials.map((testimonial) => (
@@ -168,8 +221,8 @@ const Home = () => {
                 <div className="testimonial-stars">
                   {'★'.repeat(testimonial.rating)}
                 </div>
-                <blockquote>"{testimonial.quote}"</blockquote>
-                <p className="testimonial-author">- {testimonial.author}</p>
+                <blockquote>"{testimonial.content}"</blockquote>
+                <p className="testimonial-author">— {testimonial.author_name}</p>
               </div>
             ))}
           </div>
@@ -181,9 +234,9 @@ const Home = () => {
         <div className="container">
           <div className="cta-content">
             <h2>Ready to Join Our Family?</h2>
-            <p>Schedule a tour and see why families love Scribbles!</p>
+            <p>Schedule a tour and see why families have trusted Scribbles since 2008!</p>
             <div className="cta-buttons">
-              <Link to="/contact" className="btn btn-secondary">Schedule a Tour</Link>
+              <Link to="/contact" className="btn btn-cta">Schedule a Tour</Link>
               <a href="tel:+12019459445" className="btn btn-outline">
                 Call (201) 945-9445
               </a>

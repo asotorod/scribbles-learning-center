@@ -3,8 +3,6 @@ import { Link } from 'react-router-dom';
 import './Footer.css';
 
 const Footer = () => {
-  const currentYear = new Date().getFullYear();
-
   return (
     <footer className="footer">
       <div className="footer-wave">
@@ -12,7 +10,7 @@ const Footer = () => {
           <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="var(--primary)"></path>
         </svg>
       </div>
-      
+
       <div className="footer-main">
         <div className="container">
           <div className="footer-grid">
@@ -21,7 +19,7 @@ const Footer = () => {
                 <img src="/logo.png" alt="Scribbles Learning Center" />
                 <span>Scribbles</span>
               </Link>
-              <p>A nurturing home away from home where every child can learn, grow, and thrive.</p>
+              <p>A nurturing home away from home where every child can learn, grow, and thrive since 2008.</p>
               <div className="footer-social">
                 <a href="https://facebook.com/scribbleslearningcenter" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
                   <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3V2z"/></svg>
@@ -38,8 +36,9 @@ const Footer = () => {
                 <li><Link to="/">Home</Link></li>
                 <li><Link to="/programs">Programs</Link></li>
                 <li><Link to="/about">About Us</Link></li>
-                <li><Link to="/gallery">Gallery</Link></li>
                 <li><Link to="/contact">Contact</Link></li>
+                <li><Link to="/careers">Careers</Link></li>
+                <li><Link to="/login">Parent Portal</Link></li>
               </ul>
             </div>
 
@@ -49,7 +48,7 @@ const Footer = () => {
                 <li><Link to="/programs#infant">Infant Care</Link></li>
                 <li><Link to="/programs#toddler">Toddler Program</Link></li>
                 <li><Link to="/programs#preschool">Preschool</Link></li>
-                <li><Link to="/programs#after-school">After School</Link></li>
+                <li><Link to="/programs#summer-camp">Summer Camp</Link></li>
               </ul>
             </div>
 
@@ -80,7 +79,7 @@ const Footer = () => {
 
       <div className="footer-bottom">
         <div className="container">
-          <p>&copy; {currentYear} Scribbles Learning Center. All rights reserved.</p>
+          <p>&copy; 2008-2026 Scribbles Learning Center. All rights reserved.</p>
           <p className="footer-credit">
             Website by <a href="https://svtconsulting.com" target="_blank" rel="noopener noreferrer">SVT Consulting</a>
           </p>

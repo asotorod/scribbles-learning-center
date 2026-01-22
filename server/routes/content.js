@@ -1,89 +1,142 @@
 const express = require('express');
-const { authenticateToken } = require('../middleware/auth');
-const data = require('../data/content.json');
+const { body, param, query } = require('express-validator');
+const { verifyToken, requireRole } = require('../middleware/auth');
+const contentController = require('../controllers/contentController');
 
 const router = express.Router();
 
-// In-memory storage for demo
-let contentData = JSON.parse(JSON.stringify(data));
+// ==================== SITE CONTENT ====================
 
-// Get all content (public)
-router.get('/', (req, res) => {
-  res.json(contentData);
-});
+// GET /api/v1/content - List all content (admin only)
+router.get('/',
+  verifyToken,
+  requireRole('super_admin', 'admin'),
+  [
+    query('page')
+      .optional()
+      .isString()
+      .trim()
+      .isLength({ max: 100 })
+      .withMessage('Page must not exceed 100 characters')
+  ],
+  contentController.getAllContent
+);
 
-// Get specific section
-router.get('/:section', (req, res) => {
-  const { section } = req.params;
-  if (contentData[section]) {
-    res.json(contentData[section]);
-  } else {
-    res.status(404).json({ error: 'Section not found' });
-  }
-});
+// GET /api/v1/content/:page - Get content for specific page (public)
+router.get('/:page', [
+  param('page')
+    .isString()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Page must not exceed 100 characters')
+], contentController.getPageContent);
 
-// Update content (protected)
-router.put('/:section', authenticateToken, (req, res) => {
-  const { section } = req.params;
-  const updates = req.body;
+// PUT /api/v1/content/:page/:section/:key - Update content (admin)
+router.put('/:page/:section/:key',
+  verifyToken,
+  requireRole('super_admin', 'admin'),
+  [
+    param('page')
+      .isString()
+      .trim()
+      .isLength({ max: 100 })
+      .withMessage('Page must not exceed 100 characters'),
+    param('section')
+      .isString()
+      .trim()
+      .isLength({ max: 100 })
+      .withMessage('Section must not exceed 100 characters'),
+    param('key')
+      .isString()
+      .trim()
+      .isLength({ max: 100 })
+      .withMessage('Key must not exceed 100 characters'),
+    body('en')
+      .optional()
+      .isString()
+      .withMessage('English content must be a string'),
+    body('es')
+      .optional()
+      .isString()
+      .withMessage('Spanish content must be a string'),
+    body('type')
+      .optional()
+      .isIn(['text', 'html', 'image', 'json'])
+      .withMessage('Type must be text, html, image, or json')
+  ],
+  contentController.updateContent
+);
 
-  if (!contentData[section]) {
-    return res.status(404).json({ error: 'Section not found' });
-  }
+// ==================== PROGRAMS ====================
 
-  contentData[section] = { ...contentData[section], ...updates };
-  res.json({ message: 'Content updated', data: contentData[section] });
-});
+// GET /api/v1/programs - List programs (public)
+router.get('/programs/list', [
+  query('active')
+    .optional()
+    .isIn(['true', 'false'])
+    .withMessage('Active must be true or false')
+], contentController.getPrograms);
 
-// Update specific item in array
-router.put('/:section/:id', authenticateToken, (req, res) => {
-  const { section, id } = req.params;
-  const updates = req.body;
-
-  if (!contentData[section] || !Array.isArray(contentData[section])) {
-    return res.status(404).json({ error: 'Section not found or not an array' });
-  }
-
-  const index = contentData[section].findIndex(item => item.id === parseInt(id));
-  if (index === -1) {
-    return res.status(404).json({ error: 'Item not found' });
-  }
-
-  contentData[section][index] = { ...contentData[section][index], ...updates };
-  res.json({ message: 'Item updated', data: contentData[section][index] });
-});
-
-// Add new item
-router.post('/:section', authenticateToken, (req, res) => {
-  const { section } = req.params;
-  const newItem = req.body;
-
-  if (!contentData[section] || !Array.isArray(contentData[section])) {
-    return res.status(404).json({ error: 'Section not found or not an array' });
-  }
-
-  const newId = Math.max(...contentData[section].map(item => item.id), 0) + 1;
-  const itemWithId = { ...newItem, id: newId };
-  contentData[section].push(itemWithId);
-
-  res.status(201).json({ message: 'Item added', data: itemWithId });
-});
-
-// Delete item
-router.delete('/:section/:id', authenticateToken, (req, res) => {
-  const { section, id } = req.params;
-
-  if (!contentData[section] || !Array.isArray(contentData[section])) {
-    return res.status(404).json({ error: 'Section not found or not an array' });
-  }
-
-  const index = contentData[section].findIndex(item => item.id === parseInt(id));
-  if (index === -1) {
-    return res.status(404).json({ error: 'Item not found' });
-  }
-
-  contentData[section].splice(index, 1);
-  res.json({ message: 'Item deleted' });
-});
+// PUT /api/v1/programs/:id - Update program (admin)
+router.put('/programs/:id',
+  verifyToken,
+  requireRole('super_admin', 'admin'),
+  [
+    param('id')
+      .isUUID()
+      .withMessage('Program ID must be a valid UUID'),
+    body('name')
+      .optional()
+      .isString()
+      .trim()
+      .isLength({ max: 100 })
+      .withMessage('Name must not exceed 100 characters'),
+    body('description')
+      .optional()
+      .isString()
+      .trim(),
+    body('ageRange')
+      .optional()
+      .isString()
+      .trim()
+      .isLength({ max: 50 })
+      .withMessage('Age range must not exceed 50 characters'),
+    body('schedule')
+      .optional()
+      .isString()
+      .trim()
+      .isLength({ max: 100 })
+      .withMessage('Schedule must not exceed 100 characters'),
+    body('capacity')
+      .optional()
+      .isInt({ min: 1 })
+      .withMessage('Capacity must be a positive integer'),
+    body('monthlyRate')
+      .optional()
+      .isDecimal()
+      .withMessage('Monthly rate must be a decimal number'),
+    body('color')
+      .optional()
+      .isString()
+      .trim()
+      .isLength({ max: 20 })
+      .withMessage('Color must not exceed 20 characters'),
+    body('icon')
+      .optional()
+      .isString()
+      .trim()
+      .isLength({ max: 50 })
+      .withMessage('Icon must not exceed 50 characters'),
+    body('sortOrder')
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage('Sort order must be a non-negative integer'),
+    body('isActive')
+      .optional()
+      .isBoolean()
+      .withMessage('isActive must be a boolean')
+  ],
+  contentController.updateProgram
+);
 
 module.exports = router;

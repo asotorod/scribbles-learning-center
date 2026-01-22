@@ -91,6 +91,12 @@
 .form-success p {
   color: var(--gray-600);
   font-size: 16px;
+  margin-bottom: 24px;
+}
+
+.btn-large {
+  padding: 16px 32px;
+  font-size: 16px;
 }
 
 /* Contact Info */
@@ -145,6 +151,31 @@
   border-radius: var(--radius);
   overflow: hidden;
   box-shadow: var(--shadow);
+}
+
+/* Quick Contact CTA */
+.quick-contact {
+  text-align: center;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.quick-contact h2 {
+  font-size: 36px;
+  color: var(--white);
+  margin-bottom: 12px;
+}
+
+.quick-contact p {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 18px;
+  margin-bottom: 24px;
+}
+
+.quick-contact .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
 }
 
 /* Responsive */

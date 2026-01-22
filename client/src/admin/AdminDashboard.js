@@ -1,23 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
-import { authAPI, contentAPI, inquiryAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { inquiryAPI } from '../services/api';
 import './Admin.css';
 
 const AdminDashboard = () => {
-  const [user, setUser] = useState(null);
+  const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem('adminUser');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-  }, []);
-
   const handleLogout = () => {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminUser');
+    logout();
     navigate('/admin/login');
   };
 

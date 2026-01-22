@@ -7,3 +7,32 @@
 main {
   flex: 1;
 }
+
+/* Placeholder Page */
+.placeholder-page {
+  max-width: 800px;
+}
+
+.placeholder-content {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 60px 40px;
+  text-align: center;
+}
+
+.placeholder-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.placeholder-content h3 {
+  font-size: 24px;
+  margin: 0 0 8px;
+  color: var(--color-charcoal);
+}
+
+.placeholder-content p {
+  color: var(--gray-600);
+  margin: 0;
+}

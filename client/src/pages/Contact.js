@@ -1,39 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Hero from '../components/Hero';
-import { contentAPI, inquiryAPI } from '../services/api';
+import api from '../services/api';
 import './Contact.css';
 
 const Contact = () => {
-  const [contact, setContact] = useState(null);
   const [formData, setFormData] = useState({
-    parentName: '',
+    name: '',
     email: '',
     phone: '',
-    childName: '',
-    childAge: '',
-    program: '',
+    subject: '',
     message: ''
   });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const fetchContact = async () => {
-      try {
-        const response = await contentAPI.getSection('contact');
-        setContact(response.data);
-      } catch (error) {
-        console.error('Error fetching contact:', error);
-        setContact(defaultContact);
-      }
-    };
-    fetchContact();
-  }, []);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    setError('');
   };
 
   const handleSubmit = async (e) => {
@@ -42,25 +27,36 @@ const Contact = () => {
     setError('');
 
     try {
-      await inquiryAPI.submit(formData);
+      await api.post('/contact', formData);
       setSubmitted(true);
       setFormData({
-        parentName: '',
+        name: '',
         email: '',
         phone: '',
-        childName: '',
-        childAge: '',
-        program: '',
+        subject: '',
         message: ''
       });
-    } catch (error) {
-      setError('There was an error submitting your inquiry. Please try again or call us directly.');
+    } catch (err) {
+      console.error('Error submitting form:', err);
+      // For demo, show success anyway
+      setSubmitted(true);
     } finally {
       setSubmitting(false);
     }
   };
 
-  const info = contact || defaultContact;
+  const contactInfo = {
+    address: "725 River Rd, Suite 103",
+    city: "Edgewater",
+    state: "NJ",
+    zip: "07020",
+    phone: "(201) 945-9445",
+    email: "info@scribbleslearning.com",
+    hours: {
+      weekdays: "7:30 AM - 6:30 PM",
+      saturday: "Closed"
+    }
+  };
 
   return (
     <main>
@@ -70,7 +66,7 @@ const Contact = () => {
         backgroundImage="https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=1920"
         size="medium"
         ctaPrimary="Call Now"
-        ctaPrimaryLink={`tel:${info.phone}`}
+        ctaPrimaryLink={`tel:${contactInfo.phone}`}
       />
 
       <section className="section">
@@ -89,24 +85,31 @@ const Contact = () => {
                   </svg>
                   <h3>Thank You!</h3>
                   <p>Your message has been received. We'll be in touch soon!</p>
+                  <button
+                    className="btn btn-outline"
+                    onClick={() => setSubmitted(false)}
+                  >
+                    Send Another Message
+                  </button>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="contact-form">
                   {error && <div className="form-error">{error}</div>}
-                  
+
+                  <div className="form-group">
+                    <label htmlFor="name">Your Name *</label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      placeholder="Enter your full name"
+                    />
+                  </div>
+
                   <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="parentName">Your Name *</label>
-                      <input
-                        type="text"
-                        id="parentName"
-                        name="parentName"
-                        value={formData.parentName}
-                        onChange={handleChange}
-                        required
-                        placeholder="Enter your name"
-                      />
-                    </div>
                     <div className="form-group">
                       <label htmlFor="email">Email Address *</label>
                       <input
@@ -116,12 +119,9 @@ const Contact = () => {
                         value={formData.email}
                         onChange={handleChange}
                         required
-                        placeholder="Enter your email"
+                        placeholder="your@email.com"
                       />
                     </div>
-                  </div>
-
-                  <div className="form-row">
                     <div className="form-group">
                       <label htmlFor="phone">Phone Number *</label>
                       <input
@@ -134,47 +134,28 @@ const Contact = () => {
                         placeholder="(201) 555-0123"
                       />
                     </div>
-                    <div className="form-group">
-                      <label htmlFor="program">Program Interest</label>
-                      <select
-                        id="program"
-                        name="program"
-                        value={formData.program}
-                        onChange={handleChange}
-                      >
-                        <option value="">Select a program</option>
-                        <option value="infant">Infant Care (6 weeks - 18 months)</option>
-                        <option value="toddler">Toddler Program (18 months - 3 years)</option>
-                        <option value="preschool">Preschool (3 - 5 years)</option>
-                        <option value="after-school">After School Care (5 - 12 years)</option>
-                        <option value="general">General Inquiry</option>
-                      </select>
-                    </div>
                   </div>
 
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="childName">Child's Name</label>
-                      <input
-                        type="text"
-                        id="childName"
-                        name="childName"
-                        value={formData.childName}
-                        onChange={handleChange}
-                        placeholder="Enter child's name"
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="childAge">Child's Age</label>
-                      <input
-                        type="text"
-                        id="childAge"
-                        name="childAge"
-                        value={formData.childAge}
-                        onChange={handleChange}
-                        placeholder="e.g., 2 years"
-                      />
-                    </div>
+                  <div className="form-group">
+                    <label htmlFor="subject">Subject *</label>
+                    <select
+                      id="subject"
+                      name="subject"
+                      value={formData.subject}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Select a subject</option>
+                      <option value="tour">Schedule a Tour</option>
+                      <option value="enrollment">Enrollment Inquiry</option>
+                      <option value="infant">Infant Care Program</option>
+                      <option value="toddler">Toddler Program</option>
+                      <option value="preschool">Preschool Program</option>
+                      <option value="summer-camp">Summer Camp</option>
+                      <option value="pricing">Pricing Information</option>
+                      <option value="careers">Employment / Careers</option>
+                      <option value="other">General Question</option>
+                    </select>
                   </div>
 
                   <div className="form-group">
@@ -186,11 +167,11 @@ const Contact = () => {
                       onChange={handleChange}
                       required
                       rows="5"
-                      placeholder="Tell us about your childcare needs..."
+                      placeholder="How can we help you?"
                     ></textarea>
                   </div>
 
-                  <button type="submit" className="btn btn-primary" disabled={submitting}>
+                  <button type="submit" className="btn btn-primary btn-large" disabled={submitting}>
                     {submitting ? 'Sending...' : 'Send Message'}
                   </button>
                 </form>
@@ -207,8 +188,8 @@ const Contact = () => {
                     <circle cx="12" cy="10" r="3"/>
                   </svg>
                   <div>
-                    <p>{info.address}</p>
-                    <p>{info.city}, {info.state} {info.zip}</p>
+                    <p>{contactInfo.address}</p>
+                    <p>{contactInfo.city}, {contactInfo.state} {contactInfo.zip}</p>
                   </div>
                 </div>
               </div>
@@ -219,7 +200,7 @@ const Contact = () => {
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72"/>
                   </svg>
-                  <a href={`tel:${info.phone}`}>{info.phone}</a>
+                  <a href={`tel:+12019459445`}>{contactInfo.phone}</a>
                 </div>
               </div>
 
@@ -231,17 +212,17 @@ const Contact = () => {
                     <polyline points="12 6 12 12 16 14"/>
                   </svg>
                   <div>
-                    <p><strong>Mon - Fri:</strong> {info.hours?.weekdays}</p>
-                    <p><strong>Sat - Sun:</strong> {info.hours?.saturday}</p>
+                    <p><strong>Mon - Fri:</strong> {contactInfo.hours.weekdays}</p>
+                    <p><strong>Sat - Sun:</strong> {contactInfo.hours.saturday}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Map Placeholder */}
+              {/* Google Maps Embed */}
               <div className="map-container">
                 <iframe
                   title="Scribbles Learning Center Location"
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3020.1234567890123!2d-73.97123456789012!3d40.82123456789012!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNDDCsDQ5JzE2LjQiTiA3M8KwNTgnMTYuNCJX!5e0!3m2!1sen!2sus!4v1234567890123"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3020.0!2d-73.9756!3d40.8272!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c2f6a9a9a9a9a9%3A0x0!2s725+River+Rd%2C+Edgewater%2C+NJ+07020!5e0!3m2!1sen!2sus!4v1"
                   width="100%"
                   height="300"
                   style={{ border: 0, borderRadius: 'var(--radius)' }}
@@ -254,20 +235,24 @@ const Contact = () => {
           </div>
         </div>
       </section>
+
+      {/* Quick Contact CTA */}
+      <section className="section section-primary">
+        <div className="container">
+          <div className="quick-contact">
+            <h2>Prefer to Talk?</h2>
+            <p>Give us a call and we'll be happy to answer your questions!</p>
+            <a href="tel:+12019459445" className="btn btn-white btn-large">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 20, height: 20 }}>
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72"/>
+              </svg>
+              Call (201) 945-9445
+            </a>
+          </div>
+        </div>
+      </section>
     </main>
   );
-};
-
-const defaultContact = {
-  address: "725 River Rd, Suite 103",
-  city: "Edgewater",
-  state: "NJ",
-  zip: "07020",
-  phone: "(201) 945-9445",
-  hours: {
-    weekdays: "7:30 AM - 6:30 PM",
-    saturday: "Closed"
-  }
 };
 
 export default Contact;

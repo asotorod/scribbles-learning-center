@@ -1,0 +1,696 @@
+/* ===================================
+   KIOSK - Fullscreen Touch Interface
+   =================================== */
+
+/* Container */
+.kiosk-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--cream);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: var(--font-body);
+}
+
+.kiosk-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  overflow-y: auto;
+}
+
+/* Logo Section */
+.kiosk-logo {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.kiosk-logo img {
+  height: 100px;
+  margin-bottom: 16px;
+}
+
+.kiosk-logo h1 {
+  font-size: 32px;
+  color: var(--color-fern);
+  margin: 0;
+  font-weight: 700;
+}
+
+/* PIN Section */
+.kiosk-pin-section {
+  text-align: center;
+  width: 100%;
+  max-width: 400px;
+}
+
+.kiosk-pin-section h2 {
+  font-size: 28px;
+  color: var(--color-charcoal);
+  margin: 0 0 8px;
+}
+
+.kiosk-pin-section > p {
+  font-size: 16px;
+  color: var(--gray-600);
+  margin: 0 0 32px;
+  line-height: 1.5;
+}
+
+/* PIN Dots */
+.pin-dots {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.pin-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 3px solid var(--color-fern);
+  background: transparent;
+  transition: all 0.2s ease;
+}
+
+.pin-dot.filled {
+  background: var(--color-fern);
+  transform: scale(1.1);
+}
+
+/* Number Pad */
+.kiosk-numpad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.numpad-btn {
+  width: 90px;
+  height: 90px;
+  border-radius: var(--radius-lg);
+  border: none;
+  background: var(--white);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--color-charcoal);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.numpad-btn:hover {
+  background: var(--color-fennel);
+  transform: scale(1.02);
+}
+
+.numpad-btn:active {
+  transform: scale(0.98);
+  box-shadow: none;
+}
+
+.numpad-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.numpad-clear {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--gray-600);
+}
+
+.numpad-back {
+  font-size: 28px;
+}
+
+/* Error Message */
+.kiosk-error {
+  margin-top: 24px;
+  padding: 16px 24px;
+  background: #FEE2E2;
+  color: #DC2626;
+  border-radius: var(--radius);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Loading */
+.kiosk-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+  color: var(--color-fern);
+  font-size: 18px;
+}
+
+.kiosk-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--color-fennel);
+  border-top-color: var(--color-fern);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Demo Info */
+.kiosk-demo-info {
+  position: absolute;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-fennel);
+  padding: 12px 24px;
+  border-radius: var(--radius);
+}
+
+.kiosk-demo-info p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-charcoal);
+}
+
+/* Time Display */
+.kiosk-time {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 24px;
+  background: var(--color-fern);
+  text-align: center;
+}
+
+.time-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.time-value {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--white);
+}
+
+.date-value {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ===================================
+   PARENT VIEW
+   =================================== */
+
+.kiosk-parent {
+  justify-content: flex-start;
+  padding-top: 40px;
+}
+
+.kiosk-header {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.kiosk-welcome h1 {
+  font-size: 36px;
+  color: var(--color-charcoal);
+  margin: 0 0 8px;
+}
+
+.kiosk-welcome p {
+  font-size: 18px;
+  color: var(--gray-600);
+  margin: 0;
+}
+
+.kiosk-done-btn {
+  padding: 16px 40px;
+  font-size: 18px;
+  font-weight: 700;
+  background: var(--color-beige);
+  color: var(--color-charcoal);
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.kiosk-done-btn:hover {
+  background: var(--color-pistachio);
+}
+
+/* Children Grid */
+.kiosk-children-grid {
+  width: 100%;
+  max-width: 900px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 24px;
+}
+
+.kiosk-child-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.child-photo {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: var(--color-fennel);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.child-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.child-photo span {
+  font-size: 40px;
+  font-weight: 700;
+  color: var(--color-fern);
+}
+
+.kiosk-child-card .child-info h3 {
+  font-size: 24px;
+  margin: 0 0 8px;
+  color: var(--color-charcoal);
+}
+
+.kiosk-child-card .child-program {
+  font-size: 16px;
+  color: var(--gray-600);
+  margin: 0 0 16px;
+}
+
+.child-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  margin-bottom: 24px;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.child-status.status-not_checked_in {
+  background: var(--color-fennel);
+  color: var(--color-charcoal);
+}
+
+.child-status.status-not_checked_in .status-dot {
+  background: var(--gray-500);
+}
+
+.child-status.status-checked_in {
+  background: #D1FAE5;
+  color: #059669;
+}
+
+.child-status.status-checked_in .status-dot {
+  background: #059669;
+}
+
+.child-status.status-checked_out {
+  background: var(--color-beige);
+  color: var(--color-brown);
+}
+
+.child-status.status-checked_out .status-dot {
+  background: var(--color-brown);
+}
+
+.child-actions {
+  width: 100%;
+}
+
+.child-complete {
+  padding: 16px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-fern);
+}
+
+/* Kiosk Buttons */
+.kiosk-btn {
+  width: 100%;
+  min-height: 70px;
+  padding: 20px 40px;
+  font-size: 22px;
+  font-weight: 700;
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.kiosk-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.kiosk-btn-primary {
+  background: var(--color-fern);
+  color: var(--white);
+}
+
+.kiosk-btn-primary:hover:not(:disabled) {
+  background: var(--color-fern-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.kiosk-btn-secondary {
+  background: var(--color-peach);
+  color: var(--color-charcoal);
+}
+
+.kiosk-btn-secondary:hover:not(:disabled) {
+  background: var(--accent-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.kiosk-btn-large {
+  min-height: 100px;
+  font-size: 28px;
+  max-width: 400px;
+}
+
+.kiosk-btn .btn-icon {
+  font-size: 32px;
+}
+
+.kiosk-btn .btn-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Footer */
+.kiosk-footer {
+  margin-top: auto;
+  padding-top: 40px;
+}
+
+.kiosk-footer p {
+  font-size: 14px;
+  color: var(--gray-500);
+  margin: 0;
+}
+
+/* Toast Notifications */
+.kiosk-toast {
+  position: fixed;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 20px 40px;
+  border-radius: var(--radius-lg);
+  font-size: 24px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  animation: slideDown 0.3s ease;
+  z-index: 1000;
+  box-shadow: var(--shadow-lg);
+}
+
+.kiosk-toast.checkin,
+.kiosk-toast.clockin {
+  background: #D1FAE5;
+  color: #059669;
+}
+
+.kiosk-toast.checkout,
+.kiosk-toast.clockout {
+  background: var(--color-fennel);
+  color: var(--color-charcoal);
+}
+
+.kiosk-toast .toast-icon {
+  font-size: 32px;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* ===================================
+   EMPLOYEE VIEW
+   =================================== */
+
+.kiosk-employee {
+  justify-content: flex-start;
+  padding-top: 40px;
+}
+
+.kiosk-clock-card {
+  width: 100%;
+  max-width: 600px;
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  box-shadow: var(--shadow);
+}
+
+.clock-status-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 40px;
+  padding-bottom: 32px;
+  border-bottom: 2px solid var(--color-beige);
+}
+
+.clock-status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.clock-status-indicator .status-icon {
+  font-size: 48px;
+}
+
+.clock-status-indicator.active .status-icon {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.clock-status-indicator h2 {
+  font-size: 28px;
+  margin: 0 0 4px;
+  color: var(--color-charcoal);
+}
+
+.clock-status-indicator p {
+  font-size: 16px;
+  color: var(--gray-600);
+  margin: 0;
+}
+
+.hours-worked {
+  text-align: right;
+}
+
+.hours-label {
+  display: block;
+  font-size: 14px;
+  color: var(--gray-600);
+  margin-bottom: 4px;
+}
+
+.hours-value {
+  font-size: 40px;
+  font-weight: 700;
+  color: var(--color-fern);
+}
+
+.clock-action-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.clock-summary {
+  padding-top: 24px;
+  border-top: 1px solid var(--color-beige);
+}
+
+.clock-summary h3 {
+  font-size: 18px;
+  margin: 0 0 16px;
+  color: var(--color-charcoal);
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-beige);
+  font-size: 16px;
+}
+
+.summary-row:last-child {
+  border-bottom: none;
+}
+
+.summary-row span:first-child {
+  color: var(--gray-600);
+}
+
+.summary-row span:last-child {
+  font-weight: 600;
+  color: var(--color-charcoal);
+}
+
+/* ===================================
+   RESPONSIVE
+   =================================== */
+
+@media (max-width: 768px) {
+  .kiosk-content {
+    padding: 24px;
+  }
+
+  .kiosk-logo img {
+    height: 70px;
+  }
+
+  .kiosk-logo h1 {
+    font-size: 24px;
+  }
+
+  .kiosk-pin-section h2 {
+    font-size: 22px;
+  }
+
+  .numpad-btn {
+    width: 75px;
+    height: 75px;
+    font-size: 28px;
+  }
+
+  .kiosk-numpad {
+    gap: 8px;
+  }
+
+  .time-value {
+    font-size: 28px;
+  }
+
+  .kiosk-header {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+  }
+
+  .kiosk-welcome h1 {
+    font-size: 28px;
+  }
+
+  .kiosk-children-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .kiosk-btn {
+    min-height: 60px;
+    font-size: 18px;
+  }
+
+  .kiosk-btn-large {
+    min-height: 80px;
+    font-size: 22px;
+  }
+
+  .clock-status-section {
+    flex-direction: column;
+    gap: 24px;
+    text-align: center;
+  }
+
+  .clock-status-indicator {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .hours-worked {
+    text-align: center;
+  }
+}
+
+@media (max-width: 400px) {
+  .numpad-btn {
+    width: 65px;
+    height: 65px;
+    font-size: 24px;
+  }
+
+  .kiosk-numpad {
+    max-width: 220px;
+  }
+}

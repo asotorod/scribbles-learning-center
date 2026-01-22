@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import './Admin.css';
 
 const AdminLogin = () => {
@@ -9,6 +9,7 @@ const AdminLogin = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,9 +17,14 @@ const AdminLogin = () => {
     setLoading(true);
 
     try {
-      const response = await authAPI.login(email, password);
-      localStorage.setItem('adminToken', response.data.token);
-      localStorage.setItem('adminUser', JSON.stringify(response.data.user));
+      const user = await login(email, password);
+
+      // Check if user has admin role
+      if (!['super_admin', 'admin'].includes(user.role)) {
+        setError('You do not have admin access');
+        return;
+      }
+
       navigate('/admin');
     } catch (err) {
       setError(err.response?.data?.error || 'Invalid email or password');

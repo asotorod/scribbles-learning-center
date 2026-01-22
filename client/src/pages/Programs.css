@@ -52,10 +52,21 @@
   color: var(--dark);
 }
 
+.program-color-bar {
+  width: 60px;
+  height: 4px;
+  border-radius: 2px;
+  margin-bottom: 16px;
+}
+
 .program-detail-content h2 {
   font-size: 36px;
   margin-bottom: 20px;
   color: var(--dark);
+}
+
+.program-detail-content .btn {
+  margin-top: 24px;
 }
 
 .program-description {
@@ -128,6 +139,55 @@
   color: var(--primary);
 }
 
+/* Requirements Grid */
+.requirements-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.requirement-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 32px 24px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+
+.requirement-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.requirement-icon {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.requirement-icon svg {
+  width: 32px;
+  height: 32px;
+  color: var(--white);
+}
+
+.requirement-card h3 {
+  font-size: 18px;
+  margin-bottom: 12px;
+  color: var(--dark);
+}
+
+.requirement-card p {
+  font-size: 14px;
+  color: var(--gray-600);
+  line-height: 1.6;
+}
+
 /* Responsive */
 @media (max-width: 968px) {
   .program-detail {
@@ -145,5 +205,15 @@
 
   .program-detail-content h2 {
     font-size: 28px;
+  }
+
+  .requirements-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .requirements-grid {
+    grid-template-columns: 1fr;
   }
 }

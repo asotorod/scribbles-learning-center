@@ -22,9 +22,9 @@ const Navbar = () => {
   const navLinks = [
     { path: '/', label: 'Home' },
     { path: '/programs', label: 'Programs' },
-    { path: '/about', label: 'About Us' },
-    { path: '/gallery', label: 'Gallery' },
+    { path: '/about', label: 'About' },
     { path: '/contact', label: 'Contact' },
+    { path: '/careers', label: 'Careers' },
   ];
 
   return (
@@ -48,9 +48,14 @@ const Navbar = () => {
               </li>
             ))}
           </ul>
-          <Link to="/contact" className="btn btn-primary navbar-cta">
-            Schedule a Tour
-          </Link>
+          <div className="navbar-buttons">
+            <Link to="/login" className="btn btn-outline navbar-portal">
+              Parent Portal
+            </Link>
+            <Link to="/contact" className="btn btn-primary navbar-cta">
+              Schedule a Tour
+            </Link>
+          </div>
         </div>
 
         <button 

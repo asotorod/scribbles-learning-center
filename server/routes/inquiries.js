@@ -1,5 +1,5 @@
 const express = require('express');
-const { authenticateToken } = require('../middleware/auth');
+const { verifyToken } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -41,7 +41,7 @@ let inquiries = [
 ];
 
 // Get all inquiries (protected)
-router.get('/', authenticateToken, (req, res) => {
+router.get('/', verifyToken, (req, res) => {
   const sortedInquiries = [...inquiries].sort(
     (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
   );
@@ -49,7 +49,7 @@ router.get('/', authenticateToken, (req, res) => {
 });
 
 // Get single inquiry (protected)
-router.get('/:id', authenticateToken, (req, res) => {
+router.get('/:id', verifyToken, (req, res) => {
   const inquiry = inquiries.find(i => i.id === parseInt(req.params.id));
   if (!inquiry) {
     return res.status(404).json({ error: 'Inquiry not found' });
@@ -85,7 +85,7 @@ router.post('/', (req, res) => {
 });
 
 // Reply to inquiry (protected)
-router.post('/:id/reply', authenticateToken, (req, res) => {
+router.post('/:id/reply', verifyToken, (req, res) => {
   const { message } = req.body;
   const inquiry = inquiries.find(i => i.id === parseInt(req.params.id));
 
@@ -111,7 +111,7 @@ router.post('/:id/reply', authenticateToken, (req, res) => {
 });
 
 // Update inquiry status (protected)
-router.patch('/:id/status', authenticateToken, (req, res) => {
+router.patch('/:id/status', verifyToken, (req, res) => {
   const { status } = req.body;
   const inquiry = inquiries.find(i => i.id === parseInt(req.params.id));
 
@@ -129,7 +129,7 @@ router.patch('/:id/status', authenticateToken, (req, res) => {
 });
 
 // Delete inquiry (protected)
-router.delete('/:id', authenticateToken, (req, res) => {
+router.delete('/:id', verifyToken, (req, res) => {
   const index = inquiries.findIndex(i => i.id === parseInt(req.params.id));
 
   if (index === -1) {
