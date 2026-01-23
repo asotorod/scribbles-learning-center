@@ -32,7 +32,6 @@ const Navbar = () => {
       <div className="container navbar-container">
         <Link to="/" className="navbar-logo">
           <img src="/logo.png" alt="Scribbles Learning Center" />
-          <span>Scribbles</span>
         </Link>
 
         <div className={`navbar-menu ${isMobileMenuOpen ? 'active' : ''}`}>
