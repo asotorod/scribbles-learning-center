@@ -37,7 +37,7 @@ const defaultPrograms = [
     id: 4,
     name: "Summer Camp",
     slug: "summer-camp",
-    age_range: "5 - 12 years",
+    age_range: "Up to 5 years",
     short_description: "Fun-filled summer adventures with learning and outdoor activities.",
     image_url: "https://images.unsplash.com/photo-1472162072942-cd5147eb3902?w=800",
     color: "#768E78" // Fern

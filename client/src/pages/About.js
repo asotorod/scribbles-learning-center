@@ -226,7 +226,7 @@ const About = () => {
             </div>
             <div className="healthcare-image">
               <img
-                src="https://images.unsplash.com/photo-1551190822-a9333d879b1f?w=800"
+                src="https://plus.unsplash.com/premium_photo-1661694196873-034c03440de6?q=80&w=2340&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                 alt="Healthcare network"
               />
             </div>

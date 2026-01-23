@@ -61,7 +61,7 @@ const defaultPrograms = [
     id: 4,
     name: "Summer Camp",
     slug: "summer-camp",
-    age_range: "5 - 12 years",
+    age_range: "Up to 5 years",
     description: "Fun-filled summer adventures combining learning and outdoor activities! Our summer camp provides engaging themed weeks, field trips, swimming, arts and crafts, and plenty of opportunities to make lasting friendships.",
     features: [
       "Weekly themed activities",

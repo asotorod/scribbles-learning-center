@@ -84,12 +84,6 @@ const Login = () => {
           </Link>
         </div>
 
-        <div className="login-demo-info">
-          <p><strong>Demo Credentials:</strong></p>
-          <p>Email: parent@example.com</p>
-          <p>Password: password123</p>
-        </div>
-
         <Link to="/" className="login-back">
           Back to Website
         </Link>
