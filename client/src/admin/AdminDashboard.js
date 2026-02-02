@@ -88,7 +88,8 @@ const DashboardHome = () => {
     const fetchStats = async () => {
       try {
         const response = await inquiryAPI.getAll();
-        const inquiries = response.data;
+        const data = response.data?.data?.inquiries;
+        const inquiries = Array.isArray(data) ? data : (Array.isArray(response.data) ? response.data : []);
         setStats({
           inquiries: inquiries.length,
           newInquiries: inquiries.filter(i => i.status === 'new').length
@@ -177,7 +178,8 @@ const InquiriesPanel = () => {
   const fetchInquiries = async () => {
     try {
       const response = await inquiryAPI.getAll();
-      setInquiries(response.data);
+      const data = response.data?.data?.inquiries;
+      setInquiries(Array.isArray(data) ? data : (Array.isArray(response.data) ? response.data : []));
     } catch (error) {
       console.error('Error fetching inquiries:', error);
     } finally {

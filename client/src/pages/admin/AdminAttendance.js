@@ -28,18 +28,21 @@ const AdminAttendance = () => {
         api.get('/attendance/absences').catch(() => null),
       ]);
 
-      // Use mock data if API fails
-      const todayData = todayRes?.data?.data || mockTodayData;
-      const absencesData = absencesRes?.data?.data || mockAbsences;
+      // Extract data from API response (API returns { data: { stats, recentCheckins, absences } })
+      const todayData = todayRes?.data?.data || {};
+      const absencesList = absencesRes?.data?.data?.absences;
+      const absencesData = Array.isArray(absencesList) ? absencesList : mockAbsences;
 
       setStats({
-        expected: todayData.expected || 45,
-        present: todayData.present?.length || mockCheckIns.filter(c => c.status === 'checked_in').length,
-        absent: todayData.absent?.length || mockAbsences.filter(a => a.status !== 'cancelled').length,
+        expected: todayData.stats?.expected || 0,
+        present: todayData.stats?.checkedIn || 0,
+        absent: todayData.stats?.absent || 0,
         pending: absencesData.filter(a => a.status === 'pending').length,
       });
 
-      setCheckIns(todayData.checkIns || mockCheckIns);
+      // API returns recentCheckins, not checkIns
+      const checkins = Array.isArray(todayData.recentCheckins) ? todayData.recentCheckins : mockCheckIns;
+      setCheckIns(checkins);
       setAbsences(absencesData);
     } catch (error) {
       console.error('Error fetching attendance:', error);

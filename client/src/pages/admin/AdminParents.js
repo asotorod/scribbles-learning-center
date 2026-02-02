@@ -42,7 +42,8 @@ const AdminParents = () => {
   const fetchParents = async () => {
     try {
       const response = await api.get('/parents');
-      setParents(response.data?.data || mockParents);
+      const data = response.data?.data?.parents;
+      setParents(Array.isArray(data) ? data : mockParents);
     } catch (error) {
       console.error('Error fetching parents:', error);
       setParents(mockParents);
@@ -54,7 +55,8 @@ const AdminParents = () => {
   const fetchChildren = async () => {
     try {
       const response = await api.get('/children');
-      setChildren(response.data?.data || mockChildren);
+      const data = response.data?.data?.children;
+      setChildren(Array.isArray(data) ? data : mockChildren);
     } catch (error) {
       console.error('Error fetching children:', error);
       setChildren(mockChildren);

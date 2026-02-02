@@ -36,22 +36,26 @@ const AdminDashboard = () => {
       const absences = Array.isArray(absencesRes.data?.data?.absences) ? absencesRes.data.data.absences : [];
 
       setStats({
-        enrolled: children.length || 45,
-        present: attendance.stats?.checkedIn || attendance.present?.length || 32,
-        absent: attendance.stats?.absent || attendance.absent?.length || 8,
-        pendingAbsences: absences.length || 3,
+        enrolled: children.length || 0,
+        present: attendance.stats?.checkedIn || 0,
+        absent: attendance.stats?.absent || 0,
+        pendingAbsences: absences.length || 0,
       });
 
       setPendingAbsences(absences.slice(0, 5));
 
-      // Mock recent activity for now
-      setRecentActivity([
-        { id: 1, type: 'checkin', message: 'Emma Johnson checked in', time: '8:32 AM', icon: '✅' },
-        { id: 2, type: 'absence', message: 'Noah Smith reported absent', time: '8:15 AM', icon: '📝' },
-        { id: 3, type: 'checkin', message: 'Olivia Williams checked in', time: '8:10 AM', icon: '✅' },
-        { id: 4, type: 'checkout', message: 'Liam Brown checked out', time: 'Yesterday 5:30 PM', icon: '👋' },
-        { id: 5, type: 'new', message: 'New parent inquiry received', time: 'Yesterday 3:45 PM', icon: '📬' },
-      ]);
+      // Build recent activity from real check-in data
+      const recentCheckins = Array.isArray(attendance.recentCheckins) ? attendance.recentCheckins : [];
+      const activity = recentCheckins.slice(0, 5).map((checkin, idx) => ({
+        id: checkin.id || idx,
+        type: 'checkin',
+        message: `${checkin.child_name || 'Child'} checked in`,
+        time: checkin.check_in_time
+          ? new Date(checkin.check_in_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+          : '',
+        icon: '✅',
+      }));
+      setRecentActivity(activity);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -162,17 +166,24 @@ const AdminDashboard = () => {
             <h2>Recent Activity</h2>
           </div>
           <div className="dashboard-card-body">
-            <div className="activity-list">
-              {(recentActivity || []).map((activity) => (
-                <div key={activity.id} className="activity-item">
-                  <span className="activity-icon">{activity.icon}</span>
-                  <div className="activity-content">
-                    <p>{activity.message}</p>
-                    <span className="activity-time">{activity.time}</span>
+            {(!recentActivity || recentActivity.length === 0) ? (
+              <div className="empty-state">
+                <span className="empty-icon">📋</span>
+                <p>No recent activity</p>
+              </div>
+            ) : (
+              <div className="activity-list">
+                {recentActivity.map((activity) => (
+                  <div key={activity.id} className="activity-item">
+                    <span className="activity-icon">{activity.icon}</span>
+                    <div className="activity-content">
+                      <p>{activity.message}</p>
+                      <span className="activity-time">{activity.time}</span>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
