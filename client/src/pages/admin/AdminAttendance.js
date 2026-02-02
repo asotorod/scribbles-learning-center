@@ -31,7 +31,17 @@ const AdminAttendance = () => {
       // Extract data from API response (API returns { data: { stats, recentCheckins, absences } })
       const todayData = todayRes?.data?.data || {};
       const absencesList = absencesRes?.data?.data?.absences;
-      const absencesData = Array.isArray(absencesList) ? absencesList : [];
+      const absencesData = Array.isArray(absencesList)
+        ? absencesList.map(a => ({
+            id: a.id,
+            child_name: a.childName || a.child_name || '',
+            reason: a.reasonName || a.reason_name || a.reason || '',
+            start_date: a.startDate || a.start_date,
+            end_date: a.endDate || a.end_date,
+            reported_by: a.reportedBy || a.reported_by || '',
+            status: a.status || 'pending',
+          }))
+        : [];
 
       setStats({
         expected: todayData.stats?.expected || 0,
@@ -40,8 +50,26 @@ const AdminAttendance = () => {
         pending: absencesData.filter(a => a.status === 'pending').length,
       });
 
-      // API returns recentCheckins, not checkIns
-      const checkins = Array.isArray(todayData.recentCheckins) ? todayData.recentCheckins : [];
+      // Normalize camelCase API data to snake_case for Table columns + derive status
+      const checkins = Array.isArray(todayData.recentCheckins)
+        ? todayData.recentCheckins.map(c => {
+            let status = 'not_arrived';
+            if (c.checkInTime && c.checkOutTime) status = 'checked_out';
+            else if (c.checkInTime) status = 'checked_in';
+            return {
+              id: c.id,
+              child_name: c.childName || c.child_name || '',
+              child_id: c.childId || c.child_id,
+              photo_url: c.photoUrl || c.photo_url,
+              program: c.programName || c.program_name || c.program || '',
+              check_in_time: c.checkInTime || c.check_in_time,
+              check_out_time: c.checkOutTime || c.check_out_time,
+              checked_in_by: c.checkedInBy || c.checked_in_by || '',
+              checked_out_by: c.checkedOutBy || c.checked_out_by || '',
+              status,
+            };
+          })
+        : [];
       setCheckIns(checkins);
       setAbsences(absencesData);
     } catch (error) {

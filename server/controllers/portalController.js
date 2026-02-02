@@ -167,10 +167,12 @@ const getMyChildren = async (req, res) => {
         c.emergency_contact_name, c.emergency_contact_phone,
         c.enrollment_date, c.is_active,
         p.name as program_name, p.color as program_color,
-        pc.relationship, pc.is_primary_contact
+        pc.relationship, pc.is_primary_contact,
+        cc.check_in_time, cc.check_out_time
       FROM children c
       JOIN parent_children pc ON c.id = pc.child_id
       LEFT JOIN programs p ON c.program_id = p.id
+      LEFT JOIN child_checkins cc ON c.id = cc.child_id AND cc.checkin_date = CURRENT_DATE
       WHERE pc.parent_id = $1 AND c.is_active = true
       ORDER BY c.first_name
     `, [parent.id]);
@@ -178,23 +180,32 @@ const getMyChildren = async (req, res) => {
     res.json({
       success: true,
       data: {
-        children: result.rows.map(child => ({
-          id: child.id,
-          firstName: child.first_name,
-          lastName: child.last_name,
-          dateOfBirth: child.date_of_birth,
-          photoUrl: child.photo_url,
-          programId: child.program_id,
-          programName: child.program_name,
-          programColor: child.program_color,
-          allergies: child.allergies,
-          medicalNotes: child.medical_notes,
-          emergencyContactName: child.emergency_contact_name,
-          emergencyContactPhone: child.emergency_contact_phone,
-          enrollmentDate: child.enrollment_date,
-          relationship: child.relationship,
-          isPrimaryContact: child.is_primary_contact
-        }))
+        children: result.rows.map(child => {
+          let todayStatus = 'not_checked_in';
+          if (child.check_in_time && child.check_out_time) todayStatus = 'checked_out';
+          else if (child.check_in_time) todayStatus = 'checked_in';
+
+          return {
+            id: child.id,
+            firstName: child.first_name,
+            lastName: child.last_name,
+            dateOfBirth: child.date_of_birth,
+            photoUrl: child.photo_url,
+            programId: child.program_id,
+            programName: child.program_name,
+            programColor: child.program_color,
+            allergies: child.allergies,
+            medicalNotes: child.medical_notes,
+            emergencyContactName: child.emergency_contact_name,
+            emergencyContactPhone: child.emergency_contact_phone,
+            enrollmentDate: child.enrollment_date,
+            relationship: child.relationship,
+            isPrimaryContact: child.is_primary_contact,
+            status: todayStatus,
+            checkInTime: child.check_in_time,
+            checkOutTime: child.check_out_time
+          };
+        })
       }
     });
   } catch (error) {
