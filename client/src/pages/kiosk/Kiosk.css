@@ -90,18 +90,18 @@
 .kiosk-numpad {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  max-width: 320px;
+  gap: 10px;
+  max-width: 290px;
   margin: 0 auto;
 }
 
 .numpad-btn {
-  width: 90px;
-  height: 90px;
+  width: 80px;
+  height: 72px;
   border-radius: var(--radius-lg);
   border: none;
   background: var(--white);
-  font-size: 32px;
+  font-size: 30px;
   font-weight: 700;
   color: var(--color-charcoal);
   cursor: pointer;
