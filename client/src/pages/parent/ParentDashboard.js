@@ -22,10 +22,10 @@ const ParentDashboard = () => {
       ]);
 
       const childrenData = childrenRes?.data?.data?.children;
-      setChildren(Array.isArray(childrenData) ? childrenData : mockChildren);
+      setChildren(Array.isArray(childrenData) ? childrenData : []);
 
       const absencesData = absencesRes?.data?.data?.absences;
-      const absences = Array.isArray(absencesData) ? absencesData : mockAbsences;
+      const absences = Array.isArray(absencesData) ? absencesData : [];
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
@@ -37,8 +37,6 @@ const ParentDashboard = () => {
       );
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
-      setChildren(mockChildren);
-      setUpcomingAbsences(mockAbsences.slice(0, 2));
     } finally {
       setLoading(false);
     }
@@ -198,45 +196,5 @@ const ParentDashboard = () => {
     </div>
   );
 };
-
-// Mock data
-const mockChildren = [
-  {
-    id: 1,
-    first_name: 'Emma',
-    last_name: 'Johnson',
-    program: 'Preschool',
-    status: 'checked_in',
-    check_in_time: '8:32 AM',
-    photo_url: null,
-  },
-  {
-    id: 2,
-    first_name: 'Noah',
-    last_name: 'Johnson',
-    program: 'Toddler',
-    status: 'not_checked_in',
-    photo_url: null,
-  },
-];
-
-const mockAbsences = [
-  {
-    id: 1,
-    child_name: 'Emma Johnson',
-    start_date: new Date(Date.now() + 86400000 * 2).toISOString(),
-    end_date: null,
-    reason: 'Doctor Appointment',
-    status: 'acknowledged',
-  },
-  {
-    id: 2,
-    child_name: 'Noah Johnson',
-    start_date: new Date(Date.now() + 86400000 * 5).toISOString(),
-    end_date: new Date(Date.now() + 86400000 * 7).toISOString(),
-    reason: 'Family Vacation',
-    status: 'pending',
-  },
-];
 
 export default ParentDashboard;

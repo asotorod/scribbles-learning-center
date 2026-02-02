@@ -38,10 +38,9 @@ const AdminChildren = () => {
     try {
       const response = await api.get('/children');
       const data = response.data?.data?.children;
-      setChildren(Array.isArray(data) ? data : mockChildren);
+      setChildren(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching children:', error);
-      setChildren(mockChildren);
     } finally {
       setLoading(false);
     }
@@ -51,10 +50,9 @@ const AdminChildren = () => {
     try {
       const response = await api.get('/programs');
       const progData = response.data?.data?.programs;
-      setPrograms(Array.isArray(progData) ? progData : mockPrograms);
+      setPrograms(Array.isArray(progData) ? progData : []);
     } catch (error) {
       console.error('Error fetching programs:', error);
-      setPrograms(mockPrograms);
     }
   };
 
@@ -410,24 +408,5 @@ const AdminChildren = () => {
     </div>
   );
 };
-
-// Mock data for demo
-const mockChildren = [
-  { id: 1, first_name: 'Emma', last_name: 'Johnson', date_of_birth: '2021-03-15', program_id: '1', allergies: 'None', is_active: true },
-  { id: 2, first_name: 'Noah', last_name: 'Smith', date_of_birth: '2022-06-22', program_id: '2', allergies: 'Peanuts', is_active: true },
-  { id: 3, first_name: 'Olivia', last_name: 'Williams', date_of_birth: '2020-11-08', program_id: '3', allergies: 'None', is_active: true },
-  { id: 4, first_name: 'Liam', last_name: 'Brown', date_of_birth: '2021-08-30', program_id: '1', allergies: 'Dairy', is_active: true },
-  { id: 5, first_name: 'Ava', last_name: 'Davis', date_of_birth: '2022-01-12', program_id: '2', allergies: 'None', is_active: true },
-  { id: 6, first_name: 'Ethan', last_name: 'Miller', date_of_birth: '2020-05-25', program_id: '3', allergies: 'Eggs', is_active: true },
-  { id: 7, first_name: 'Sophia', last_name: 'Wilson', date_of_birth: '2021-12-03', program_id: '1', allergies: 'None', is_active: true },
-  { id: 8, first_name: 'Mason', last_name: 'Moore', date_of_birth: '2022-04-18', program_id: '2', allergies: 'None', is_active: false },
-];
-
-const mockPrograms = [
-  { id: '1', name: 'Infant Care', color: '#E79897' },
-  { id: '2', name: 'Toddler', color: '#C6C09C' },
-  { id: '3', name: 'Preschool', color: '#FCC88A' },
-  { id: '4', name: 'Summer Camp', color: '#768E78' },
-];
 
 export default AdminChildren;

@@ -43,10 +43,9 @@ const AdminParents = () => {
     try {
       const response = await api.get('/parents');
       const data = response.data?.data?.parents;
-      setParents(Array.isArray(data) ? data : mockParents);
+      setParents(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching parents:', error);
-      setParents(mockParents);
     } finally {
       setLoading(false);
     }
@@ -56,10 +55,9 @@ const AdminParents = () => {
     try {
       const response = await api.get('/children');
       const data = response.data?.data?.children;
-      setChildren(Array.isArray(data) ? data : mockChildren);
+      setChildren(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching children:', error);
-      setChildren(mockChildren);
     }
   };
 
@@ -523,25 +521,5 @@ const AdminParents = () => {
     </div>
   );
 };
-
-// Mock data
-const mockParents = [
-  { id: 1, first_name: 'Sarah', last_name: 'Johnson', email: 'sarah.j@email.com', phone: '(201) 555-0101', pin_code: '1234', children: [{ first_name: 'Emma' }] },
-  { id: 2, first_name: 'Michael', last_name: 'Smith', email: 'msmith@email.com', phone: '(201) 555-0102', pin_code: '2345', children: [{ first_name: 'Noah' }] },
-  { id: 3, first_name: 'Jennifer', last_name: 'Williams', email: 'jwilliams@email.com', phone: '(201) 555-0103', pin_code: '3456', children: [{ first_name: 'Olivia' }] },
-  { id: 4, first_name: 'David', last_name: 'Brown', email: 'dbrown@email.com', phone: '(201) 555-0104', pin_code: '4567', children: [{ first_name: 'Liam' }] },
-  { id: 5, first_name: 'Emily', last_name: 'Davis', email: 'edavis@email.com', phone: '(201) 555-0105', pin_code: null, children: [{ first_name: 'Ava' }] },
-];
-
-const mockChildren = [
-  { id: 1, first_name: 'Emma', last_name: 'Johnson' },
-  { id: 2, first_name: 'Noah', last_name: 'Smith' },
-  { id: 3, first_name: 'Olivia', last_name: 'Williams' },
-  { id: 4, first_name: 'Liam', last_name: 'Brown' },
-  { id: 5, first_name: 'Ava', last_name: 'Davis' },
-  { id: 6, first_name: 'Ethan', last_name: 'Miller' },
-  { id: 7, first_name: 'Sophia', last_name: 'Wilson' },
-  { id: 8, first_name: 'Mason', last_name: 'Moore' },
-];
 
 export default AdminParents;

@@ -31,7 +31,7 @@ const AdminAttendance = () => {
       // Extract data from API response (API returns { data: { stats, recentCheckins, absences } })
       const todayData = todayRes?.data?.data || {};
       const absencesList = absencesRes?.data?.data?.absences;
-      const absencesData = Array.isArray(absencesList) ? absencesList : mockAbsences;
+      const absencesData = Array.isArray(absencesList) ? absencesList : [];
 
       setStats({
         expected: todayData.stats?.expected || 0,
@@ -41,19 +41,11 @@ const AdminAttendance = () => {
       });
 
       // API returns recentCheckins, not checkIns
-      const checkins = Array.isArray(todayData.recentCheckins) ? todayData.recentCheckins : mockCheckIns;
+      const checkins = Array.isArray(todayData.recentCheckins) ? todayData.recentCheckins : [];
       setCheckIns(checkins);
       setAbsences(absencesData);
     } catch (error) {
       console.error('Error fetching attendance:', error);
-      setCheckIns(mockCheckIns);
-      setAbsences(mockAbsences);
-      setStats({
-        expected: 45,
-        present: mockCheckIns.filter(c => c.status === 'checked_in').length,
-        absent: mockAbsences.filter(a => a.status !== 'cancelled').length,
-        pending: mockAbsences.filter(a => a.status === 'pending').length,
-      });
     } finally {
       setLoading(false);
     }
@@ -306,29 +298,6 @@ const AdminAttendance = () => {
       </div>
     </div>
   );
-};
-
-// Mock data
-const mockCheckIns = [
-  { id: 1, child_name: 'Emma Johnson', program: 'Preschool', check_in_time: new Date().setHours(8, 32), check_out_time: null, checked_in_by: 'Sarah Johnson', status: 'checked_in' },
-  { id: 2, child_name: 'Olivia Williams', program: 'Preschool', check_in_time: new Date().setHours(8, 10), check_out_time: null, checked_in_by: 'Jennifer Williams', status: 'checked_in' },
-  { id: 3, child_name: 'Liam Brown', program: 'Infant', check_in_time: new Date().setHours(7, 45), check_out_time: new Date().setHours(17, 30), checked_in_by: 'David Brown', status: 'checked_out' },
-  { id: 4, child_name: 'Ava Davis', program: 'Toddler', check_in_time: new Date().setHours(9, 15), check_out_time: null, checked_in_by: 'Emily Davis', status: 'checked_in' },
-  { id: 5, child_name: 'Sophia Wilson', program: 'Infant', check_in_time: null, check_out_time: null, checked_in_by: null, status: 'not_arrived' },
-  { id: 6, child_name: 'Mason Moore', program: 'Toddler', check_in_time: null, check_out_time: null, checked_in_by: null, status: 'not_arrived' },
-];
-
-const mockAbsences = [
-  { id: 1, child_name: 'Noah Smith', start_date: new Date().toISOString(), end_date: null, reason: 'Sick - Fever', reported_by: 'Michael Smith', status: 'pending' },
-  { id: 2, child_name: 'Ethan Miller', start_date: new Date().toISOString(), end_date: new Date(Date.now() + 86400000).toISOString(), reason: 'Doctor Appointment', reported_by: 'Lisa Miller', status: 'acknowledged' },
-  { id: 3, child_name: 'Isabella Garcia', start_date: new Date().toISOString(), end_date: null, reason: 'Family Emergency', reported_by: 'Maria Garcia', status: 'pending' },
-];
-
-const mockTodayData = {
-  expected: 45,
-  present: mockCheckIns.filter(c => c.status === 'checked_in'),
-  absent: mockAbsences,
-  checkIns: mockCheckIns,
 };
 
 export default AdminAttendance;

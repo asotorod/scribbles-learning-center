@@ -41,13 +41,11 @@ const MyAccount = () => {
   const fetchAccountData = async () => {
     try {
       const response = await portalAPI.getProfile();
-      const data = response?.data?.data || mockProfile;
+      const data = response?.data?.data || {};
       setProfile(data);
-      setAuthorizedPickups(Array.isArray(data.authorized_pickups) ? data.authorized_pickups : mockPickups);
+      setAuthorizedPickups(Array.isArray(data.authorized_pickups) ? data.authorized_pickups : []);
     } catch (error) {
       console.error('Error fetching profile:', error);
-      setProfile(mockProfile);
-      setAuthorizedPickups(mockPickups);
     } finally {
       setLoading(false);
     }
@@ -422,38 +420,5 @@ const MyAccount = () => {
     </div>
   );
 };
-
-// Mock data for development
-const mockProfile = {
-  first_name: 'Sarah',
-  last_name: 'Johnson',
-  email: 'sarah.johnson@email.com',
-  phone: '(201) 555-0123',
-  address: '123 Main Street',
-  city: 'Fairview',
-  state: 'NJ',
-  zip_code: '07022',
-};
-
-const mockPickups = [
-  {
-    id: 1,
-    name: 'Michael Johnson',
-    relationship: 'Father',
-    phone: '(201) 555-0124',
-  },
-  {
-    id: 2,
-    name: 'Linda Smith',
-    relationship: 'Grandmother',
-    phone: '(201) 555-0125',
-  },
-  {
-    id: 3,
-    name: 'Robert Smith',
-    relationship: 'Grandfather',
-    phone: '(201) 555-0126',
-  },
-];
 
 export default MyAccount;
