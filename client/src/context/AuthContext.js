@@ -15,10 +15,15 @@ export const AuthProvider = ({ children }) => {
       const storedUser = localStorage.getItem('user');
       const accessToken = localStorage.getItem('accessToken');
 
-      if (storedUser && accessToken) {
-        setUser(JSON.parse(storedUser));
-        // Set default auth header
-        axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+      if (storedUser && storedUser !== 'undefined' && accessToken) {
+        try {
+          setUser(JSON.parse(storedUser));
+          axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+        } catch (e) {
+          // Invalid JSON in localStorage, clear it
+          localStorage.removeItem('user');
+          localStorage.removeItem('accessToken');
+        }
       }
       setLoading(false);
     };
@@ -35,7 +40,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const response = await axios.post(`${API_URL}/auth/refresh`, { refreshToken });
-      const { accessToken, refreshToken: newRefreshToken } = response.data;
+      const { accessToken, refreshToken: newRefreshToken } = response.data?.data || response.data;
 
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('refreshToken', newRefreshToken);
@@ -52,7 +57,7 @@ export const AuthProvider = ({ children }) => {
   // Login function
   const login = async (email, password) => {
     const response = await axios.post(`${API_URL}/auth/login`, { email, password });
-    const { accessToken, refreshToken, user: userData } = response.data;
+    const { accessToken, refreshToken, user: userData } = response.data?.data || response.data;
 
     localStorage.setItem('accessToken', accessToken);
     localStorage.setItem('refreshToken', refreshToken);
