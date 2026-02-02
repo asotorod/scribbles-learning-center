@@ -284,6 +284,22 @@ const create = async (req, res) => {
       });
     }
 
+    // Check PIN uniqueness across employees and parents
+    if (pinCode) {
+      const pinExists = await client.query(`
+        SELECT 'employee' AS source, id FROM employees WHERE pin_code = $1
+        UNION ALL
+        SELECT 'parent' AS source, id FROM parents WHERE pin_code = $1
+      `, [pinCode]);
+      if (pinExists.rows.length > 0) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({
+          success: false,
+          error: 'This PIN is already in use. Please choose a different PIN.'
+        });
+      }
+    }
+
     // Hash password
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
@@ -636,6 +652,21 @@ const updatePin = async (req, res) => {
         success: false,
         error: 'Employee not found'
       });
+    }
+
+    // Check PIN uniqueness across employees and parents (exclude this employee)
+    if (pinCode) {
+      const pinExists = await db.query(`
+        SELECT 'employee' AS source, id FROM employees WHERE pin_code = $1 AND id != $2
+        UNION ALL
+        SELECT 'parent' AS source, id FROM parents WHERE pin_code = $1
+      `, [pinCode, id]);
+      if (pinExists.rows.length > 0) {
+        return res.status(400).json({
+          success: false,
+          error: 'This PIN is already in use. Please choose a different PIN.'
+        });
+      }
     }
 
     // Update PIN
