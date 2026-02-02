@@ -24,12 +24,32 @@ const AbsenceHistory = () => {
         portalAPI.getMyChildren().catch(() => null),
       ]);
 
-      setAbsences(absencesRes?.data?.data || mockAbsences);
-      setChildren(childrenRes?.data?.data || mockChildren);
+      // Extract absences array and normalize camelCase→snake_case
+      const absencesRaw = absencesRes?.data?.data?.absences;
+      const absencesData = Array.isArray(absencesRaw) ? absencesRaw.map(a => ({
+        id: a.id,
+        child_id: a.childId || a.child_id,
+        child_name: a.childName || a.child_name || '',
+        start_date: a.startDate || a.start_date,
+        end_date: a.endDate || a.end_date,
+        reason: a.reasonName || a.reason_name || a.reason || '',
+        notes: a.notes || '',
+        status: a.status || 'pending',
+      })) : [];
+      setAbsences(absencesData);
+
+      // Extract children array and normalize
+      const childrenRaw = childrenRes?.data?.data?.children;
+      const childrenData = Array.isArray(childrenRaw) ? childrenRaw.map(c => ({
+        id: c.id,
+        first_name: c.firstName || c.first_name || '',
+        last_name: c.lastName || c.last_name || '',
+      })) : [];
+      setChildren(childrenData);
     } catch (error) {
       console.error('Error fetching data:', error);
-      setAbsences(mockAbsences);
-      setChildren(mockChildren);
+      setAbsences([]);
+      setChildren([]);
     } finally {
       setLoading(false);
     }

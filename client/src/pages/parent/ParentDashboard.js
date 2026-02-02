@@ -52,16 +52,23 @@ const ParentDashboard = () => {
     }
   };
 
+  const formatTime = (timeString) => {
+    if (!timeString) return '';
+    const date = new Date(timeString);
+    if (isNaN(date.getTime())) return timeString; // already formatted
+    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+  };
+
   const getStatusDisplay = (child) => {
     if (child.status === 'checked_in') {
       return {
-        text: `Checked in at ${child.check_in_time}`,
+        text: `Checked in at ${formatTime(child.check_in_time)}`,
         className: 'status-present'
       };
     }
     if (child.status === 'checked_out') {
       return {
-        text: `Checked out at ${child.check_out_time}`,
+        text: `Checked out at ${formatTime(child.check_out_time)}`,
         className: 'status-gone'
       };
     }

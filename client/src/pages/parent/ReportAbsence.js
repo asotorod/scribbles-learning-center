@@ -43,12 +43,23 @@ const ReportAbsence = () => {
         portalAPI.getAbsenceReasons().catch(() => null),
       ]);
 
-      setChildren(childrenRes?.data?.data || mockChildren);
-      setAbsenceReasons(reasonsRes?.data?.data || mockReasons);
+      // Extract children array and normalize camelCase→snake_case
+      const childrenRaw = childrenRes?.data?.data?.children;
+      const childrenData = Array.isArray(childrenRaw) ? childrenRaw.map(c => ({
+        id: c.id,
+        first_name: c.firstName || c.first_name || '',
+        last_name: c.lastName || c.last_name || '',
+        program: c.programName || c.program_name || c.program || '',
+      })) : [];
+      setChildren(childrenData);
+
+      // Extract absence reasons array
+      const reasonsRaw = reasonsRes?.data?.data?.reasons || reasonsRes?.data?.data;
+      setAbsenceReasons(Array.isArray(reasonsRaw) ? reasonsRaw : []);
     } catch (error) {
       console.error('Error fetching data:', error);
-      setChildren(mockChildren);
-      setAbsenceReasons(mockReasons);
+      setChildren([]);
+      setAbsenceReasons([]);
     } finally {
       setLoading(false);
     }

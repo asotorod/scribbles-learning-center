@@ -15,10 +15,24 @@ const MyChildren = () => {
   const fetchChildren = async () => {
     try {
       const response = await portalAPI.getMyChildren();
-      setChildren(response?.data?.data || mockChildren);
+      const childrenRaw = response?.data?.data?.children;
+      const childrenData = Array.isArray(childrenRaw) ? childrenRaw.map(c => ({
+        id: c.id,
+        first_name: c.firstName || c.first_name || '',
+        last_name: c.lastName || c.last_name || '',
+        photo_url: c.photoUrl || c.photo_url || null,
+        program: c.programName || c.program_name || c.program || '',
+        date_of_birth: c.dateOfBirth || c.date_of_birth || '',
+        enrollment_date: c.enrollmentDate || c.enrollment_date || '',
+        allergies: c.allergies || '',
+        medical_notes: c.medicalNotes || c.medical_notes || '',
+        emergency_contact_name: c.emergencyContactName || c.emergency_contact_name || '',
+        emergency_contact_phone: c.emergencyContactPhone || c.emergency_contact_phone || '',
+      })) : [];
+      setChildren(childrenData.length > 0 ? childrenData : []);
     } catch (error) {
       console.error('Error fetching children:', error);
-      setChildren(mockChildren);
+      setChildren([]);
     } finally {
       setLoading(false);
     }
@@ -73,7 +87,7 @@ const MyChildren = () => {
                 {child.photo_url ? (
                   <img src={child.photo_url} alt={child.first_name} />
                 ) : (
-                  <span>{child.first_name.charAt(0)}</span>
+                  <span>{(child.first_name || '?').charAt(0)}</span>
                 )}
               </div>
               <div className="child-header-info">
