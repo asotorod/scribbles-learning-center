@@ -6,7 +6,9 @@ const pool = new Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
-pool.on('connect', () => {
+pool.on('connect', (client) => {
+  // Set timezone to US Eastern so CURRENT_DATE matches local time
+  client.query("SET timezone = 'America/New_York'");
   console.log('Connected to PostgreSQL database');
 });
 

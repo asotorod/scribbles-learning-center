@@ -3,12 +3,19 @@ import { StatCard } from '../../components/ui/Card';
 import { attendanceAPI } from '../../services/api';
 import './AdminReports.css';
 
+// Get local date as YYYY-MM-DD (avoids UTC offset issues with toISOString)
+const getLocalDateString = (d = new Date()) => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const AdminReports = () => {
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split('T')[0]
-  );
+  const [selectedDate, setSelectedDate] = useState(getLocalDateString());
   const [reportData, setReportData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchReport(selectedDate);
@@ -16,6 +23,7 @@ const AdminReports = () => {
 
   const fetchReport = async (date) => {
     setLoading(true);
+    setError('');
     try {
       const response = await attendanceAPI.getReport(date);
       const data = response?.data?.data;
@@ -26,6 +34,7 @@ const AdminReports = () => {
       }
     } catch (error) {
       console.error('Error fetching report:', error);
+      setError('Could not load report. The server may still be deploying.');
       setReportData(null);
     } finally {
       setLoading(false);
@@ -59,7 +68,7 @@ const AdminReports = () => {
     });
   };
 
-  const isToday = selectedDate === new Date().toISOString().split('T')[0];
+  const isToday = selectedDate === getLocalDateString();
 
   if (loading) {
     return (
@@ -84,7 +93,7 @@ const AdminReports = () => {
             className="date-picker"
             value={selectedDate}
             onChange={handleDateChange}
-            max={new Date().toISOString().split('T')[0]}
+            max={getLocalDateString()}
           />
           <button className="btn-print" onClick={handlePrint}>
             <span>🖨️</span> Print / PDF
@@ -104,9 +113,18 @@ const AdminReports = () => {
 
       {!reportData ? (
         <div className="empty-state">
-          <div className="empty-icon">📋</div>
-          <h3>No report data available</h3>
-          <p>Select a date to view the attendance report.</p>
+          <div className="empty-icon">{error ? '⚠️' : '📋'}</div>
+          <h3>{error ? 'Unable to Load Report' : 'No report data available'}</h3>
+          <p>{error || 'Select a date to view the attendance report.'}</p>
+          {error && (
+            <button
+              className="btn-print"
+              style={{ marginTop: '16px' }}
+              onClick={() => fetchReport(selectedDate)}
+            >
+              Retry
+            </button>
+          )}
         </div>
       ) : (
         <>
