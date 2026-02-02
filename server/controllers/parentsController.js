@@ -43,6 +43,27 @@ const getAll = async (req, res) => {
 
     const result = await db.query(query, params);
 
+    // Fetch linked children for all parents in one query
+    const parentIds = result.rows.map(r => r.id);
+    let childrenByParent = {};
+    if (parentIds.length > 0) {
+      const childrenResult = await db.query(`
+        SELECT pc.parent_id, c.id, c.first_name, c.last_name
+        FROM parent_children pc
+        JOIN children c ON pc.child_id = c.id
+        WHERE pc.parent_id = ANY($1)
+        ORDER BY c.first_name
+      `, [parentIds]);
+      childrenResult.rows.forEach(row => {
+        if (!childrenByParent[row.parent_id]) childrenByParent[row.parent_id] = [];
+        childrenByParent[row.parent_id].push({
+          id: row.id,
+          firstName: row.first_name,
+          lastName: row.last_name,
+        });
+      });
+    }
+
     res.json({
       success: true,
       data: {
@@ -58,6 +79,7 @@ const getAll = async (req, res) => {
           employer: parent.employer,
           workPhone: parent.work_phone,
           isActive: parent.is_active,
+          children: childrenByParent[parent.id] || [],
           childrenCount: parseInt(parent.children_count),
           createdAt: parent.created_at
         })),

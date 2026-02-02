@@ -810,6 +810,136 @@ const cancelAbsence = async (req, res) => {
   }
 };
 
+// ============================================
+// PROFILE
+// ============================================
+
+/**
+ * Get parent profile
+ * GET /api/v1/portal/profile
+ */
+const getProfile = async (req, res) => {
+  try {
+    const parent = await getParentByUserId(req.user.id);
+    if (!parent) {
+      return res.status(404).json({ success: false, error: 'Parent record not found' });
+    }
+
+    const result = await db.query(`
+      SELECT
+        u.first_name, u.last_name, u.email, u.phone,
+        p.address, p.employer, p.work_phone
+      FROM users u
+      JOIN parents p ON p.user_id = u.id
+      WHERE u.id = $1
+    `, [req.user.id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Profile not found' });
+    }
+
+    const row = result.rows[0];
+
+    // Get children's emergency contacts
+    const childrenResult = await db.query(`
+      SELECT c.id, c.first_name, c.last_name, c.emergency_contact_name, c.emergency_contact_phone
+      FROM children c
+      JOIN parent_children pc ON c.id = pc.child_id
+      WHERE pc.parent_id = $1 AND c.is_active = true
+      ORDER BY c.first_name
+    `, [parent.id]);
+
+    res.json({
+      success: true,
+      data: {
+        first_name: row.first_name || '',
+        last_name: row.last_name || '',
+        email: row.email || '',
+        phone: row.phone || '',
+        address: row.address || '',
+        city: '',
+        state: '',
+        zip_code: '',
+        children: childrenResult.rows.map(c => ({
+          id: c.id,
+          first_name: c.first_name,
+          last_name: c.last_name,
+          emergency_contact_name: c.emergency_contact_name || '',
+          emergency_contact_phone: c.emergency_contact_phone || '',
+        })),
+      }
+    });
+  } catch (error) {
+    console.error('Get profile error:', error);
+    res.status(500).json({ success: false, error: 'Failed to load profile' });
+  }
+};
+
+/**
+ * Update parent profile
+ * PUT /api/v1/portal/profile
+ */
+const updateProfile = async (req, res) => {
+  try {
+    const { first_name, last_name, phone, address } = req.body;
+
+    await db.query(`
+      UPDATE users SET
+        first_name = COALESCE($1, first_name),
+        last_name = COALESCE($2, last_name),
+        phone = COALESCE($3, phone),
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $4
+    `, [first_name, last_name, phone, req.user.id]);
+
+    const parent = await getParentByUserId(req.user.id);
+    if (parent && address !== undefined) {
+      await db.query(
+        'UPDATE parents SET address = $1 WHERE id = $2',
+        [address, parent.id]
+      );
+    }
+
+    res.json({ success: true, data: { message: 'Profile updated' } });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ success: false, error: 'Failed to update profile' });
+  }
+};
+
+/**
+ * Update emergency contact for a child
+ * PUT /api/v1/portal/my-children/:id/emergency-contact
+ */
+const updateEmergencyContact = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { emergency_contact_name, emergency_contact_phone } = req.body;
+
+    const parent = await getParentByUserId(req.user.id);
+    if (!parent) {
+      return res.status(404).json({ success: false, error: 'Parent not found' });
+    }
+
+    const hasAccess = await parentHasAccessToChild(parent.id, id);
+    if (!hasAccess) {
+      return res.status(403).json({ success: false, error: 'Access denied' });
+    }
+
+    await db.query(`
+      UPDATE children SET
+        emergency_contact_name = $1,
+        emergency_contact_phone = $2
+      WHERE id = $3
+    `, [emergency_contact_name, emergency_contact_phone, id]);
+
+    res.json({ success: true, data: { message: 'Emergency contact updated' } });
+  } catch (error) {
+    console.error('Update emergency contact error:', error);
+    res.status(500).json({ success: false, error: 'Failed to update emergency contact' });
+  }
+};
+
 module.exports = {
   getDashboard,
   getMyChildren,
@@ -819,5 +949,8 @@ module.exports = {
   getAbsence,
   createAbsence,
   updateAbsence,
-  cancelAbsence
+  cancelAbsence,
+  getProfile,
+  updateProfile,
+  updateEmergencyContact,
 };

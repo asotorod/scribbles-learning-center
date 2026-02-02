@@ -26,6 +26,9 @@ const MyAccount = () => {
     confirm_password: '',
   });
 
+  const [childrenContacts, setChildrenContacts] = useState([]);
+  const [savingContact, setSavingContact] = useState(null);
+
   const [authorizedPickups, setAuthorizedPickups] = useState([]);
   const [showAddPickup, setShowAddPickup] = useState(false);
   const [newPickup, setNewPickup] = useState({
@@ -42,7 +45,25 @@ const MyAccount = () => {
     try {
       const response = await portalAPI.getProfile();
       const data = response?.data?.data || {};
-      setProfile(data);
+      setProfile({
+        first_name: data.first_name || data.firstName || '',
+        last_name: data.last_name || data.lastName || '',
+        email: data.email || '',
+        phone: data.phone || '',
+        address: data.address || '',
+        city: data.city || '',
+        state: data.state || '',
+        zip_code: data.zip_code || data.zipCode || '',
+      });
+      // Load children emergency contacts
+      const kids = Array.isArray(data.children) ? data.children : [];
+      setChildrenContacts(kids.map(c => ({
+        id: c.id,
+        first_name: c.first_name || c.firstName || '',
+        last_name: c.last_name || c.lastName || '',
+        emergency_contact_name: c.emergency_contact_name || c.emergencyContactName || '',
+        emergency_contact_phone: c.emergency_contact_phone || c.emergencyContactPhone || '',
+      })));
       setAuthorizedPickups(Array.isArray(data.authorized_pickups) ? data.authorized_pickups : []);
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -77,6 +98,34 @@ const MyAccount = () => {
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleContactChange = (childId, field, value) => {
+    setChildrenContacts(prev =>
+      prev.map(c => c.id === childId ? { ...c, [field]: value } : c)
+    );
+    setMessage({ type: '', text: '' });
+  };
+
+  const handleSaveEmergencyContact = async (childId) => {
+    const child = childrenContacts.find(c => c.id === childId);
+    if (!child) return;
+
+    setSavingContact(childId);
+    setMessage({ type: '', text: '' });
+
+    try {
+      await portalAPI.updateEmergencyContact(childId, {
+        emergency_contact_name: child.emergency_contact_name,
+        emergency_contact_phone: child.emergency_contact_phone,
+      });
+      setMessage({ type: 'success', text: `Emergency contact updated for ${child.first_name}.` });
+    } catch (error) {
+      console.error('Error updating emergency contact:', error);
+      setMessage({ type: 'error', text: 'Failed to update emergency contact.' });
+    } finally {
+      setSavingContact(null);
     }
   };
 
@@ -273,6 +322,62 @@ const MyAccount = () => {
           </div>
         </form>
       </section>
+
+      {/* Emergency Contacts */}
+      {childrenContacts.length > 0 && (
+        <section className="account-section">
+          <h2>Emergency Contacts</h2>
+          <p style={{ color: 'var(--gray-600)', fontSize: '14px', marginBottom: '20px' }}>
+            Set an emergency contact for each of your children. This person will be contacted if we cannot reach you.
+          </p>
+
+          {childrenContacts.map((child) => (
+            <div key={child.id} className="emergency-contact-card" style={{
+              padding: '16px',
+              background: 'var(--cream)',
+              borderRadius: 'var(--radius)',
+              marginBottom: '16px',
+            }}>
+              <h4 style={{ margin: '0 0 12px', fontSize: '15px', color: 'var(--color-charcoal)' }}>
+                {child.first_name} {child.last_name}
+              </h4>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Contact Name</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={child.emergency_contact_name}
+                    onChange={(e) => handleContactChange(child.id, 'emergency_contact_name', e.target.value)}
+                    placeholder="Emergency contact name"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Contact Phone</label>
+                  <input
+                    type="tel"
+                    className="form-input"
+                    value={child.emergency_contact_phone}
+                    onChange={(e) => handleContactChange(child.id, 'emergency_contact_phone', e.target.value)}
+                    placeholder="(201) 555-0123"
+                  />
+                </div>
+              </div>
+              <div style={{ textAlign: 'right', marginTop: '8px' }}>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  style={{ padding: '8px 16px', fontSize: '13px' }}
+                  onClick={() => handleSaveEmergencyContact(child.id)}
+                  disabled={savingContact === child.id}
+                >
+                  {savingContact === child.id ? 'Saving...' : 'Save Contact'}
+                </button>
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
 
       {/* Change Password */}
       <section className="account-section">

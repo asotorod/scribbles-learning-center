@@ -126,6 +126,7 @@ export const portalAPI = {
   getProfile: () => api.get('/portal/profile'),
   updateProfile: (data) => api.put('/portal/profile', data),
   changePassword: (data) => api.post('/portal/change-password', data),
+  updateEmergencyContact: (childId, data) => api.put(`/portal/my-children/${childId}/emergency-contact`, data),
 };
 
 export default api;

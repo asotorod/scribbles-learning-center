@@ -102,6 +102,19 @@ const updateAbsenceValidation = [
 ];
 
 // ============================================
+// PROFILE ROUTES
+// ============================================
+
+router.get('/profile', portalController.getProfile);
+router.put('/profile', portalController.updateProfile);
+router.put(
+  '/my-children/:id/emergency-contact',
+  childIdValidation,
+  handleValidationErrors,
+  portalController.updateEmergencyContact
+);
+
+// ============================================
 // DASHBOARD & CHILDREN ROUTES
 // ============================================
 
