@@ -4,8 +4,8 @@ const { pool } = require('../config/database');
 const SALT_ROUNDS = 10;
 
 const adminUser = {
-  email: 'admin@scribbles-learning.com',
-  password: 'Scribbles2026!',
+  email: 'admin@scribbleslearning.com',
+  password: 'admin123',
   firstName: 'Admin',
   lastName: 'User',
   role: 'super_admin'
