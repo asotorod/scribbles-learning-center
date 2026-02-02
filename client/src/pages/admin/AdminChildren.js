@@ -5,6 +5,34 @@ import Button from '../../components/ui/Button';
 import api from '../../services/api';
 import './AdminChildren.css';
 
+// Convert API camelCase response to snake_case for frontend usage
+const normalizeChild = (c) => ({
+  id: c.id,
+  first_name: c.firstName || c.first_name || '',
+  last_name: c.lastName || c.last_name || '',
+  date_of_birth: c.dateOfBirth || c.date_of_birth || '',
+  program_id: c.programId || c.program_id || '',
+  program_name: c.programName || c.program_name || null,
+  program_color: c.programColor || c.program_color || null,
+  allergies: c.allergies || '',
+  medical_notes: c.medicalNotes || c.medical_notes || '',
+  emergency_contact_name: c.emergencyContactName || c.emergency_contact_name || '',
+  emergency_contact_phone: c.emergencyContactPhone || c.emergency_contact_phone || '',
+  is_active: c.isActive !== undefined ? c.isActive : (c.is_active !== undefined ? c.is_active : true),
+});
+
+// Convert form data to camelCase for API requests
+const toApiPayload = (form) => ({
+  firstName: form.first_name,
+  lastName: form.last_name,
+  dateOfBirth: form.date_of_birth,
+  programId: form.program_id || undefined,
+  allergies: form.allergies || undefined,
+  medicalNotes: form.medical_notes || undefined,
+  emergencyContactName: form.emergency_contact_name || undefined,
+  emergencyContactPhone: form.emergency_contact_phone || undefined,
+});
+
 const AdminChildren = () => {
   const [children, setChildren] = useState([]);
   const [programs, setPrograms] = useState([]);
@@ -16,6 +44,7 @@ const AdminChildren = () => {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedChild, setSelectedChild] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
   const itemsPerPage = 10;
 
   const [formData, setFormData] = useState({
@@ -38,7 +67,7 @@ const AdminChildren = () => {
     try {
       const response = await api.get('/children');
       const data = response.data?.data?.children;
-      setChildren(Array.isArray(data) ? data : []);
+      setChildren(Array.isArray(data) ? data.map(normalizeChild) : []);
     } catch (error) {
       console.error('Error fetching children:', error);
     } finally {
@@ -57,6 +86,7 @@ const AdminChildren = () => {
   };
 
   const handleOpenModal = (child = null) => {
+    setError('');
     if (child) {
       setSelectedChild(child);
       setFormData({
@@ -88,35 +118,29 @@ const AdminChildren = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedChild(null);
+    setError('');
   };
 
   const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true);
+    setError('');
 
     try {
+      const payload = toApiPayload(formData);
       if (selectedChild) {
-        await api.put(`/children/${selectedChild.id}`, formData);
-        setChildren(prev =>
-          prev.map(c => c.id === selectedChild.id ? { ...c, ...formData } : c)
-        );
+        await api.put(`/children/${selectedChild.id}`, payload);
       } else {
-        const response = await api.post('/children', formData);
-        const newChild = response.data?.data || { id: Date.now(), ...formData };
-        setChildren(prev => [newChild, ...prev]);
+        await api.post('/children', payload);
       }
       handleCloseModal();
-    } catch (error) {
-      console.error('Error saving child:', error);
-      // For demo, still update local state
-      if (selectedChild) {
-        setChildren(prev =>
-          prev.map(c => c.id === selectedChild.id ? { ...c, ...formData } : c)
-        );
-      } else {
-        setChildren(prev => [{ id: Date.now(), ...formData, is_active: true }, ...prev]);
-      }
-      handleCloseModal();
+      await fetchChildren();
+    } catch (err) {
+      console.error('Error saving child:', err);
+      const msg = err.response?.data?.details?.map(d => d.message).join(', ')
+        || err.response?.data?.error
+        || 'Failed to save. Please try again.';
+      setError(msg);
     } finally {
       setSaving(false);
     }
@@ -129,10 +153,8 @@ const AdminChildren = () => {
     try {
       await api.delete(`/children/${selectedChild.id}`);
       setChildren(prev => prev.filter(c => c.id !== selectedChild.id));
-    } catch (error) {
-      console.error('Error deleting child:', error);
-      // For demo, still update local state
-      setChildren(prev => prev.filter(c => c.id !== selectedChild.id));
+    } catch (err) {
+      console.error('Error deleting child:', err);
     } finally {
       setSaving(false);
       setIsDeleteOpen(false);
@@ -185,7 +207,7 @@ const AdminChildren = () => {
         const program = programs.find(p => p.id === child.program_id);
         return (
           <span className="program-badge" style={{ background: program?.color || '#E8E0D0' }}>
-            {program?.name || 'Unassigned'}
+            {program?.name || child.program_name || 'Unassigned'}
           </span>
         );
       },
@@ -289,6 +311,7 @@ const AdminChildren = () => {
         size="medium"
       >
         <form onSubmit={handleSave}>
+          {error && <div className="form-error" style={{ color: '#DC2626', marginBottom: '16px', padding: '8px 12px', background: '#FEE2E2', borderRadius: '6px', fontSize: '14px' }}>{error}</div>}
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="first_name">First Name *</label>

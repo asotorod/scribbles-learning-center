@@ -5,6 +5,29 @@ import Button from '../../components/ui/Button';
 import api from '../../services/api';
 import './AdminParents.css';
 
+// Convert API camelCase response to snake_case for frontend usage
+const normalizeParent = (p) => ({
+  id: p.id,
+  first_name: p.firstName || p.first_name || '',
+  last_name: p.lastName || p.last_name || '',
+  email: p.email || '',
+  phone: p.phone || '',
+  address: p.address || '',
+  pin_code: p.pinCode || p.pin_code || '',
+  children: Array.isArray(p.children) ? p.children.map(c => ({
+    id: c.id,
+    first_name: c.firstName || c.first_name || '',
+    last_name: c.lastName || c.last_name || '',
+    relationship: c.relationship || '',
+  })) : [],
+});
+
+const normalizeChild = (c) => ({
+  id: c.id,
+  first_name: c.firstName || c.first_name || '',
+  last_name: c.lastName || c.last_name || '',
+});
+
 const AdminParents = () => {
   const [parents, setParents] = useState([]);
   const [children, setChildren] = useState([]);
@@ -16,6 +39,7 @@ const AdminParents = () => {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedParent, setSelectedParent] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
   const itemsPerPage = 10;
 
   const [formData, setFormData] = useState({
@@ -25,6 +49,7 @@ const AdminParents = () => {
     phone: '',
     address: '',
     pin_code: '',
+    password: '',
   });
 
   const [linkFormData, setLinkFormData] = useState({
@@ -43,7 +68,7 @@ const AdminParents = () => {
     try {
       const response = await api.get('/parents');
       const data = response.data?.data?.parents;
-      setParents(Array.isArray(data) ? data : []);
+      setParents(Array.isArray(data) ? data.map(normalizeParent) : []);
     } catch (error) {
       console.error('Error fetching parents:', error);
     } finally {
@@ -55,13 +80,14 @@ const AdminParents = () => {
     try {
       const response = await api.get('/children');
       const data = response.data?.data?.children;
-      setChildren(Array.isArray(data) ? data : []);
+      setChildren(Array.isArray(data) ? data.map(normalizeChild) : []);
     } catch (error) {
       console.error('Error fetching children:', error);
     }
   };
 
   const handleOpenModal = (parent = null) => {
+    setError('');
     if (parent) {
       setSelectedParent(parent);
       setFormData({
@@ -71,6 +97,7 @@ const AdminParents = () => {
         phone: parent.phone || '',
         address: parent.address || '',
         pin_code: parent.pin_code || '',
+        password: '',
       });
     } else {
       setSelectedParent(null);
@@ -81,6 +108,7 @@ const AdminParents = () => {
         phone: '',
         address: '',
         pin_code: '',
+        password: '',
       });
     }
     setIsModalOpen(true);
@@ -89,10 +117,12 @@ const AdminParents = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedParent(null);
+    setError('');
   };
 
   const handleOpenLinkModal = (parent) => {
     setSelectedParent(parent);
+    setError('');
     setLinkFormData({
       child_id: '',
       relationship: 'parent',
@@ -105,30 +135,34 @@ const AdminParents = () => {
   const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true);
+    setError('');
 
     try {
+      // Convert to camelCase for API
+      const payload = {
+        firstName: formData.first_name,
+        lastName: formData.last_name,
+        email: formData.email,
+        phone: formData.phone || undefined,
+        address: formData.address || undefined,
+        pinCode: formData.pin_code || undefined,
+      };
+
       if (selectedParent) {
-        await api.put(`/parents/${selectedParent.id}`, formData);
-        setParents(prev =>
-          prev.map(p => p.id === selectedParent.id ? { ...p, ...formData } : p)
-        );
+        await api.put(`/parents/${selectedParent.id}`, payload);
       } else {
-        const response = await api.post('/parents', formData);
-        const newParent = response.data?.data || { id: Date.now(), ...formData, children: [] };
-        setParents(prev => [newParent, ...prev]);
+        // Password is required when creating a new parent
+        payload.password = formData.password;
+        await api.post('/parents', payload);
       }
       handleCloseModal();
-    } catch (error) {
-      console.error('Error saving parent:', error);
-      // For demo, still update local state
-      if (selectedParent) {
-        setParents(prev =>
-          prev.map(p => p.id === selectedParent.id ? { ...p, ...formData } : p)
-        );
-      } else {
-        setParents(prev => [{ id: Date.now(), ...formData, children: [], is_active: true }, ...prev]);
-      }
-      handleCloseModal();
+      await fetchParents();
+    } catch (err) {
+      console.error('Error saving parent:', err);
+      const msg = err.response?.data?.details?.map(d => d.message).join(', ')
+        || err.response?.data?.error
+        || 'Failed to save. Please try again.';
+      setError(msg);
     } finally {
       setSaving(false);
     }
@@ -137,51 +171,21 @@ const AdminParents = () => {
   const handleLinkChild = async (e) => {
     e.preventDefault();
     setSaving(true);
+    setError('');
 
     try {
-      await api.post(`/parents/${selectedParent.id}/link-child`, linkFormData);
-      // Update local state with linked child
-      const linkedChild = children.find(c => c.id === linkFormData.child_id);
-      if (linkedChild) {
-        setParents(prev =>
-          prev.map(p => {
-            if (p.id === selectedParent.id) {
-              const existingChildren = p.children || [];
-              return {
-                ...p,
-                children: [...existingChildren, {
-                  ...linkedChild,
-                  relationship: linkFormData.relationship,
-                }],
-              };
-            }
-            return p;
-          })
-        );
-      }
+      await api.post(`/parents/${selectedParent.id}/link-child`, {
+        childId: linkFormData.child_id,
+        relationship: linkFormData.relationship,
+        isPrimaryContact: linkFormData.is_primary_contact,
+        isAuthorizedPickup: linkFormData.is_authorized_pickup,
+      });
       setIsLinkModalOpen(false);
-    } catch (error) {
-      console.error('Error linking child:', error);
-      // For demo, still update local state
-      const linkedChild = children.find(c => c.id.toString() === linkFormData.child_id);
-      if (linkedChild) {
-        setParents(prev =>
-          prev.map(p => {
-            if (p.id === selectedParent.id) {
-              const existingChildren = p.children || [];
-              return {
-                ...p,
-                children: [...existingChildren, {
-                  ...linkedChild,
-                  relationship: linkFormData.relationship,
-                }],
-              };
-            }
-            return p;
-          })
-        );
-      }
-      setIsLinkModalOpen(false);
+      await fetchParents();
+    } catch (err) {
+      console.error('Error linking child:', err);
+      const msg = err.response?.data?.error || 'Failed to link child. Please try again.';
+      setError(msg);
     } finally {
       setSaving(false);
     }
@@ -194,9 +198,8 @@ const AdminParents = () => {
     try {
       await api.delete(`/parents/${selectedParent.id}`);
       setParents(prev => prev.filter(p => p.id !== selectedParent.id));
-    } catch (error) {
-      console.error('Error deleting parent:', error);
-      setParents(prev => prev.filter(p => p.id !== selectedParent.id));
+    } catch (err) {
+      console.error('Error deleting parent:', err);
     } finally {
       setSaving(false);
       setIsDeleteOpen(false);
@@ -346,6 +349,7 @@ const AdminParents = () => {
         size="medium"
       >
         <form onSubmit={handleSave}>
+          {error && <div className="form-error" style={{ color: '#DC2626', marginBottom: '16px', padding: '8px 12px', background: '#FEE2E2', borderRadius: '6px', fontSize: '14px' }}>{error}</div>}
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="first_name">First Name *</label>
@@ -390,6 +394,22 @@ const AdminParents = () => {
               />
             </div>
           </div>
+
+          {!selectedParent && (
+            <div className="form-group">
+              <label htmlFor="password">Portal Password *</label>
+              <input
+                type="password"
+                id="password"
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                required={!selectedParent}
+                minLength="8"
+                placeholder="Min 8 characters — for parent portal login"
+              />
+              <span className="form-help">Parents use this to log into the parent portal</span>
+            </div>
+          )}
 
           <div className="form-group">
             <label htmlFor="address">Address</label>
@@ -439,6 +459,7 @@ const AdminParents = () => {
         size="small"
       >
         <form onSubmit={handleLinkChild}>
+          {error && <div className="form-error" style={{ color: '#DC2626', marginBottom: '16px', padding: '8px 12px', background: '#FEE2E2', borderRadius: '6px', fontSize: '14px' }}>{error}</div>}
           <p className="link-info">
             Link a child to <strong>{selectedParent?.first_name} {selectedParent?.last_name}</strong>
           </p>
