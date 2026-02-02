@@ -115,11 +115,13 @@ const Home = () => {
         contentAPI.getSection('testimonials').catch(() => null),
       ]);
 
-      if (programsRes?.data?.data) {
-        setPrograms(programsRes.data.data);
+      const programs = programsRes?.data?.data?.programs;
+      if (Array.isArray(programs)) {
+        setPrograms(programs);
       }
-      if (testimonialsRes?.data?.data) {
-        setTestimonials(testimonialsRes.data.data);
+      const testimonials = testimonialsRes?.data?.data?.testimonials;
+      if (Array.isArray(testimonials)) {
+        setTestimonials(testimonials);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -167,7 +169,7 @@ const Home = () => {
             <p>Age-appropriate learning experiences for every stage</p>
           </div>
           <div className="programs-grid">
-            {programs.map((program) => (
+            {(programs || []).map((program) => (
               <Link to={`/programs#${program.slug}`} key={program.id} className="program-card">
                 <div className="program-image">
                   <img src={program.image_url} alt={program.name} />
@@ -205,7 +207,7 @@ const Home = () => {
               <p className="testimonial-author">— {testimonials[activeTestimonial]?.author_name}</p>
             </div>
             <div className="testimonial-dots">
-              {testimonials.map((_, index) => (
+              {(testimonials || []).map((_, index) => (
                 <button
                   key={index}
                   className={`testimonial-dot ${index === activeTestimonial ? 'active' : ''}`}
@@ -216,7 +218,7 @@ const Home = () => {
             </div>
           </div>
           <div className="testimonials-grid">
-            {testimonials.map((testimonial) => (
+            {(testimonials || []).map((testimonial) => (
               <div key={testimonial.id} className="testimonial-card">
                 <div className="testimonial-stars">
                   {'★'.repeat(testimonial.rating)}

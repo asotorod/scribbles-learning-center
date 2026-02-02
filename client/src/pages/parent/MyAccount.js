@@ -43,7 +43,7 @@ const MyAccount = () => {
       const response = await portalAPI.getProfile();
       const data = response?.data?.data || mockProfile;
       setProfile(data);
-      setAuthorizedPickups(data.authorized_pickups || mockPickups);
+      setAuthorizedPickups(Array.isArray(data.authorized_pickups) ? data.authorized_pickups : mockPickups);
     } catch (error) {
       console.error('Error fetching profile:', error);
       setProfile(mockProfile);
@@ -338,7 +338,7 @@ const MyAccount = () => {
         </p>
 
         <div className="pickups-list">
-          {authorizedPickups.map((pickup) => (
+          {(authorizedPickups || []).map((pickup) => (
             <div key={pickup.id} className="pickup-card">
               <div className="pickup-avatar">
                 <span>{pickup.name.charAt(0)}</span>

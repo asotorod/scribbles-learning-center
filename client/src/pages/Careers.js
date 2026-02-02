@@ -100,7 +100,8 @@ const Careers = () => {
   const fetchJobs = async () => {
     try {
       const response = await api.get('/hr/jobs', { params: { is_active: true } });
-      setJobs(response?.data?.data || defaultJobs);
+      const jobs = response?.data?.data?.jobs;
+      setJobs(Array.isArray(jobs) ? jobs : defaultJobs);
     } catch (error) {
       console.error('Error fetching jobs:', error);
       setJobs(defaultJobs);
@@ -206,7 +207,7 @@ const Careers = () => {
                       <div className="job-requirements">
                         <h4>Requirements</h4>
                         <ul>
-                          {job.requirements.map((req, i) => (
+                          {(job.requirements || []).map((req, i) => (
                             <li key={i}>
                               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <polyline points="20 6 9 17 4 12"/>
@@ -221,7 +222,7 @@ const Careers = () => {
                         <div className="job-benefits">
                           <h4>Benefits</h4>
                           <div className="benefits-tags">
-                            {job.benefits.map((benefit, i) => (
+                            {(job.benefits || []).map((benefit, i) => (
                               <span key={i} className="benefit-tag">{benefit}</span>
                             ))}
                           </div>

@@ -96,8 +96,9 @@ const Programs = () => {
   const fetchPrograms = async () => {
     try {
       const response = await programsAPI.getAll();
-      if (response?.data?.data) {
-        setPrograms(response.data.data);
+      const programs = response?.data?.data?.programs;
+      if (Array.isArray(programs)) {
+        setPrograms(programs);
       }
     } catch (error) {
       console.error('Error fetching programs:', error);
@@ -121,7 +122,7 @@ const Programs = () => {
             <p>At Scribbles Learning Center, we offer comprehensive programs for children from 6 weeks through 12 years. Each program is designed to meet the developmental needs of different age groups while fostering a love of learning in a safe, nurturing environment.</p>
           </div>
 
-          {programs.map((program, index) => (
+          {(programs || []).map((program, index) => (
             <div
               key={program.id}
               id={program.slug}
@@ -139,7 +140,7 @@ const Programs = () => {
                 <p className="program-description">{program.description}</p>
                 <h4>What We Offer:</h4>
                 <ul className="program-features">
-                  {program.features.map((feature, i) => (
+                  {(program.features || []).map((feature, i) => (
                     <li key={i}>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <polyline points="20 6 9 17 4 12"/>

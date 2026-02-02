@@ -31,14 +31,14 @@ const AdminDashboard = () => {
         api.get('/attendance/absences?status=pending').catch(() => ({ data: { data: [] } })),
       ]);
 
-      const children = childrenRes.data?.data || [];
-      const attendance = attendanceRes.data?.data || { present: [], absent: [] };
-      const absences = absencesRes.data?.data || [];
+      const children = Array.isArray(childrenRes.data?.data?.children) ? childrenRes.data.data.children : [];
+      const attendance = attendanceRes.data?.data || {};
+      const absences = Array.isArray(absencesRes.data?.data?.absences) ? absencesRes.data.data.absences : [];
 
       setStats({
         enrolled: children.length || 45,
-        present: attendance.present?.length || 32,
-        absent: attendance.absent?.length || 8,
+        present: attendance.stats?.checkedIn || attendance.present?.length || 32,
+        absent: attendance.stats?.absent || attendance.absent?.length || 8,
         pendingAbsences: absences.length || 3,
       });
 
@@ -133,7 +133,7 @@ const AdminDashboard = () => {
               </div>
             ) : (
               <div className="absence-list">
-                {pendingAbsences.map((absence) => (
+                {(pendingAbsences || []).map((absence) => (
                   <div key={absence.id} className="absence-item">
                     <div className="absence-info">
                       <h4>{absence.child_name || 'Child Name'}</h4>
@@ -163,7 +163,7 @@ const AdminDashboard = () => {
           </div>
           <div className="dashboard-card-body">
             <div className="activity-list">
-              {recentActivity.map((activity) => (
+              {(recentActivity || []).map((activity) => (
                 <div key={activity.id} className="activity-item">
                   <span className="activity-icon">{activity.icon}</span>
                   <div className="activity-content">

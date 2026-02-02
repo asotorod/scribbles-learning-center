@@ -21,9 +21,11 @@ const ParentDashboard = () => {
         portalAPI.getAbsences().catch(() => null),
       ]);
 
-      setChildren(childrenRes?.data?.data || mockChildren);
+      const childrenData = childrenRes?.data?.data?.children;
+      setChildren(Array.isArray(childrenData) ? childrenData : mockChildren);
 
-      const absences = absencesRes?.data?.data || mockAbsences;
+      const absencesData = absencesRes?.data?.data?.absences;
+      const absences = Array.isArray(absencesData) ? absencesData : mockAbsences;
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
@@ -98,7 +100,7 @@ const ParentDashboard = () => {
         </div>
 
         <div className="children-status-grid">
-          {children.map((child) => {
+          {(children || []).map((child) => {
             const status = getStatusDisplay(child);
             return (
               <div key={child.id} className="child-status-card">
@@ -166,7 +168,7 @@ const ParentDashboard = () => {
           </div>
 
           <div className="absences-list">
-            {upcomingAbsences.map((absence) => (
+            {(upcomingAbsences || []).map((absence) => (
               <div key={absence.id} className="absence-card">
                 <div className="absence-date">
                   <span className="date-day">
