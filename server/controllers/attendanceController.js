@@ -52,7 +52,6 @@ const getTodayOverview = async (req, res) => {
       LEFT JOIN programs p ON c.program_id = p.id
       WHERE cc.checkin_date = CURRENT_DATE
       ORDER BY COALESCE(cc.check_out_time, cc.check_in_time) DESC
-      LIMIT 10
     `);
 
     // Get pending absences (not acknowledged)
@@ -663,6 +662,139 @@ const manualCheckOut = async (req, res) => {
   }
 };
 
+// ============================================
+// ATTENDANCE REPORT (date-parameterized)
+// ============================================
+
+/**
+ * Get attendance report for a specific date
+ * GET /api/v1/attendance/report?date=YYYY-MM-DD
+ */
+const getAttendanceReport = async (req, res) => {
+  try {
+    const { date } = req.query;
+    const targetDate = date || new Date().toISOString().split('T')[0];
+
+    // Get total enrolled (active children) as of that date
+    const enrolledResult = await db.query(
+      'SELECT COUNT(*) as count FROM children WHERE is_active = true'
+    );
+    const enrolled = parseInt(enrolledResult.rows[0].count);
+
+    // Get absences for that date
+    const absencesCountResult = await db.query(`
+      SELECT COUNT(DISTINCT child_id) as count FROM absences
+      WHERE start_date <= $1
+        AND (end_date >= $1 OR end_date IS NULL)
+        AND status != 'cancelled'
+    `, [targetDate]);
+    const absentCount = parseInt(absencesCountResult.rows[0].count);
+    const expected = enrolled - absentCount;
+
+    // Get all check-ins for that date
+    const checkinsResult = await db.query(`
+      SELECT
+        cc.id, cc.child_id, cc.check_in_time, cc.check_out_time,
+        cc.checked_in_by_name, cc.checked_out_by_name, cc.notes,
+        c.first_name, c.last_name, c.photo_url,
+        p.name as program_name, p.color as program_color
+      FROM child_checkins cc
+      JOIN children c ON cc.child_id = c.id
+      LEFT JOIN programs p ON c.program_id = p.id
+      WHERE cc.checkin_date = $1
+      ORDER BY cc.check_in_time ASC
+    `, [targetDate]);
+
+    const checkedIn = checkinsResult.rows.filter(r => r.check_in_time && !r.check_out_time).length;
+    const checkedOut = checkinsResult.rows.filter(r => r.check_out_time).length;
+
+    // Get absences detail for that date
+    const absencesResult = await db.query(`
+      SELECT
+        a.id, a.child_id, a.start_date, a.end_date, a.notes, a.status,
+        c.first_name as child_first_name, c.last_name as child_last_name,
+        ar.name as reason_name,
+        pu.first_name as reported_by_first, pu.last_name as reported_by_last
+      FROM absences a
+      JOIN children c ON a.child_id = c.id
+      LEFT JOIN absence_reasons ar ON a.reason_id = ar.id
+      LEFT JOIN parents p2 ON a.reported_by = p2.id
+      LEFT JOIN users pu ON p2.user_id = pu.id
+      WHERE a.start_date <= $1
+        AND (a.end_date >= $1 OR a.end_date IS NULL)
+        AND a.status != 'cancelled'
+      ORDER BY c.first_name, c.last_name
+    `, [targetDate]);
+
+    // Get program breakdown
+    const byProgramResult = await db.query(`
+      SELECT
+        p.id, p.name, p.color,
+        COUNT(DISTINCT c.id) as enrolled,
+        COUNT(DISTINCT CASE WHEN cc.check_in_time IS NOT NULL AND cc.check_out_time IS NULL THEN c.id END) as checked_in,
+        COUNT(DISTINCT CASE WHEN cc.check_out_time IS NOT NULL THEN c.id END) as checked_out
+      FROM programs p
+      LEFT JOIN children c ON c.program_id = p.id AND c.is_active = true
+      LEFT JOIN child_checkins cc ON c.id = cc.child_id AND cc.checkin_date = $1
+      WHERE p.is_active = true
+      GROUP BY p.id, p.name, p.color, p.sort_order
+      ORDER BY p.sort_order
+    `, [targetDate]);
+
+    res.json({
+      success: true,
+      data: {
+        date: targetDate,
+        stats: {
+          enrolled,
+          expected,
+          checkedIn,
+          checkedOut,
+          absent: absentCount,
+          totalAttended: checkinsResult.rows.length,
+        },
+        checkins: checkinsResult.rows.map(cc => ({
+          id: cc.id,
+          childId: cc.child_id,
+          childName: `${cc.first_name} ${cc.last_name}`,
+          photoUrl: cc.photo_url,
+          programName: cc.program_name,
+          programColor: cc.program_color,
+          checkInTime: cc.check_in_time,
+          checkOutTime: cc.check_out_time,
+          checkedInBy: cc.checked_in_by_name,
+          checkedOutBy: cc.checked_out_by_name,
+          notes: cc.notes,
+          status: cc.check_out_time ? 'checked_out' : 'checked_in'
+        })),
+        absences: absencesResult.rows.map(a => ({
+          id: a.id,
+          childId: a.child_id,
+          childName: `${a.child_first_name} ${a.child_last_name}`,
+          reasonName: a.reason_name,
+          notes: a.notes,
+          status: a.status,
+          reportedBy: a.reported_by_first ? `${a.reported_by_first} ${a.reported_by_last}` : null
+        })),
+        byProgram: byProgramResult.rows.map(p => ({
+          id: p.id,
+          name: p.name,
+          color: p.color,
+          enrolled: parseInt(p.enrolled),
+          checkedIn: parseInt(p.checked_in),
+          checkedOut: parseInt(p.checked_out)
+        }))
+      }
+    });
+  } catch (error) {
+    console.error('Get attendance report error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to load attendance report'
+    });
+  }
+};
+
 module.exports = {
   getTodayOverview,
   getCheckins,
@@ -670,5 +802,6 @@ module.exports = {
   getAbsenceById,
   acknowledgeAbsence,
   manualCheckIn,
-  manualCheckOut
+  manualCheckOut,
+  getAttendanceReport
 };

@@ -18,6 +18,7 @@ import {
   AdminChildren,
   AdminParents,
   AdminAttendance,
+  AdminReports,
 } from './pages/admin';
 import { KioskHome, KioskParent, KioskEmployee } from './pages/kiosk';
 import {
@@ -95,6 +96,7 @@ function App() {
           <Route path="attendance" element={<AdminAttendance />} />
           <Route path="hr" element={<PlaceholderPage title="HR Management" description="Manage employees, time clock, and job postings" />} />
           <Route path="content" element={<PlaceholderPage title="Content Management" description="Edit website content, gallery, and testimonials" />} />
+          <Route path="reports" element={<AdminReports />} />
           <Route path="settings" element={<PlaceholderPage title="Settings" description="Configure system settings and admin users" />} />
         </Route>
       </Routes>

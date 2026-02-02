@@ -60,6 +60,7 @@ export const parentsAPI = {
 export const attendanceAPI = {
   getToday: () => api.get('/attendance/today'),
   getByDate: (date) => api.get(`/attendance/date/${date}`),
+  getReport: (date) => api.get('/attendance/report', { params: { date } }),
   getAbsences: (params) => api.get('/attendance/absences', { params }),
   acknowledgeAbsence: (id) => api.put(`/attendance/absences/${id}/acknowledge`),
   manualCheckIn: (data) => api.post('/attendance/checkin', data),

@@ -12,6 +12,14 @@ router.use(requireRole('super_admin', 'admin'));
 // GET /api/v1/attendance/today - Today's overview dashboard
 router.get('/today', attendanceController.getTodayOverview);
 
+// GET /api/v1/attendance/report - Date-specific attendance report
+router.get('/report', [
+  query('date')
+    .optional()
+    .isISO8601()
+    .withMessage('Date must be in ISO8601 format'),
+], attendanceController.getAttendanceReport);
+
 // GET /api/v1/attendance/checkins - Filterable check-in log
 router.get('/checkins', [
   query('date')
