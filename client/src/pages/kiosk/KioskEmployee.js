@@ -8,10 +8,10 @@ const INACTIVITY_TIMEOUT = 30000; // 30 seconds
 const KioskEmployee = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, status: initialStatus } = location.state || {};
+  const { user, isClockedIn, clockInTime: initialClockInTime, pin } = location.state || {};
 
-  const [clockedIn, setClockedIn] = useState(initialStatus === 'clocked_in');
-  const [clockInTime, setClockInTime] = useState(null);
+  const [clockedIn, setClockedIn] = useState(isClockedIn || false);
+  const [clockInTime, setClockInTime] = useState(initialClockInTime ? new Date(initialClockInTime) : null);
   const [hoursWorked, setHoursWorked] = useState('0:00');
   const [loading, setLoading] = useState(false);
   const [lastActivity, setLastActivity] = useState(Date.now());
@@ -70,21 +70,21 @@ const KioskEmployee = () => {
 
     try {
       await kioskAPI.employeeClockIn({
-        employee_id: user.id,
-        clock_in_time: new Date().toISOString()
+        employeeId: user.id,
+        pin,
       });
+
+      // Update local state on success
+      const now = new Date();
+      setClockInTime(now);
+      setClockedIn(true);
+      setShowConfirm('clockin');
+      setTimeout(() => setShowConfirm(null), 3000);
     } catch (error) {
       console.error('Clock-in error:', error);
+    } finally {
+      setLoading(false);
     }
-
-    // Update local state
-    const now = new Date();
-    setClockInTime(now);
-    setClockedIn(true);
-    setLoading(false);
-    setShowConfirm('clockin');
-
-    setTimeout(() => setShowConfirm(null), 3000);
   };
 
   const handleClockOut = async () => {
@@ -92,22 +92,22 @@ const KioskEmployee = () => {
 
     try {
       await kioskAPI.employeeClockOut({
-        employee_id: user.id,
-        clock_out_time: new Date().toISOString()
+        employeeId: user.id,
+        pin,
       });
+
+      // Update local state on success
+      setClockedIn(false);
+      setShowConfirm('clockout');
+      setTimeout(() => {
+        setShowConfirm(null);
+        navigate('/kiosk', { replace: true });
+      }, 2000);
     } catch (error) {
       console.error('Clock-out error:', error);
+    } finally {
+      setLoading(false);
     }
-
-    // Update local state
-    setClockedIn(false);
-    setLoading(false);
-    setShowConfirm('clockout');
-
-    setTimeout(() => {
-      setShowConfirm(null);
-      navigate('/kiosk', { replace: true });
-    }, 2000);
   };
 
   const handleDone = () => {

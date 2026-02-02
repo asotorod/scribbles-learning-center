@@ -21,8 +21,18 @@ const ParentDashboard = () => {
         portalAPI.getAbsences().catch(() => null),
       ]);
 
-      const childrenData = childrenRes?.data?.data?.children;
-      setChildren(Array.isArray(childrenData) ? childrenData : []);
+      const childrenRaw = childrenRes?.data?.data?.children;
+      const childrenData = Array.isArray(childrenRaw) ? childrenRaw.map(c => ({
+        id: c.id,
+        first_name: c.firstName || c.first_name || '',
+        last_name: c.lastName || c.last_name || '',
+        photo_url: c.photoUrl || c.photo_url || null,
+        program: c.programName || c.program_name || c.program || '',
+        status: c.status || 'not_checked_in',
+        check_in_time: c.checkInTime || c.check_in_time || null,
+        check_out_time: c.checkOutTime || c.check_out_time || null,
+      })) : [];
+      setChildren(childrenData);
 
       const absencesData = absencesRes?.data?.data?.absences;
       const absences = Array.isArray(absencesData) ? absencesData : [];
@@ -82,7 +92,7 @@ const ParentDashboard = () => {
       {/* Welcome Section */}
       <div className="welcome-section">
         <div className="welcome-text">
-          <h1>{getGreeting()}, {user?.first_name || user?.name || 'there'}!</h1>
+          <h1>{getGreeting()}, {user?.firstName || user?.first_name || user?.name || 'there'}!</h1>
           <p>Here's what's happening with your family today.</p>
         </div>
         <Link to="/parent/report-absence" className="btn-primary-large">
@@ -106,7 +116,7 @@ const ParentDashboard = () => {
                   {child.photo_url ? (
                     <img src={child.photo_url} alt={child.first_name} />
                   ) : (
-                    <span>{child.first_name.charAt(0)}</span>
+                    <span>{(child.first_name || '?').charAt(0)}</span>
                   )}
                 </div>
                 <div className="child-details">

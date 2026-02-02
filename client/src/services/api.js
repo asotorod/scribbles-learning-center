@@ -107,6 +107,7 @@ export const employeesAPI = {
 // Kiosk API
 export const kioskAPI = {
   verifyPin: (pin) => api.post('/kiosk/verify-pin', { pin }),
+  getParentChildren: (parentId, pin) => api.post('/kiosk/parent/children', { parentId, pin }),
   checkIn: (data) => api.post('/kiosk/checkin', data),
   checkOut: (data) => api.post('/kiosk/checkout', data),
   employeeClockIn: (data) => api.post('/kiosk/employee/clockin', data),

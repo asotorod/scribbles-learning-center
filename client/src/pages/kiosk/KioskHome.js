@@ -37,47 +37,63 @@ const KioskHome = () => {
 
     try {
       const response = await kioskAPI.verifyPin(pin);
-      const { type, user, children } = response.data.data || response.data;
+      const data = response.data?.data || response.data;
 
-      if (type === 'parent') {
+      if (data.type === 'parent') {
+        const parent = data.parent;
+        // Fetch the parent's children with check-in status
+        let children = [];
+        try {
+          const childrenRes = await kioskAPI.getParentChildren(parent.id, pin);
+          const childrenData = childrenRes.data?.data?.children;
+          children = Array.isArray(childrenData) ? childrenData : [];
+        } catch (childErr) {
+          console.error('Error fetching children:', childErr);
+        }
+
         navigate('/kiosk/parent', {
-          state: { user, children },
+          state: {
+            user: {
+              id: parent.id,
+              first_name: parent.firstName,
+              last_name: parent.lastName,
+            },
+            children: children.map(c => ({
+              id: c.id,
+              first_name: c.firstName,
+              last_name: c.lastName,
+              photo_url: c.photoUrl,
+              program: c.programName,
+              status: c.status,
+              check_in_time: c.checkInTime ? new Date(c.checkInTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : null,
+              check_out_time: c.checkOutTime ? new Date(c.checkOutTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : null,
+            })),
+            pin,
+          },
           replace: true
         });
-      } else if (type === 'employee') {
+      } else if (data.type === 'employee') {
+        const employee = data.employee;
         navigate('/kiosk/employee', {
-          state: { user },
+          state: {
+            user: {
+              id: employee.id,
+              first_name: employee.firstName,
+              last_name: employee.lastName,
+              position: employee.position,
+            },
+            isClockedIn: employee.isClockedIn,
+            clockInTime: employee.clockInTime,
+            pin,
+          },
           replace: true
         });
       }
     } catch (err) {
       console.error('PIN verification failed:', err);
-      setError('Invalid PIN. Please try again.');
+      const msg = err.response?.data?.error || 'Invalid PIN. Please try again.';
+      setError(msg);
       setPin('');
-
-      // For demo, simulate successful login
-      if (pin === '1234') {
-        navigate('/kiosk/parent', {
-          state: {
-            user: { id: 1, first_name: 'Sarah', last_name: 'Johnson' },
-            children: [
-              { id: 1, first_name: 'Emma', last_name: 'Johnson', program: 'Preschool', status: 'not_checked_in' },
-              { id: 2, first_name: 'Noah', last_name: 'Johnson', program: 'Toddler', status: 'checked_in', check_in_time: '8:32 AM' },
-            ]
-          },
-          replace: true
-        });
-      } else if (pin === '5678') {
-        navigate('/kiosk/employee', {
-          state: {
-            user: { id: 1, first_name: 'Maria', last_name: 'Garcia', position: 'Lead Teacher' },
-            status: 'not_clocked_in'
-          },
-          replace: true
-        });
-      } else {
-        setError('Invalid PIN. Try 1234 (parent) or 5678 (employee)');
-      }
     } finally {
       setLoading(false);
     }
@@ -164,9 +180,9 @@ const KioskHome = () => {
           )}
         </div>
 
-        {/* Demo Info */}
+        {/* Footer */}
         <div className="kiosk-demo-info">
-          <p>Demo PINs: <strong>1234</strong> (Parent) | <strong>5678</strong> (Employee)</p>
+          <p>Enter your assigned PIN to check in or clock in</p>
         </div>
       </div>
 

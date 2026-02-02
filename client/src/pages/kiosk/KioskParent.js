@@ -8,7 +8,7 @@ const INACTIVITY_TIMEOUT = 30000; // 30 seconds
 const KioskParent = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, children: initialChildren } = location.state || {};
+  const { user, children: initialChildren, pin } = location.state || {};
 
   const [children, setChildren] = useState(initialChildren || []);
   const [loading, setLoading] = useState({});
@@ -51,26 +51,25 @@ const KioskParent = () => {
 
     try {
       await kioskAPI.checkIn({
-        child_id: child.id,
-        parent_id: user.id,
-        check_in_time: new Date().toISOString()
+        parentId: user.id,
+        childIds: [child.id],
+        pin,
       });
+
+      // Update local state on success
+      const now = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+      setChildren(prev => prev.map(c =>
+        c.id === child.id
+          ? { ...c, status: 'checked_in', check_in_time: now }
+          : c
+      ));
+      setShowConfirm({ type: 'checkin', child });
+      setTimeout(() => setShowConfirm(null), 3000);
     } catch (error) {
       console.error('Check-in error:', error);
+    } finally {
+      setLoading(prev => ({ ...prev, [child.id]: false }));
     }
-
-    // Update local state
-    const now = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-    setChildren(prev => prev.map(c =>
-      c.id === child.id
-        ? { ...c, status: 'checked_in', check_in_time: now }
-        : c
-    ));
-
-    setLoading(prev => ({ ...prev, [child.id]: false }));
-    setShowConfirm({ type: 'checkin', child });
-
-    setTimeout(() => setShowConfirm(null), 3000);
   };
 
   const handleCheckOut = async (child) => {
@@ -78,26 +77,25 @@ const KioskParent = () => {
 
     try {
       await kioskAPI.checkOut({
-        child_id: child.id,
-        parent_id: user.id,
-        check_out_time: new Date().toISOString()
+        parentId: user.id,
+        childIds: [child.id],
+        pin,
       });
+
+      // Update local state on success
+      const now = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+      setChildren(prev => prev.map(c =>
+        c.id === child.id
+          ? { ...c, status: 'checked_out', check_out_time: now }
+          : c
+      ));
+      setShowConfirm({ type: 'checkout', child });
+      setTimeout(() => setShowConfirm(null), 3000);
     } catch (error) {
       console.error('Check-out error:', error);
+    } finally {
+      setLoading(prev => ({ ...prev, [child.id]: false }));
     }
-
-    // Update local state
-    const now = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-    setChildren(prev => prev.map(c =>
-      c.id === child.id
-        ? { ...c, status: 'checked_out', check_out_time: now }
-        : c
-    ));
-
-    setLoading(prev => ({ ...prev, [child.id]: false }));
-    setShowConfirm({ type: 'checkout', child });
-
-    setTimeout(() => setShowConfirm(null), 3000);
   };
 
   const handleDone = () => {
