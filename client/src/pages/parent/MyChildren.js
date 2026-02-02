@@ -118,19 +118,20 @@ const MyChildren = () => {
 
               {expandedChild === child.id && (
                 <div className="child-expanded-details">
-                  {/* Emergency Contacts */}
-                  <div className="details-section">
-                    <h4>Emergency Contacts</h4>
-                    {(child.emergency_contacts || mockEmergencyContacts).map((contact, idx) => (
-                      <div key={idx} className="emergency-contact">
+                  {/* Emergency Contact */}
+                  {(child.emergency_contact_name || child.emergency_contact_phone) && (
+                    <div className="details-section">
+                      <h4>Emergency Contact</h4>
+                      <div className="emergency-contact">
                         <div>
-                          <span className="contact-name">{contact.name}</span>
-                          <span className="contact-relation">({contact.relationship})</span>
+                          <span className="contact-name">{child.emergency_contact_name || 'N/A'}</span>
                         </div>
-                        <div className="contact-phone">{contact.phone}</div>
+                        {child.emergency_contact_phone && (
+                          <div className="contact-phone">{child.emergency_contact_phone}</div>
+                        )}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  )}
 
                   {/* Medical Information */}
                   {(child.allergies || child.medical_notes) && (
@@ -195,53 +196,5 @@ const MyChildren = () => {
     </div>
   );
 };
-
-// Mock data for development
-const mockChildren = [
-  {
-    id: 1,
-    first_name: 'Emma',
-    last_name: 'Johnson',
-    program: 'Preschool Program',
-    date_of_birth: '2020-03-15',
-    classroom: 'Sunshine Room',
-    enrollment_date: '2023-09-01',
-    allergies: 'Peanuts',
-    medical_notes: 'Uses inhaler for mild asthma',
-    dietary_restrictions: 'No peanuts or tree nuts',
-    photo_url: null,
-  },
-  {
-    id: 2,
-    first_name: 'Noah',
-    last_name: 'Johnson',
-    program: 'Toddler Program',
-    date_of_birth: '2022-08-22',
-    classroom: 'Rainbow Room',
-    enrollment_date: '2024-01-15',
-    allergies: null,
-    medical_notes: null,
-    dietary_restrictions: null,
-    photo_url: null,
-  },
-];
-
-const mockEmergencyContacts = [
-  {
-    name: 'Sarah Johnson',
-    relationship: 'Mother',
-    phone: '(201) 555-0123',
-  },
-  {
-    name: 'Michael Johnson',
-    relationship: 'Father',
-    phone: '(201) 555-0124',
-  },
-  {
-    name: 'Linda Smith',
-    relationship: 'Grandmother',
-    phone: '(201) 555-0125',
-  },
-];
 
 export default MyChildren;

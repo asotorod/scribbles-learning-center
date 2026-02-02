@@ -381,30 +381,4 @@ const ReportAbsence = () => {
   );
 };
 
-// Mock data for development
-const mockChildren = [
-  {
-    id: 1,
-    first_name: 'Emma',
-    last_name: 'Johnson',
-    program: 'Preschool',
-  },
-  {
-    id: 2,
-    first_name: 'Noah',
-    last_name: 'Johnson',
-    program: 'Toddler',
-  },
-];
-
-const mockReasons = [
-  { id: 1, name: 'Illness' },
-  { id: 2, name: 'Doctor Appointment' },
-  { id: 3, name: 'Family Emergency' },
-  { id: 4, name: 'Family Vacation' },
-  { id: 5, name: 'Personal Day' },
-  { id: 6, name: 'Weather Related' },
-  { id: 7, name: 'Other' },
-];
-
 export default ReportAbsence;
