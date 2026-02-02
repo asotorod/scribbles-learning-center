@@ -22,19 +22,19 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px;
+  padding: 20px 40px 100px;
   overflow-y: auto;
 }
 
 /* Logo Section */
 .kiosk-logo {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
 }
 
 .kiosk-logo img {
-  height: 100px;
-  margin-bottom: 16px;
+  height: 80px;
+  margin-bottom: 8px;
 }
 
 .kiosk-logo h1 {
@@ -60,7 +60,7 @@
 .kiosk-pin-section > p {
   font-size: 16px;
   color: var(--gray-600);
-  margin: 0 0 32px;
+  margin: 0 0 20px;
   line-height: 1.5;
 }
 
@@ -69,7 +69,7 @@
   display: flex;
   justify-content: center;
   gap: 20px;
-  margin-bottom: 32px;
+  margin-bottom: 20px;
 }
 
 .pin-dot {
@@ -173,12 +173,9 @@
 
 /* Demo Info */
 .kiosk-demo-info {
-  position: absolute;
-  bottom: 100px;
-  left: 50%;
-  transform: translateX(-50%);
+  margin-top: 20px;
   background: var(--color-fennel);
-  padding: 12px 24px;
+  padding: 10px 20px;
   border-radius: var(--radius);
 }
 
@@ -194,7 +191,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 24px;
+  padding: 14px 24px;
   background: var(--color-fern);
   text-align: center;
 }
@@ -207,13 +204,13 @@
 }
 
 .time-value {
-  font-size: 36px;
+  font-size: 28px;
   font-weight: 700;
   color: var(--white);
 }
 
 .date-value {
-  font-size: 16px;
+  font-size: 14px;
   color: rgba(255, 255, 255, 0.85);
 }
 
