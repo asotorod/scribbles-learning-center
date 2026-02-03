@@ -3,4 +3,5 @@ export { default as ParentDashboard } from './ParentDashboard';
 export { default as MyChildren } from './MyChildren';
 export { default as ReportAbsence } from './ReportAbsence';
 export { default as AbsenceHistory } from './AbsenceHistory';
+export { default as Messages } from './Messages';
 export { default as MyAccount } from './MyAccount';

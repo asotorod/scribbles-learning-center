@@ -2,6 +2,7 @@ const express = require('express');
 const { body, param, validationResult } = require('express-validator');
 const { verifyToken, requireRole } = require('../middleware/auth');
 const parentsController = require('../controllers/parentsController');
+const messagesController = require('../controllers/messagesController');
 
 const router = express.Router();
 
@@ -160,6 +161,13 @@ const pinValidation = [
 router.get('/', parentsController.getAll);
 
 /**
+ * @route   GET /api/v1/parents/messages/sent
+ * @desc    List messages sent by the current admin
+ * @access  Protected (admin)
+ */
+router.get('/messages/sent', messagesController.getSentMessages);
+
+/**
  * @route   POST /api/v1/parents
  * @desc    Create new parent (creates user account)
  * @access  Protected (admin)
@@ -241,6 +249,40 @@ router.put(
   pinValidation,
   handleValidationErrors,
   parentsController.updatePin
+);
+
+// ============================================
+// MESSAGE ROUTES
+// ============================================
+
+const sendMessageValidation = [
+  param('id')
+    .isUUID()
+    .withMessage('Invalid parent ID'),
+  body('subject')
+    .trim()
+    .notEmpty()
+    .withMessage('Subject is required')
+    .isLength({ max: 200 })
+    .withMessage('Subject must be less than 200 characters'),
+  body('body')
+    .trim()
+    .notEmpty()
+    .withMessage('Message body is required')
+    .isLength({ max: 5000 })
+    .withMessage('Message must be less than 5000 characters'),
+];
+
+/**
+ * @route   POST /api/v1/parents/:id/messages
+ * @desc    Send a message to a specific parent
+ * @access  Protected (admin)
+ */
+router.post(
+  '/:id/messages',
+  sendMessageValidation,
+  handleValidationErrors,
+  messagesController.sendMessage
 );
 
 module.exports = router;

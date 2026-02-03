@@ -258,6 +258,45 @@ router.put(
 );
 
 // ============================================
+// DIRECT MESSAGE ROUTES
+// ============================================
+
+const messagesController = require('../controllers/messagesController');
+
+const messageIdValidation = [
+  param('id')
+    .isUUID()
+    .withMessage('Invalid message ID')
+];
+
+/**
+ * @route   GET /api/v1/portal/messages/unread-count
+ * @desc    Get count of unread direct messages
+ * @access  Protected (parent only)
+ */
+router.get('/messages/unread-count', messagesController.getUnreadMessageCount);
+
+/**
+ * @route   GET /api/v1/portal/messages
+ * @desc    List parent's direct messages (paginated)
+ * @access  Protected (parent only)
+ * @query   page, limit
+ */
+router.get('/messages', messagesController.getInbox);
+
+/**
+ * @route   PUT /api/v1/portal/messages/:id/read
+ * @desc    Mark a direct message as read
+ * @access  Protected (parent only)
+ */
+router.put(
+  '/messages/:id/read',
+  messageIdValidation,
+  handleValidationErrors,
+  messagesController.markAsRead
+);
+
+// ============================================
 // CHILD PHOTO UPLOAD
 // ============================================
 

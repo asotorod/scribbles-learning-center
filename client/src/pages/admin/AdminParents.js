@@ -40,6 +40,10 @@ const AdminParents = () => {
   const [selectedParent, setSelectedParent] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
+  const [messageData, setMessageData] = useState({ subject: '', body: '' });
+  const [messageSending, setMessageSending] = useState(false);
+  const [messageSuccess, setMessageSuccess] = useState('');
   const itemsPerPage = 10;
 
   const [formData, setFormData] = useState({
@@ -212,6 +216,37 @@ const AdminParents = () => {
     setIsDeleteOpen(true);
   };
 
+  const handleOpenMessageModal = (parent) => {
+    setSelectedParent(parent);
+    setMessageData({ subject: '', body: '' });
+    setMessageSuccess('');
+    setError('');
+    setIsMessageModalOpen(true);
+  };
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    setMessageSending(true);
+    setError('');
+
+    try {
+      await api.post(`/parents/${selectedParent.id}/messages`, {
+        subject: messageData.subject,
+        body: messageData.body,
+      });
+      setMessageSuccess('Message sent successfully!');
+      setTimeout(() => {
+        setIsMessageModalOpen(false);
+        setMessageSuccess('');
+      }, 1500);
+    } catch (err) {
+      const msg = err.response?.data?.error || 'Failed to send message.';
+      setError(msg);
+    } finally {
+      setMessageSending(false);
+    }
+  };
+
   const generatePin = () => {
     const pin = Math.floor(1000 + Math.random() * 9000).toString();
     setFormData(prev => ({ ...prev, pin_code: pin }));
@@ -276,9 +311,16 @@ const AdminParents = () => {
     {
       key: 'actions',
       title: 'Actions',
-      width: '180px',
+      width: '230px',
       render: (_, parent) => (
         <div className="action-buttons">
+          <button
+            className="action-btn action-btn-message"
+            onClick={() => handleOpenMessageModal(parent)}
+            title="Send Message"
+          >
+            Msg
+          </button>
           <button
             className="action-btn action-btn-view"
             onClick={() => handleOpenLinkModal(parent)}
@@ -526,6 +568,61 @@ const AdminParents = () => {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Send Message Modal */}
+      <Modal
+        isOpen={isMessageModalOpen}
+        onClose={() => setIsMessageModalOpen(false)}
+        title="Send Message"
+        size="medium"
+      >
+        {messageSuccess ? (
+          <div style={{ textAlign: 'center', padding: '20px' }}>
+            <div style={{ fontSize: '48px', marginBottom: '12px' }}>✅</div>
+            <p style={{ color: '#16a34a', fontWeight: 600, fontSize: '16px' }}>{messageSuccess}</p>
+          </div>
+        ) : (
+          <form onSubmit={handleSendMessage}>
+            {error && <div className="form-error" style={{ color: '#DC2626', marginBottom: '16px', padding: '8px 12px', background: '#FEE2E2', borderRadius: '6px', fontSize: '14px' }}>{error}</div>}
+            <p className="link-info">
+              Send a message to <strong>{selectedParent?.first_name} {selectedParent?.last_name}</strong>
+            </p>
+            <div className="form-group">
+              <label htmlFor="msg_subject">Subject *</label>
+              <input
+                type="text"
+                id="msg_subject"
+                value={messageData.subject}
+                onChange={(e) => setMessageData({ ...messageData, subject: e.target.value })}
+                required
+                maxLength={200}
+                placeholder="Message subject"
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="msg_body">Message *</label>
+              <textarea
+                id="msg_body"
+                value={messageData.body}
+                onChange={(e) => setMessageData({ ...messageData, body: e.target.value })}
+                required
+                maxLength={5000}
+                rows={6}
+                placeholder="Write your message..."
+                style={{ width: '100%', resize: 'vertical', fontFamily: 'inherit' }}
+              />
+            </div>
+            <div className="modal-actions">
+              <Button variant="ghost" type="button" onClick={() => setIsMessageModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button variant="primary" type="submit" loading={messageSending}>
+                Send Message
+              </Button>
+            </div>
+          </form>
+        )}
       </Modal>
 
       {/* Delete Confirmation */}

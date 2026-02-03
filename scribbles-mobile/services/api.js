@@ -147,10 +147,15 @@ export const portalAPI = {
   updateProfile: (data) => api.put('/portal/profile', data),
   changePassword: (data) => api.post('/portal/change-password', data),
 
-  // Notifications
+  // Notifications (broadcast)
   getNotifications: (params) => api.get('/portal/notifications', { params }),
   markNotificationRead: (id) => api.put(`/portal/notifications/${id}/read`),
   getUnreadCount: () => api.get('/portal/notifications/unread-count'),
+
+  // Direct Messages
+  getMessages: (params) => api.get('/portal/messages', { params }),
+  markMessageRead: (id) => api.put(`/portal/messages/${id}/read`),
+  getUnreadMessageCount: () => api.get('/portal/messages/unread-count'),
 };
 
 export default api;

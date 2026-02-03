@@ -16,10 +16,9 @@ export default function MessagesScreen() {
 
   const fetchMessages = useCallback(async () => {
     try {
-      const res = await portalAPI.getNotifications();
-      setMessages(res.data?.data?.notifications || []);
-    } catch (err) {
-      // Notifications endpoint may not exist yet — show empty state
+      const res = await portalAPI.getMessages();
+      setMessages(res.data?.data?.messages || []);
+    } catch {
       setMessages([]);
     } finally {
       setLoading(false);
@@ -36,9 +35,9 @@ export default function MessagesScreen() {
 
   const handleRead = async (id) => {
     try {
-      await portalAPI.markNotificationRead(id);
+      await portalAPI.markMessageRead(id);
       setMessages(prev =>
-        prev.map(m => m.id === id ? { ...m, readAt: new Date().toISOString() } : m)
+        prev.map(m => m.id === id ? { ...m, isRead: true, readAt: new Date().toISOString() } : m)
       );
     } catch {
       // Silent fail
@@ -50,7 +49,7 @@ export default function MessagesScreen() {
     setExpandedId(isExpanding ? id : null);
     if (isExpanding) {
       const msg = messages.find(m => m.id === id);
-      if (msg && !msg.readAt) handleRead(id);
+      if (msg && !msg.isRead) handleRead(id);
     }
   };
 
@@ -60,6 +59,7 @@ export default function MessagesScreen() {
     const now = new Date();
     const diff = now - date;
     const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'Just now';
     if (mins < 60) return `${mins}m ago`;
     const hours = Math.floor(mins / 60);
     if (hours < 24) return `${hours}h ago`;
@@ -68,8 +68,14 @@ export default function MessagesScreen() {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
+  const roleLabel = (role) => {
+    if (role === 'super_admin' || role === 'admin') return 'Admin';
+    if (role === 'staff') return 'Staff';
+    return 'Scribbles';
+  };
+
   const renderMessage = ({ item }) => {
-    const isRead = !!item.readAt;
+    const isRead = !!item.isRead;
     const isExpanded = expandedId === item.id;
 
     return (
@@ -79,18 +85,24 @@ export default function MessagesScreen() {
         activeOpacity={0.7}
       >
         <View style={styles.cardHeader}>
-          <View style={styles.iconWrap}>
+          <View style={[styles.iconWrap, !isRead && styles.iconWrapUnread]}>
             <Ionicons
-              name={item.notificationType === 'alert' ? 'alert-circle' : 'mail'}
+              name={isRead ? 'mail-open' : 'mail'}
               size={20}
               color={!isRead ? Colors.peach : Colors.gray400}
             />
           </View>
           <View style={styles.headerInfo}>
-            <Text style={[styles.title, !isRead && styles.titleUnread]}>
-              {item.title}
+            <Text style={[styles.title, !isRead && styles.titleUnread]} numberOfLines={1}>
+              {item.subject}
             </Text>
-            <Text style={styles.time}>{formatDate(item.sentAt || item.createdAt)}</Text>
+            <View style={styles.metaRow}>
+              <View style={styles.roleBadge}>
+                <Text style={styles.roleBadgeText}>{roleLabel(item.senderRole)}</Text>
+              </View>
+              <Text style={styles.senderName}>{item.senderName}</Text>
+              <Text style={styles.time}>&middot; {formatDate(item.createdAt)}</Text>
+            </View>
           </View>
           {!isRead && <View style={styles.unreadDot} />}
           <Ionicons
@@ -101,7 +113,7 @@ export default function MessagesScreen() {
         </View>
         {isExpanded && (
           <View style={styles.body}>
-            <Text style={styles.bodyText}>{item.message}</Text>
+            <Text style={styles.bodyText}>{item.body}</Text>
           </View>
         )}
       </TouchableOpacity>
@@ -123,7 +135,7 @@ export default function MessagesScreen() {
           <EmptyState
             icon="💬"
             title="No messages yet"
-            message="Notifications from the learning center will appear here."
+            message="Direct messages from the learning center will appear here."
           />
         )
       }
@@ -165,6 +177,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  iconWrapUnread: {
+    backgroundColor: Colors.fennel,
+  },
   headerInfo: { flex: 1 },
   title: {
     fontSize: 15,
@@ -174,11 +189,32 @@ const styles = StyleSheet.create({
   titleUnread: {
     fontFamily: 'OpenSans-SemiBold',
   },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 4,
+  },
+  roleBadge: {
+    backgroundColor: Colors.fennel,
+    borderRadius: 10,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+  },
+  roleBadgeText: {
+    fontSize: 10,
+    fontFamily: 'OpenSans-SemiBold',
+    color: Colors.charcoal,
+  },
+  senderName: {
+    fontSize: 12,
+    fontFamily: 'OpenSans-Regular',
+    color: Colors.gray500,
+  },
   time: {
     fontSize: 12,
     fontFamily: 'OpenSans-Regular',
     color: Colors.gray500,
-    marginTop: 2,
   },
   unreadDot: {
     width: 8,
@@ -191,6 +227,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 16,
     paddingTop: 0,
+    marginLeft: 48,
   },
   bodyText: {
     fontSize: 14,

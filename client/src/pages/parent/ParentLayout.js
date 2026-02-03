@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { portalAPI } from '../../services/api';
 import './ParentLayout.css';
 
 const ParentLayout = () => {
@@ -8,6 +9,19 @@ const ParentLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const fetchUnread = async () => {
+      try {
+        const res = await portalAPI.getUnreadMessageCount();
+        setUnreadCount(res.data?.data?.unreadCount || 0);
+      } catch { /* silent */ }
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -19,6 +33,7 @@ const ParentLayout = () => {
     { path: '/parent/children', label: 'My Children', icon: '👶' },
     { path: '/parent/report-absence', label: 'Report Absence', icon: '📝' },
     { path: '/parent/absences', label: 'Absence History', icon: '📅' },
+    { path: '/parent/messages', label: 'Messages', icon: '💬', badge: unreadCount },
     { path: '/parent/account', label: 'My Account', icon: '⚙️' },
   ];
 
@@ -49,6 +64,9 @@ const ParentLayout = () => {
               >
                 <span className="nav-icon">{item.icon}</span>
                 <span className="nav-label">{item.label}</span>
+                {item.badge > 0 && (
+                  <span className="nav-badge">{item.badge > 99 ? '99+' : item.badge}</span>
+                )}
               </Link>
             ))}
           </nav>
@@ -87,6 +105,9 @@ const ParentLayout = () => {
               >
                 <span className="nav-icon">{item.icon}</span>
                 <span className="nav-label">{item.label}</span>
+                {item.badge > 0 && (
+                  <span className="nav-badge">{item.badge > 99 ? '99+' : item.badge}</span>
+                )}
               </Link>
             ))}
             <button className="nav-link logout-link" onClick={handleLogout}>

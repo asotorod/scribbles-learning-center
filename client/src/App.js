@@ -27,6 +27,7 @@ import {
   MyChildren,
   ReportAbsence,
   AbsenceHistory,
+  Messages,
   MyAccount,
 } from './pages/parent';
 import './App.css';
@@ -78,6 +79,7 @@ function App() {
           <Route path="children" element={<MyChildren />} />
           <Route path="report-absence" element={<ReportAbsence />} />
           <Route path="absences" element={<AbsenceHistory />} />
+          <Route path="messages" element={<Messages />} />
           <Route path="account" element={<MyAccount />} />
         </Route>
 

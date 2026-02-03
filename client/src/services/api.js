@@ -61,6 +61,8 @@ export const parentsAPI = {
   delete: (id) => api.delete(`/parents/${id}`),
   linkChild: (parentId, data) => api.post(`/parents/${parentId}/link-child`, data),
   unlinkChild: (parentId, childId) => api.delete(`/parents/${parentId}/children/${childId}`),
+  sendMessage: (parentId, data) => api.post(`/parents/${parentId}/messages`, data),
+  getSentMessages: (params) => api.get('/parents/messages/sent', { params }),
 };
 
 // Attendance API
@@ -141,6 +143,10 @@ export const portalAPI = {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
+  // Messages
+  getMessages: (params) => api.get('/portal/messages', { params }),
+  markMessageRead: (id) => api.put(`/portal/messages/${id}/read`),
+  getUnreadMessageCount: () => api.get('/portal/messages/unread-count'),
 };
 
 export default api;
