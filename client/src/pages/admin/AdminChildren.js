@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Table, { TableToolbar, TablePagination } from '../../components/ui/Table';
 import Modal, { ConfirmDialog } from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
 import api from '../../services/api';
+import { compressImage, validateImageFile, ACCEPTED_IMAGE_TYPES } from '../../utils/imageUtils';
 import './AdminChildren.css';
 
 // Convert API camelCase response to snake_case for frontend usage
@@ -11,6 +12,7 @@ const normalizeChild = (c) => ({
   first_name: c.firstName || c.first_name || '',
   last_name: c.lastName || c.last_name || '',
   date_of_birth: c.dateOfBirth || c.date_of_birth || '',
+  photo_url: c.photoUrl || c.photo_url || null,
   program_id: c.programId || c.program_id || '',
   program_name: c.programName || c.program_name || null,
   program_color: c.programColor || c.program_color || null,
@@ -45,9 +47,11 @@ const AdminChildren = () => {
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [viewData, setViewData] = useState(null);
   const [viewLoading, setViewLoading] = useState(false);
+  const [photoUploading, setPhotoUploading] = useState(false);
   const [selectedChild, setSelectedChild] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const photoInputRef = useRef(null);
   const itemsPerPage = 10;
 
   const [formData, setFormData] = useState({
@@ -184,6 +188,45 @@ const AdminChildren = () => {
     }
   };
 
+  const handleViewPhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !viewData?.child) return;
+    e.target.value = '';
+
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      alert(validation.error);
+      return;
+    }
+
+    setPhotoUploading(true);
+    try {
+      const compressed = await compressImage(file);
+      const formData = new FormData();
+      formData.append('file', compressed);
+      const response = await api.post(`/children/${viewData.child.id}/photo`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      const newUrl = response.data?.data?.photoUrl;
+      if (newUrl) {
+        // Update view modal data
+        setViewData(prev => ({
+          ...prev,
+          child: { ...prev.child, photoUrl: newUrl },
+        }));
+        // Update children list
+        setChildren(prev =>
+          prev.map(c => c.id === viewData.child.id ? { ...c, photo_url: newUrl } : c)
+        );
+      }
+    } catch (err) {
+      console.error('Photo upload error:', err);
+      alert(err.response?.data?.error || 'Failed to upload photo.');
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
+
   // Filter and paginate
   const filteredChildren = children.filter(child => {
     const matchesSearch = `${child.first_name} ${child.last_name}`
@@ -206,7 +249,11 @@ const AdminChildren = () => {
       render: (_, child) => (
         <div className="child-cell">
           <div className="child-avatar">
-            {child.first_name?.charAt(0)}
+            {child.photo_url ? (
+              <img src={child.photo_url} alt={child.first_name} className="child-avatar-img" />
+            ) : (
+              child.first_name?.charAt(0)
+            )}
           </div>
           <div>
             <span className="child-name">{child.first_name} {child.last_name}</span>
@@ -466,30 +513,52 @@ const AdminChildren = () => {
           </div>
         ) : viewData ? (
           <div className="child-detail">
+            {/* Photo + Name Header */}
+            <div className="detail-photo-header">
+              <div className="detail-photo-wrapper">
+                {viewData.child?.photoUrl ? (
+                  <img src={viewData.child.photoUrl} alt={viewData.child.firstName} className="detail-photo" />
+                ) : (
+                  <div className="detail-photo-placeholder">
+                    {viewData.child?.firstName?.charAt(0)}
+                  </div>
+                )}
+              </div>
+              <div className="detail-photo-info">
+                <h2 className="detail-child-name">{viewData.child?.firstName} {viewData.child?.lastName}</h2>
+                {viewData.child?.programName && (
+                  <span className="program-badge" style={{ background: viewData.child.programColor || '#E8E0D0' }}>
+                    {viewData.child.programName}
+                  </span>
+                )}
+                <button
+                  className="action-btn action-btn-edit"
+                  style={{ marginTop: '8px' }}
+                  onClick={() => photoInputRef.current?.click()}
+                  disabled={photoUploading}
+                >
+                  {photoUploading ? 'Uploading...' : (viewData.child?.photoUrl ? 'Change Photo' : 'Upload Photo')}
+                </button>
+                <input
+                  ref={photoInputRef}
+                  type="file"
+                  accept={ACCEPTED_IMAGE_TYPES}
+                  style={{ display: 'none' }}
+                  onChange={handleViewPhotoUpload}
+                />
+              </div>
+            </div>
+
             {/* Child Info */}
             <div className="detail-section">
               <h3 className="detail-section-title">Child Information</h3>
               <div className="detail-grid">
-                <div className="detail-item">
-                  <span className="detail-label">Full Name</span>
-                  <span className="detail-value">{viewData.child?.firstName} {viewData.child?.lastName}</span>
-                </div>
                 <div className="detail-item">
                   <span className="detail-label">Date of Birth</span>
                   <span className="detail-value">
                     {viewData.child?.dateOfBirth
                       ? new Date(viewData.child.dateOfBirth).toLocaleDateString()
                       : 'N/A'}
-                  </span>
-                </div>
-                <div className="detail-item">
-                  <span className="detail-label">Program</span>
-                  <span className="detail-value">
-                    {viewData.child?.programName ? (
-                      <span className="program-badge" style={{ background: viewData.child.programColor || '#E8E0D0' }}>
-                        {viewData.child.programName}
-                      </span>
-                    ) : 'Unassigned'}
                   </span>
                 </div>
                 <div className="detail-item">

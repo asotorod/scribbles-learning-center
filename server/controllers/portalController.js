@@ -1,4 +1,5 @@
 const db = require('../config/database');
+const { uploadToS3, deleteFromS3, getKeyFromUrl } = require('../services/uploadService');
 
 /**
  * Helper: Get parent record for current user
@@ -940,6 +941,71 @@ const updateEmergencyContact = async (req, res) => {
   }
 };
 
+/**
+ * Upload / replace child profile photo (parent side)
+ * POST /api/v1/portal/my-children/:id/photo
+ * Verifies the parent has access to this child first
+ */
+const uploadChildPhoto = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const parent = await getParentByUserId(req.user.id);
+
+    if (!parent) {
+      return res.status(404).json({ success: false, error: 'Parent profile not found' });
+    }
+
+    const hasAccess = await parentHasAccessToChild(parent.id, id);
+    if (!hasAccess) {
+      return res.status(403).json({ success: false, error: 'You do not have access to this child' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, error: 'No file provided' });
+    }
+
+    // Get old photo URL for cleanup
+    const childResult = await db.query('SELECT photo_url FROM children WHERE id = $1', [id]);
+    if (childResult.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Child not found' });
+    }
+    const oldPhotoUrl = childResult.rows[0].photo_url;
+
+    // Upload to S3
+    const { url } = await uploadToS3(
+      req.file.buffer,
+      req.file.originalname,
+      req.file.mimetype,
+      'children-photos'
+    );
+
+    // Update database
+    await db.query(
+      'UPDATE children SET photo_url = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+      [url, id]
+    );
+
+    // Delete old photo (best-effort)
+    if (oldPhotoUrl) {
+      const oldKey = getKeyFromUrl(oldPhotoUrl);
+      if (oldKey) {
+        deleteFromS3(oldKey).catch(err => console.error('Failed to delete old photo:', err));
+      }
+    }
+
+    res.json({
+      success: true,
+      data: { photoUrl: url, message: 'Photo uploaded successfully' },
+    });
+  } catch (error) {
+    console.error('Portal upload child photo error:', error);
+    if (error.message.includes('Invalid file type') || error.message.includes('File too large')) {
+      return res.status(400).json({ success: false, error: error.message });
+    }
+    res.status(500).json({ success: false, error: 'Failed to upload photo' });
+  }
+};
+
 module.exports = {
   getDashboard,
   getMyChildren,
@@ -953,4 +1019,5 @@ module.exports = {
   getProfile,
   updateProfile,
   updateEmergencyContact,
+  uploadChildPhoto,
 };

@@ -43,6 +43,13 @@ export const childrenAPI = {
   create: (data) => api.post('/children', data),
   update: (id, data) => api.put(`/children/${id}`, data),
   delete: (id) => api.delete(`/children/${id}`),
+  uploadPhoto: (id, file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post(`/children/${id}/photo`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
 };
 
 // Parents API
@@ -127,6 +134,13 @@ export const portalAPI = {
   updateProfile: (data) => api.put('/portal/profile', data),
   changePassword: (data) => api.post('/portal/change-password', data),
   updateEmergencyContact: (childId, data) => api.put(`/portal/my-children/${childId}/emergency-contact`, data),
+  uploadChildPhoto: (childId, file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post(`/portal/my-children/${childId}/photo`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
 };
 
 export default api;

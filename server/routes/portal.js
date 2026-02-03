@@ -1,7 +1,9 @@
 const express = require('express');
+const multer = require('multer');
 const { body, param, query, validationResult } = require('express-validator');
 const { verifyToken, requireRole } = require('../middleware/auth');
 const portalController = require('../controllers/portalController');
+const { ALLOWED_IMAGE_TYPES, MAX_FILE_SIZE } = require('../services/uploadService');
 
 const router = express.Router();
 
@@ -209,6 +211,52 @@ router.delete(
   absenceIdValidation,
   handleValidationErrors,
   portalController.cancelAbsence
+);
+
+// ============================================
+// CHILD PHOTO UPLOAD
+// ============================================
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_FILE_SIZE },
+  fileFilter: (_req, file, cb) => {
+    if (ALLOWED_IMAGE_TYPES.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`Invalid file type. Allowed: ${ALLOWED_IMAGE_TYPES.join(', ')}`), false);
+    }
+  },
+});
+
+const handleMulterError = (err, _req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({
+        success: false,
+        error: `File too large. Maximum size is ${MAX_FILE_SIZE / (1024 * 1024)}MB`,
+      });
+    }
+    return res.status(400).json({ success: false, error: err.message });
+  }
+  if (err) {
+    return res.status(400).json({ success: false, error: err.message });
+  }
+  next();
+};
+
+/**
+ * @route   POST /api/v1/portal/my-children/:id/photo
+ * @desc    Upload or replace child profile photo
+ * @access  Protected (parent only, own children)
+ */
+router.post(
+  '/my-children/:id/photo',
+  childIdValidation,
+  handleValidationErrors,
+  upload.single('file'),
+  handleMulterError,
+  portalController.uploadChildPhoto
 );
 
 module.exports = router;

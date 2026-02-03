@@ -1,4 +1,5 @@
 const db = require('../config/database');
+const { uploadToS3, deleteFromS3, getKeyFromUrl } = require('../services/uploadService');
 
 /**
  * List all children with optional search and filter
@@ -375,10 +376,91 @@ const remove = async (req, res) => {
   }
 };
 
+/**
+ * Upload / replace child profile photo
+ * POST /api/v1/children/:id/photo
+ * Accepts multipart/form-data with "file" field
+ * Accessible by admin AND parent (parent access verified in route)
+ */
+const uploadPhoto = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: 'No file provided',
+      });
+    }
+
+    // Verify child exists
+    const childResult = await db.query(
+      'SELECT id, photo_url FROM children WHERE id = $1',
+      [id]
+    );
+
+    if (childResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Child not found',
+      });
+    }
+
+    const oldPhotoUrl = childResult.rows[0].photo_url;
+
+    // Upload new photo to S3
+    const { url } = await uploadToS3(
+      req.file.buffer,
+      req.file.originalname,
+      req.file.mimetype,
+      'children-photos'
+    );
+
+    // Update database
+    await db.query(
+      'UPDATE children SET photo_url = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+      [url, id]
+    );
+
+    // Delete old photo from S3 (best-effort, don't fail if this errors)
+    if (oldPhotoUrl) {
+      const oldKey = getKeyFromUrl(oldPhotoUrl);
+      if (oldKey) {
+        deleteFromS3(oldKey).catch(err =>
+          console.error('Failed to delete old photo:', err)
+        );
+      }
+    }
+
+    res.json({
+      success: true,
+      data: {
+        photoUrl: url,
+        message: 'Photo uploaded successfully',
+      },
+    });
+  } catch (error) {
+    console.error('Upload child photo error:', error);
+
+    if (error.message.includes('Invalid file type') || error.message.includes('File too large')) {
+      return res.status(400).json({
+        success: false,
+        error: error.message,
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      error: 'Failed to upload photo',
+    });
+  }
+};
+
 module.exports = {
   getAll,
   getById,
   create,
   update,
-  remove
+  remove,
+  uploadPhoto,
 };
