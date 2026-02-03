@@ -39,8 +39,14 @@ const ReportAbsence = () => {
   const fetchInitialData = async () => {
     try {
       const [childrenRes, reasonsRes] = await Promise.all([
-        portalAPI.getMyChildren().catch(() => null),
-        portalAPI.getAbsenceReasons().catch(() => null),
+        portalAPI.getMyChildren().catch((err) => {
+          console.error('Error fetching children:', err);
+          return null;
+        }),
+        portalAPI.getAbsenceReasons().catch((err) => {
+          console.error('Error fetching reasons:', err);
+          return null;
+        }),
       ]);
 
       // Extract children array and normalize camelCase→snake_case
@@ -56,10 +62,16 @@ const ReportAbsence = () => {
       // Extract absence reasons array
       const reasonsRaw = reasonsRes?.data?.data?.reasons || reasonsRes?.data?.data;
       setAbsenceReasons(Array.isArray(reasonsRaw) ? reasonsRaw : []);
+
+      // Warn if data failed to load
+      if (childrenData.length === 0) {
+        setError('Unable to load children. Please try refreshing the page.');
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
       setChildren([]);
       setAbsenceReasons([]);
+      setError('Unable to load form data. Please try refreshing the page.');
     } finally {
       setLoading(false);
     }
@@ -96,24 +108,30 @@ const ReportAbsence = () => {
       return;
     }
 
+    // Defensive check: make sure children data loaded
+    const selectedChild = children.find(c => String(c.id) === String(formData.child_id));
+    if (!selectedChild) {
+      setError('Child data is not available. Please refresh the page and try again.');
+      return;
+    }
+
+    const selectedReason = absenceReasons.find(r => String(r.id) === String(formData.reason_id));
+
     setSubmitting(true);
     setError('');
 
     try {
+      // Server expects camelCase field names and UUID values
       const submitData = {
-        child_id: parseInt(formData.child_id),
-        start_date: formData.start_date,
-        end_date: formData.date_type === 'multiple' ? formData.end_date : formData.start_date,
-        reason_id: parseInt(formData.reason_id),
-        notes: formData.notes || null,
-        expected_return_date: formData.expected_return_date || null,
+        childId: formData.child_id,
+        startDate: formData.start_date,
+        endDate: formData.date_type === 'multiple' ? formData.end_date : formData.start_date,
+        reasonId: formData.reason_id,
+        notes: formData.notes || undefined,
+        expectedReturnDate: formData.expected_return_date || undefined,
       };
 
       await portalAPI.reportAbsence(submitData);
-
-      // Store submitted data for confirmation
-      const selectedChild = children.find(c => c.id === parseInt(formData.child_id));
-      const selectedReason = absenceReasons.find(r => r.id === parseInt(formData.reason_id));
 
       setSubmittedData({
         childName: `${selectedChild.first_name} ${selectedChild.last_name}`,
@@ -137,30 +155,10 @@ const ReportAbsence = () => {
       setSubmitted(true);
     } catch (error) {
       console.error('Error submitting absence:', error);
-      // For demo, still show success
-      const selectedChild = children.find(c => c.id === parseInt(formData.child_id));
-      const selectedReason = absenceReasons.find(r => r.id === parseInt(formData.reason_id));
-
-      setSubmittedData({
-        childName: `${selectedChild.first_name} ${selectedChild.last_name}`,
-        startDate: new Date(formData.start_date).toLocaleDateString('en-US', {
-          weekday: 'long',
-          month: 'long',
-          day: 'numeric',
-          year: 'numeric',
-        }),
-        endDate: formData.date_type === 'multiple'
-          ? new Date(formData.end_date).toLocaleDateString('en-US', {
-              weekday: 'long',
-              month: 'long',
-              day: 'numeric',
-              year: 'numeric',
-            })
-          : null,
-        reason: selectedReason?.name || 'Other',
-      });
-
-      setSubmitted(true);
+      const errMsg = error.response?.data?.error
+        || error.response?.data?.details?.map(d => d.message).join(', ')
+        || 'Failed to submit absence report. Please try again.';
+      setError(errMsg);
     } finally {
       setSubmitting(false);
     }
@@ -371,7 +369,7 @@ const ReportAbsence = () => {
           <button
             type="submit"
             className="btn btn-submit"
-            disabled={submitting}
+            disabled={submitting || children.length === 0}
           >
             {submitting ? 'Submitting...' : 'Submit Absence Report'}
           </button>

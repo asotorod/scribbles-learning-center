@@ -56,7 +56,7 @@ const ParentLayout = () => {
           {/* User Menu */}
           <div className="header-user">
             <span className="user-name">
-              {user?.first_name || user?.name || 'Parent'}
+              {user?.firstName || user?.first_name || user?.name || 'Parent'}
             </span>
             <button className="logout-btn" onClick={handleLogout}>
               Sign Out
