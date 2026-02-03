@@ -19,6 +19,7 @@ const galleryRoutes = require('./routes/gallery');
 const testimonialsRoutes = require('./routes/testimonials');
 const programsRoutes = require('./routes/programs');
 const contactRoutes = require('./routes/contact');
+const uploadRoutes = require('./routes/uploads');
 
 const app = express();
 
@@ -60,6 +61,8 @@ app.use('/api/v1/gallery', galleryRoutes);
 app.use('/api/v1/testimonials', testimonialsRoutes);
 app.use('/api/v1/programs', programsRoutes);
 app.use('/api/v1/contact', contactRoutes);
+app.use('/api/v1/uploads', uploadRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Legacy routes (for backwards compatibility)
 app.use('/api/auth', authRoutes);

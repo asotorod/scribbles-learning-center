@@ -42,6 +42,9 @@ const AdminChildren = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isViewOpen, setIsViewOpen] = useState(false);
+  const [viewData, setViewData] = useState(null);
+  const [viewLoading, setViewLoading] = useState(false);
   const [selectedChild, setSelectedChild] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -167,6 +170,20 @@ const AdminChildren = () => {
     setIsDeleteOpen(true);
   };
 
+  const handleView = async (child) => {
+    setIsViewOpen(true);
+    setViewLoading(true);
+    setViewData(null);
+    try {
+      const response = await api.get(`/children/${child.id}`);
+      setViewData(response.data?.data || null);
+    } catch (err) {
+      console.error('Error fetching child details:', err);
+    } finally {
+      setViewLoading(false);
+    }
+  };
+
   // Filter and paginate
   const filteredChildren = children.filter(child => {
     const matchesSearch = `${child.first_name} ${child.last_name}`
@@ -229,9 +246,15 @@ const AdminChildren = () => {
     {
       key: 'actions',
       title: 'Actions',
-      width: '120px',
+      width: '180px',
       render: (_, child) => (
         <div className="action-buttons">
+          <button
+            className="action-btn action-btn-view"
+            onClick={() => handleView(child)}
+          >
+            View
+          </button>
           <button
             className="action-btn action-btn-edit"
             onClick={() => handleOpenModal(child)}
@@ -428,6 +451,139 @@ const AdminChildren = () => {
         variant="danger"
         loading={saving}
       />
+
+      {/* View Child Detail Modal */}
+      <Modal
+        isOpen={isViewOpen}
+        onClose={() => setIsViewOpen(false)}
+        title="Child Details"
+        size="large"
+      >
+        {viewLoading ? (
+          <div className="view-loading">
+            <div className="loading-spinner" />
+            <p>Loading child details...</p>
+          </div>
+        ) : viewData ? (
+          <div className="child-detail">
+            {/* Child Info */}
+            <div className="detail-section">
+              <h3 className="detail-section-title">Child Information</h3>
+              <div className="detail-grid">
+                <div className="detail-item">
+                  <span className="detail-label">Full Name</span>
+                  <span className="detail-value">{viewData.child?.firstName} {viewData.child?.lastName}</span>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-label">Date of Birth</span>
+                  <span className="detail-value">
+                    {viewData.child?.dateOfBirth
+                      ? new Date(viewData.child.dateOfBirth).toLocaleDateString()
+                      : 'N/A'}
+                  </span>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-label">Program</span>
+                  <span className="detail-value">
+                    {viewData.child?.programName ? (
+                      <span className="program-badge" style={{ background: viewData.child.programColor || '#E8E0D0' }}>
+                        {viewData.child.programName}
+                      </span>
+                    ) : 'Unassigned'}
+                  </span>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-label">Status</span>
+                  <span className="detail-value">
+                    <span className={`status-badge ${viewData.child?.isActive !== false ? 'status-active' : 'status-inactive'}`}>
+                      {viewData.child?.isActive !== false ? 'Active' : 'Inactive'}
+                    </span>
+                  </span>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-label">Allergies</span>
+                  <span className="detail-value">{viewData.child?.allergies || 'None'}</span>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-label">Medical Notes</span>
+                  <span className="detail-value">{viewData.child?.medicalNotes || 'None'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Parents/Guardians */}
+            <div className="detail-section">
+              <h3 className="detail-section-title">Parents / Guardians</h3>
+              {viewData.parents?.length > 0 ? (
+                <div className="detail-list">
+                  {viewData.parents.map((parent) => (
+                    <div key={parent.id} className="detail-list-item">
+                      <div className="detail-list-primary">
+                        {parent.firstName} {parent.lastName}
+                        {parent.isPrimaryContact && <span className="badge-primary-contact">Primary</span>}
+                      </div>
+                      <div className="detail-list-secondary">
+                        {parent.relationship && <span>{parent.relationship}</span>}
+                        {parent.phone && <span>{parent.phone}</span>}
+                        {parent.email && <span>{parent.email}</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="detail-empty">No parents linked</p>
+              )}
+            </div>
+
+            {/* Authorized Pickups */}
+            <div className="detail-section">
+              <h3 className="detail-section-title">Authorized Pickups</h3>
+              {viewData.authorizedPickups?.length > 0 ? (
+                <div className="detail-list">
+                  {viewData.authorizedPickups.map((pickup) => (
+                    <div key={pickup.id} className="detail-list-item">
+                      <div className="detail-list-primary">{pickup.name}</div>
+                      <div className="detail-list-secondary">
+                        {pickup.relationship && <span>{pickup.relationship}</span>}
+                        {pickup.phone && <span>{pickup.phone}</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="detail-empty">No authorized pickups</p>
+              )}
+            </div>
+
+            {/* Emergency Contact */}
+            <div className="detail-section">
+              <h3 className="detail-section-title">Emergency Contact</h3>
+              {viewData.child?.emergencyContactName ? (
+                <div className="detail-list">
+                  <div className="detail-list-item">
+                    <div className="detail-list-primary">{viewData.child.emergencyContactName}</div>
+                    <div className="detail-list-secondary">
+                      {viewData.child.emergencyContactPhone && <span>{viewData.child.emergencyContactPhone}</span>}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="detail-empty">No emergency contact on file</p>
+              )}
+            </div>
+
+            {/* Notes */}
+            <div className="detail-section">
+              <h3 className="detail-section-title">Notes</h3>
+              <p className="detail-notes">
+                {viewData.child?.medicalNotes || 'No additional notes'}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <p className="detail-empty">Failed to load child details.</p>
+        )}
+      </Modal>
     </div>
   );
 };

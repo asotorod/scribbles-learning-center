@@ -46,15 +46,20 @@ const AdminDashboard = () => {
 
       // Build recent activity from real check-in data
       const recentCheckins = Array.isArray(attendance.recentCheckins) ? attendance.recentCheckins : [];
-      const activity = recentCheckins.slice(0, 5).map((checkin, idx) => ({
-        id: checkin.id || idx,
-        type: 'checkin',
-        message: `${checkin.child_name || 'Child'} checked in`,
-        time: checkin.check_in_time
-          ? new Date(checkin.check_in_time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
-          : '',
-        icon: '✅',
-      }));
+      const activity = recentCheckins.slice(0, 5).map((checkin, idx) => {
+        const name = checkin.childName || checkin.child_name || 'Child';
+        const isCheckedOut = !!checkin.checkOutTime;
+        const time = isCheckedOut ? checkin.checkOutTime : checkin.checkInTime || checkin.check_in_time;
+        return {
+          id: checkin.id || idx,
+          type: isCheckedOut ? 'checkout' : 'checkin',
+          message: `${name} checked ${isCheckedOut ? 'out' : 'in'}`,
+          time: time
+            ? new Date(time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+            : '',
+          icon: isCheckedOut ? '👋' : '✅',
+        };
+      });
       setRecentActivity(activity);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
