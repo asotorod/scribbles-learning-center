@@ -1006,6 +1006,239 @@ const uploadChildPhoto = async (req, res) => {
   }
 };
 
+// ============================================
+// CHANGE PASSWORD
+// ============================================
+
+/**
+ * Change parent's password
+ * POST /api/v1/portal/change-password
+ */
+const changePassword = async (req, res) => {
+  try {
+    const { current_password, new_password } = req.body;
+    const bcrypt = require('bcrypt');
+
+    if (!current_password || !new_password) {
+      return res.status(400).json({
+        success: false,
+        error: 'Current password and new password are required'
+      });
+    }
+
+    if (new_password.length < 8) {
+      return res.status(400).json({
+        success: false,
+        error: 'New password must be at least 8 characters'
+      });
+    }
+
+    // Get current password hash
+    const userResult = await db.query(
+      'SELECT password_hash FROM users WHERE id = $1',
+      [req.user.id]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    // Verify current password
+    const isMatch = await bcrypt.compare(current_password, userResult.rows[0].password_hash);
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        error: 'Current password is incorrect'
+      });
+    }
+
+    // Hash new password and update
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(new_password, salt);
+
+    await db.query(
+      'UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+      [hashedPassword, req.user.id]
+    );
+
+    res.json({ success: true, data: { message: 'Password changed successfully' } });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ success: false, error: 'Failed to change password' });
+  }
+};
+
+// ============================================
+// NOTIFICATIONS
+// ============================================
+
+/**
+ * GET /portal/notifications
+ * List parent's notifications (paginated)
+ */
+const getNotifications = async (req, res) => {
+  try {
+    const parent = await getParentByUserId(req.user.id);
+    if (!parent) {
+      return res.status(404).json({ success: false, error: 'Parent profile not found' });
+    }
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = Math.min(parseInt(req.query.limit) || 20, 50);
+    const offset = (page - 1) * limit;
+
+    // Get notifications targeted to this parent (via recipients table)
+    // OR notifications targeted to 'all' parents
+    const result = await db.query(`
+      SELECT
+        n.id,
+        n.title,
+        n.message,
+        n.notification_type AS "notificationType",
+        n.sent_at AS "sentAt",
+        n.created_at AS "createdAt",
+        nr.read_at AS "readAt",
+        nr.id AS "recipientId"
+      FROM notifications n
+      LEFT JOIN notification_recipients nr
+        ON nr.notification_id = n.id AND nr.parent_id = $1
+      WHERE
+        nr.parent_id = $1
+        OR (n.target_type = 'all' AND NOT EXISTS (
+          SELECT 1 FROM notification_recipients nr2
+          WHERE nr2.notification_id = n.id AND nr2.parent_id = $1
+        ))
+      ORDER BY COALESCE(n.sent_at, n.created_at) DESC
+      LIMIT $2 OFFSET $3
+    `, [parent.id, limit, offset]);
+
+    // For 'all' target notifications without a recipient record, create one
+    for (const notif of result.rows) {
+      if (!notif.recipientId && !notif.readAt) {
+        const insertResult = await db.query(
+          `INSERT INTO notification_recipients (notification_id, parent_id)
+           VALUES ($1, $2)
+           ON CONFLICT DO NOTHING
+           RETURNING id`,
+          [notif.id, parent.id]
+        );
+        if (insertResult.rows[0]) {
+          notif.recipientId = insertResult.rows[0].id;
+        }
+      }
+    }
+
+    // Get total count
+    const countResult = await db.query(`
+      SELECT COUNT(*) FROM notifications n
+      LEFT JOIN notification_recipients nr
+        ON nr.notification_id = n.id AND nr.parent_id = $1
+      WHERE nr.parent_id = $1 OR n.target_type = 'all'
+    `, [parent.id]);
+
+    const total = parseInt(countResult.rows[0].count);
+
+    res.json({
+      success: true,
+      data: {
+        notifications: result.rows.map(n => ({
+          id: n.id,
+          title: n.title,
+          message: n.message,
+          notificationType: n.notificationType,
+          sentAt: n.sentAt,
+          createdAt: n.createdAt,
+          readAt: n.readAt,
+          isRead: !!n.readAt,
+        })),
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit),
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Portal get notifications error:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch notifications' });
+  }
+};
+
+/**
+ * PUT /portal/notifications/:id/read
+ * Mark a notification as read
+ */
+const markNotificationRead = async (req, res) => {
+  try {
+    const parent = await getParentByUserId(req.user.id);
+    if (!parent) {
+      return res.status(404).json({ success: false, error: 'Parent profile not found' });
+    }
+
+    const { id } = req.params;
+
+    // Try to update existing recipient record
+    let result = await db.query(
+      `UPDATE notification_recipients
+       SET read_at = CURRENT_TIMESTAMP
+       WHERE notification_id = $1 AND parent_id = $2 AND read_at IS NULL
+       RETURNING id`,
+      [id, parent.id]
+    );
+
+    // If no record exists (broadcast notification), create one with read_at set
+    if (result.rows.length === 0) {
+      result = await db.query(
+        `INSERT INTO notification_recipients (notification_id, parent_id, read_at)
+         VALUES ($1, $2, CURRENT_TIMESTAMP)
+         ON CONFLICT DO NOTHING
+         RETURNING id`,
+        [id, parent.id]
+      );
+    }
+
+    res.json({ success: true, data: { message: 'Notification marked as read' } });
+  } catch (error) {
+    console.error('Portal mark notification read error:', error);
+    res.status(500).json({ success: false, error: 'Failed to mark notification as read' });
+  }
+};
+
+/**
+ * GET /portal/notifications/unread-count
+ * Get count of unread notifications
+ */
+const getUnreadCount = async (req, res) => {
+  try {
+    const parent = await getParentByUserId(req.user.id);
+    if (!parent) {
+      return res.status(404).json({ success: false, error: 'Parent profile not found' });
+    }
+
+    // Count notifications where this parent has no read_at
+    const result = await db.query(`
+      SELECT COUNT(*) FROM notifications n
+      LEFT JOIN notification_recipients nr
+        ON nr.notification_id = n.id AND nr.parent_id = $1
+      WHERE
+        (nr.parent_id = $1 AND nr.read_at IS NULL)
+        OR (n.target_type = 'all' AND NOT EXISTS (
+          SELECT 1 FROM notification_recipients nr2
+          WHERE nr2.notification_id = n.id AND nr2.parent_id = $1
+        ))
+    `, [parent.id]);
+
+    res.json({
+      success: true,
+      data: { unreadCount: parseInt(result.rows[0].count) },
+    });
+  } catch (error) {
+    console.error('Portal get unread count error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get unread count' });
+  }
+};
+
 module.exports = {
   getDashboard,
   getMyChildren,
@@ -1020,4 +1253,8 @@ module.exports = {
   updateProfile,
   updateEmergencyContact,
   uploadChildPhoto,
+  changePassword,
+  getNotifications,
+  markNotificationRead,
+  getUnreadCount,
 };

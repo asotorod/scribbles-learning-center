@@ -116,6 +116,13 @@ router.put(
   portalController.updateEmergencyContact
 );
 
+/**
+ * @route   POST /api/v1/portal/change-password
+ * @desc    Change parent's password
+ * @access  Protected (parent only)
+ */
+router.post('/change-password', portalController.changePassword);
+
 // ============================================
 // DASHBOARD & CHILDREN ROUTES
 // ============================================
@@ -211,6 +218,43 @@ router.delete(
   absenceIdValidation,
   handleValidationErrors,
   portalController.cancelAbsence
+);
+
+// ============================================
+// NOTIFICATION ROUTES
+// ============================================
+
+const notificationIdValidation = [
+  param('id')
+    .isUUID()
+    .withMessage('Invalid notification ID')
+];
+
+/**
+ * @route   GET /api/v1/portal/notifications/unread-count
+ * @desc    Get count of unread notifications
+ * @access  Protected (parent only)
+ */
+router.get('/notifications/unread-count', portalController.getUnreadCount);
+
+/**
+ * @route   GET /api/v1/portal/notifications
+ * @desc    List parent's notifications (paginated)
+ * @access  Protected (parent only)
+ * @query   page, limit
+ */
+router.get('/notifications', portalController.getNotifications);
+
+/**
+ * @route   PUT /api/v1/portal/notifications/:id/read
+ * @desc    Mark a notification as read
+ * @access  Protected (parent only)
+ */
+router.put(
+  '/notifications/:id/read',
+  notificationIdValidation,
+  handleValidationErrors,
+  portalController.markNotificationRead
 );
 
 // ============================================
