@@ -169,6 +169,17 @@ const KioskParent = () => {
                 </div>
               </div>
 
+              {child.authorizedPickups && child.authorizedPickups.length > 0 && (
+                <div className="kiosk-pickups">
+                  <span className="kiosk-pickups-label">Authorized Pickups:</span>
+                  {child.authorizedPickups.map((p) => (
+                    <span key={p.id} className="kiosk-pickup-tag">
+                      {p.name}{p.relationship ? ` (${p.relationship})` : ''}
+                    </span>
+                  ))}
+                </div>
+              )}
+
               <div className="child-actions">
                 {child.status === 'not_checked_in' && (
                   <button

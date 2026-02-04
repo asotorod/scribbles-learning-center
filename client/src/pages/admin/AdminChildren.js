@@ -624,10 +624,25 @@ const AdminChildren = () => {
               )}
             </div>
 
-            {/* Emergency Contact */}
+            {/* Emergency Contacts */}
             <div className="detail-section">
-              <h3 className="detail-section-title">Emergency Contact</h3>
-              {viewData.child?.emergencyContactName ? (
+              <h3 className="detail-section-title">Emergency Contacts</h3>
+              {viewData.emergencyContacts?.length > 0 ? (
+                <div className="detail-list">
+                  {viewData.emergencyContacts.map((contact) => (
+                    <div key={contact.id} className="detail-list-item">
+                      <div className="detail-list-primary">
+                        {contact.name}
+                        {contact.isPrimary && <span className="badge-primary-contact">Primary</span>}
+                      </div>
+                      <div className="detail-list-secondary">
+                        {contact.relationship && <span>{contact.relationship}</span>}
+                        {contact.phone && <span>{contact.phone}</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : viewData.child?.emergencyContactName ? (
                 <div className="detail-list">
                   <div className="detail-list-item">
                     <div className="detail-list-primary">{viewData.child.emergencyContactName}</div>
@@ -637,7 +652,7 @@ const AdminChildren = () => {
                   </div>
                 </div>
               ) : (
-                <p className="detail-empty">No emergency contact on file</p>
+                <p className="detail-empty">No emergency contacts on file</p>
               )}
             </div>
 

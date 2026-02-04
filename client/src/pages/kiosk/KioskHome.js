@@ -67,6 +67,8 @@ const KioskHome = () => {
               status: c.status,
               check_in_time: c.checkInTime ? new Date(c.checkInTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : null,
               check_out_time: c.checkOutTime ? new Date(c.checkOutTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : null,
+              authorizedPickups: c.authorizedPickups || [],
+              emergencyContacts: c.emergencyContacts || [],
             })),
             pin,
           },

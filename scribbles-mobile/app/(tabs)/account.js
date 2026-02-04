@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, ScrollView, TextInput, TouchableOpacity,
-  RefreshControl, StyleSheet, Alert, ActivityIndicator,
+  View, Text, ScrollView, TextInput, TouchableOpacity, Image,
+  RefreshControl, StyleSheet, Alert, ActivityIndicator, Switch,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,8 +25,17 @@ export default function AccountScreen() {
     current_password: '', new_password: '', confirm_password: '',
   });
 
-  const [childContacts, setChildContacts] = useState([]);
-  const [savingContactId, setSavingContactId] = useState(null);
+  const [childrenData, setChildrenData] = useState([]);
+
+  // Form state for add/edit
+  const [activeForm, setActiveForm] = useState(null); // { type: 'pickup'|'contact', childId, editId? }
+  const [formData, setFormData] = useState({ name: '', relationship: '', phone: '', is_primary: false });
+  const [savingForm, setSavingForm] = useState(false);
+
+  const showMsg = (type, text) => {
+    setMessage({ type, text });
+    setTimeout(() => setMessage({ type: '', text: '' }), 4000);
+  };
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -39,16 +48,26 @@ export default function AccountScreen() {
         phone: data.phone || '',
         address: data.address || '',
       });
+
       const kids = Array.isArray(data.children) ? data.children : [];
-      setChildContacts(kids.map(c => ({
-        id: c.id,
-        first_name: c.first_name || c.firstName || '',
-        last_name: c.last_name || c.lastName || '',
-        emergency_contact_name: c.emergency_contact_name || c.emergencyContactName || '',
-        emergency_contact_phone: c.emergency_contact_phone || c.emergencyContactPhone || '',
-      })));
+      const childrenWithData = await Promise.all(
+        kids.map(async (child) => {
+          const [pickupsRes, contactsRes] = await Promise.all([
+            portalAPI.getAuthorizedPickups(child.id).catch(() => ({ data: { data: { pickups: [] } } })),
+            portalAPI.getEmergencyContacts(child.id).catch(() => ({ data: { data: { contacts: [] } } })),
+          ]);
+          return {
+            id: child.id,
+            firstName: child.first_name || child.firstName || '',
+            lastName: child.last_name || child.lastName || '',
+            authorizedPickups: pickupsRes?.data?.data?.pickups || [],
+            emergencyContacts: contactsRes?.data?.data?.contacts || [],
+          };
+        })
+      );
+      setChildrenData(childrenWithData);
     } catch {
-      setMessage({ type: 'error', text: 'Unable to load profile.' });
+      showMsg('error', 'Unable to load profile.');
     } finally {
       setLoading(false);
     }
@@ -62,74 +81,191 @@ export default function AccountScreen() {
     setRefreshing(false);
   };
 
+  // === Profile ===
   const handleSaveProfile = async () => {
     setSaving(true);
-    setMessage({ type: '', text: '' });
     try {
       await portalAPI.updateProfile(profile);
-      setMessage({ type: 'success', text: 'Profile updated!' });
+      showMsg('success', 'Profile updated!');
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch {
-      setMessage({ type: 'error', text: 'Failed to update profile.' });
+      showMsg('error', 'Failed to update profile.');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleSaveContact = async (childId) => {
-    const child = childContacts.find(c => c.id === childId);
-    if (!child) return;
-    setSavingContactId(childId);
-    setMessage({ type: '', text: '' });
-    try {
-      await portalAPI.updateEmergencyContact(childId, {
-        emergency_contact_name: child.emergency_contact_name,
-        emergency_contact_phone: child.emergency_contact_phone,
-      });
-      setMessage({ type: 'success', text: `Contact updated for ${child.first_name}.` });
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch {
-      setMessage({ type: 'error', text: 'Failed to update contact.' });
-    } finally {
-      setSavingContactId(null);
-    }
-  };
-
+  // === Password ===
   const handleChangePassword = async () => {
     if (passwords.new_password !== passwords.confirm_password) {
-      setMessage({ type: 'error', text: 'Passwords do not match.' });
-      return;
+      return showMsg('error', 'Passwords do not match.');
     }
     if (passwords.new_password.length < 8) {
-      setMessage({ type: 'error', text: 'Password must be at least 8 characters.' });
-      return;
+      return showMsg('error', 'Password must be at least 8 characters.');
     }
     setSaving(true);
-    setMessage({ type: '', text: '' });
     try {
       await portalAPI.changePassword({
         current_password: passwords.current_password,
         new_password: passwords.new_password,
       });
-      setMessage({ type: 'success', text: 'Password changed!' });
+      showMsg('success', 'Password changed!');
       setPasswords({ current_password: '', new_password: '', confirm_password: '' });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch {
-      setMessage({ type: 'error', text: 'Failed to change password.' });
+      showMsg('error', 'Failed to change password.');
     } finally {
       setSaving(false);
     }
   };
 
+  // === Form helpers ===
+  const openAddForm = (type, childId) => {
+    setActiveForm({ type, childId, editId: null });
+    setFormData({ name: '', relationship: '', phone: '', is_primary: false });
+  };
+
+  const openEditForm = (type, childId, item) => {
+    setActiveForm({ type, childId, editId: item.id });
+    setFormData({
+      name: item.name || '',
+      relationship: item.relationship || '',
+      phone: item.phone || '',
+      is_primary: item.isPrimary || false,
+    });
+  };
+
+  const closeForm = () => {
+    setActiveForm(null);
+    setFormData({ name: '', relationship: '', phone: '', is_primary: false });
+  };
+
+  const handleSaveForm = async () => {
+    if (!formData.name.trim() || !formData.phone.trim()) {
+      return showMsg('error', 'Name and phone are required.');
+    }
+    setSavingForm(true);
+    try {
+      const { type, childId, editId } = activeForm;
+      if (type === 'pickup') {
+        if (editId) {
+          await portalAPI.updateAuthorizedPickup(childId, editId, formData);
+        } else {
+          await portalAPI.createAuthorizedPickup(childId, formData);
+        }
+        showMsg('success', editId ? 'Pickup updated!' : 'Pickup added!');
+      } else {
+        if (editId) {
+          await portalAPI.updateEmergencyContactEntry(childId, editId, formData);
+        } else {
+          await portalAPI.createEmergencyContact(childId, formData);
+        }
+        showMsg('success', editId ? 'Contact updated!' : 'Contact added!');
+      }
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      closeForm();
+      await fetchProfile();
+    } catch {
+      showMsg('error', 'Failed to save.');
+    } finally {
+      setSavingForm(false);
+    }
+  };
+
+  const handleDeletePickup = (childId, pickupId, name) => {
+    Alert.alert('Remove Pickup', `Remove ${name} from authorized pickups?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Remove', style: 'destructive',
+        onPress: async () => {
+          try {
+            await portalAPI.deleteAuthorizedPickup(childId, pickupId);
+            showMsg('success', 'Pickup removed.');
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            await fetchProfile();
+          } catch { showMsg('error', 'Failed to remove pickup.'); }
+        },
+      },
+    ]);
+  };
+
+  const handleDeleteContact = (childId, contactId, name) => {
+    Alert.alert('Delete Contact', `Delete ${name} from emergency contacts?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete', style: 'destructive',
+        onPress: async () => {
+          try {
+            await portalAPI.deleteEmergencyContact(childId, contactId);
+            showMsg('success', 'Contact deleted.');
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            await fetchProfile();
+          } catch { showMsg('error', 'Failed to delete contact.'); }
+        },
+      },
+    ]);
+  };
+
   const handleLogout = () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
       { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Sign Out',
-        style: 'destructive',
-        onPress: () => logout(),
-      },
+      { text: 'Sign Out', style: 'destructive', onPress: () => logout() },
     ]);
+  };
+
+  // === Inline form render ===
+  const renderForm = () => {
+    if (!activeForm) return null;
+    const isContact = activeForm.type === 'contact';
+    return (
+      <View style={styles.formContainer}>
+        <Text style={styles.formTitle}>
+          {activeForm.editId ? 'Edit' : 'Add'} {isContact ? 'Emergency Contact' : 'Authorized Pickup'}
+        </Text>
+        <View style={styles.field}>
+          <Text style={styles.label}>Full Name *</Text>
+          <TextInput style={styles.input} value={formData.name}
+            placeholder="Jane Doe"
+            onChangeText={v => setFormData(p => ({ ...p, name: v }))} />
+        </View>
+        <View style={styles.row}>
+          <View style={styles.field}>
+            <Text style={styles.label}>Relationship</Text>
+            <TextInput style={styles.input} value={formData.relationship}
+              placeholder="Aunt"
+              onChangeText={v => setFormData(p => ({ ...p, relationship: v }))} />
+          </View>
+          <View style={styles.field}>
+            <Text style={styles.label}>Phone *</Text>
+            <TextInput style={styles.input} value={formData.phone}
+              placeholder="(201) 555-0123" keyboardType="phone-pad"
+              onChangeText={v => setFormData(p => ({ ...p, phone: v }))} />
+          </View>
+        </View>
+        {isContact && (
+          <View style={styles.switchRow}>
+            <Text style={styles.switchLabel}>Primary contact</Text>
+            <Switch value={formData.is_primary}
+              onValueChange={v => setFormData(p => ({ ...p, is_primary: v }))}
+              trackColor={{ false: Colors.gray300, true: Colors.pistachio }}
+              thumbColor={formData.is_primary ? Colors.primary : Colors.gray400} />
+          </View>
+        )}
+        <View style={styles.formActions}>
+          <TouchableOpacity style={styles.cancelBtn} onPress={closeForm}>
+            <Text style={styles.cancelBtnText}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.saveBtn, savingForm && styles.saveBtnDisabled]}
+            onPress={handleSaveForm} disabled={savingForm}>
+            {savingForm ? <ActivityIndicator color={Colors.white} size="small" /> : (
+              <Text style={styles.saveBtnText}>
+                {activeForm.editId ? 'Update' : 'Add'}
+              </Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
   };
 
   if (loading) return <LoadingSpinner />;
@@ -143,6 +279,11 @@ export default function AccountScreen() {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
       }
     >
+      {/* Owl Logo */}
+      <View style={styles.logoContainer}>
+        <Image source={require('../../assets/icon.png')} style={styles.logo} resizeMode="contain" />
+      </View>
+
       {message.text ? (
         <View style={[styles.alert, message.type === 'error' ? styles.alertError : styles.alertSuccess]}>
           <Text style={[styles.alertText, { color: message.type === 'error' ? Colors.error : Colors.statusPresent }]}>
@@ -154,7 +295,6 @@ export default function AccountScreen() {
       {/* Contact Info */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Contact Information</Text>
-
         <View style={styles.row}>
           <View style={styles.field}>
             <Text style={styles.label}>First Name</Text>
@@ -167,92 +307,135 @@ export default function AccountScreen() {
               onChangeText={v => setProfile(p => ({ ...p, last_name: v }))} />
           </View>
         </View>
-
         <View style={styles.field}>
           <Text style={styles.label}>Email</Text>
           <TextInput style={styles.input} value={profile.email}
             keyboardType="email-address" autoCapitalize="none"
             onChangeText={v => setProfile(p => ({ ...p, email: v }))} />
         </View>
-
         <View style={styles.field}>
           <Text style={styles.label}>Phone</Text>
           <TextInput style={styles.input} value={profile.phone}
             keyboardType="phone-pad"
             onChangeText={v => setProfile(p => ({ ...p, phone: v }))} />
         </View>
-
         <View style={styles.field}>
           <Text style={styles.label}>Address</Text>
           <TextInput style={styles.input} value={profile.address}
             onChangeText={v => setProfile(p => ({ ...p, address: v }))} />
         </View>
-
-        <TouchableOpacity
-          style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
-          onPress={handleSaveProfile}
-          disabled={saving}
-        >
+        <TouchableOpacity style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
+          onPress={handleSaveProfile} disabled={saving}>
           {saving ? <ActivityIndicator color={Colors.white} size="small" /> : (
             <Text style={styles.saveBtnText}>Save Changes</Text>
           )}
         </TouchableOpacity>
       </View>
 
-      {/* Emergency Contacts */}
-      {childContacts.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Emergency Contacts</Text>
-          <Text style={styles.sectionSub}>
-            Set an emergency contact for each of your children.
-          </Text>
+      {/* Emergency Contacts - Per Child */}
+      {childrenData.map((child) => (
+        <View key={`contacts-${child.id}`} style={styles.section}>
+          <Text style={styles.sectionTitle}>Emergency Contacts for {child.firstName}</Text>
+          <Text style={styles.sectionSub}>Primary contact will be called first.</Text>
 
-          {childContacts.map((child) => (
-            <View key={child.id} style={styles.contactCard}>
-              <Text style={styles.contactChildName}>{child.first_name} {child.last_name}</Text>
-              <View style={styles.row}>
-                <View style={styles.field}>
-                  <Text style={styles.label}>Contact Name</Text>
-                  <TextInput style={styles.input} value={child.emergency_contact_name}
-                    placeholder="Name"
-                    onChangeText={v => setChildContacts(prev =>
-                      prev.map(c => c.id === child.id ? { ...c, emergency_contact_name: v } : c)
-                    )} />
-                </View>
-                <View style={styles.field}>
-                  <Text style={styles.label}>Phone</Text>
-                  <TextInput style={styles.input} value={child.emergency_contact_phone}
-                    keyboardType="phone-pad" placeholder="(201) 555-0123"
-                    onChangeText={v => setChildContacts(prev =>
-                      prev.map(c => c.id === child.id ? { ...c, emergency_contact_phone: v } : c)
-                    )} />
-                </View>
+          {child.emergencyContacts.length === 0 && (
+            <Text style={styles.emptyText}>No emergency contacts added yet.</Text>
+          )}
+
+          {child.emergencyContacts.map((contact) => (
+            <View key={contact.id} style={styles.entryCard}>
+              <View style={styles.entryAvatar}>
+                <Text style={styles.entryAvatarText}>{contact.name.charAt(0)}</Text>
               </View>
-              <TouchableOpacity
-                style={styles.saveContactBtn}
-                onPress={() => handleSaveContact(child.id)}
-                disabled={savingContactId === child.id}
-              >
-                <Text style={styles.saveContactText}>
-                  {savingContactId === child.id ? 'Saving...' : 'Save Contact'}
+              <View style={styles.entryInfo}>
+                <View style={styles.entryNameRow}>
+                  <Text style={styles.entryName}>{contact.name}</Text>
+                  {contact.isPrimary && (
+                    <View style={styles.primaryBadge}>
+                      <Text style={styles.primaryBadgeText}>Primary</Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={styles.entryDetails}>
+                  {[contact.relationship, contact.phone].filter(Boolean).join(' \u2022 ')}
                 </Text>
-              </TouchableOpacity>
+              </View>
+              <View style={styles.entryActions}>
+                <TouchableOpacity onPress={() => openEditForm('contact', child.id, contact)} style={styles.iconBtn}>
+                  <Ionicons name="pencil" size={18} color={Colors.primary} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleDeleteContact(child.id, contact.id, contact.name)} style={styles.iconBtn}>
+                  <Ionicons name="trash" size={18} color={Colors.error} />
+                </TouchableOpacity>
+              </View>
             </View>
           ))}
+
+          {activeForm && activeForm.type === 'contact' && activeForm.childId === child.id
+            ? renderForm()
+            : (
+              <TouchableOpacity style={styles.addBtn} onPress={() => openAddForm('contact', child.id)}>
+                <Ionicons name="add-circle-outline" size={20} color={Colors.primary} />
+                <Text style={styles.addBtnText}>Add Emergency Contact</Text>
+              </TouchableOpacity>
+            )
+          }
         </View>
-      )}
+      ))}
+
+      {/* Authorized Pickups - Per Child */}
+      {childrenData.map((child) => (
+        <View key={`pickups-${child.id}`} style={styles.section}>
+          <Text style={styles.sectionTitle}>Authorized Pickups for {child.firstName}</Text>
+          <Text style={styles.sectionSub}>People authorized to pick up {child.firstName}.</Text>
+
+          {child.authorizedPickups.length === 0 && (
+            <Text style={styles.emptyText}>No authorized pickups added yet.</Text>
+          )}
+
+          {child.authorizedPickups.map((pickup) => (
+            <View key={pickup.id} style={styles.entryCard}>
+              <View style={styles.entryAvatar}>
+                <Text style={styles.entryAvatarText}>{pickup.name.charAt(0)}</Text>
+              </View>
+              <View style={styles.entryInfo}>
+                <Text style={styles.entryName}>{pickup.name}</Text>
+                <Text style={styles.entryDetails}>
+                  {[pickup.relationship, pickup.phone].filter(Boolean).join(' \u2022 ')}
+                </Text>
+              </View>
+              <View style={styles.entryActions}>
+                <TouchableOpacity onPress={() => openEditForm('pickup', child.id, pickup)} style={styles.iconBtn}>
+                  <Ionicons name="pencil" size={18} color={Colors.primary} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleDeletePickup(child.id, pickup.id, pickup.name)} style={styles.iconBtn}>
+                  <Ionicons name="trash" size={18} color={Colors.error} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))}
+
+          {activeForm && activeForm.type === 'pickup' && activeForm.childId === child.id
+            ? renderForm()
+            : (
+              <TouchableOpacity style={styles.addBtn} onPress={() => openAddForm('pickup', child.id)}>
+                <Ionicons name="add-circle-outline" size={20} color={Colors.primary} />
+                <Text style={styles.addBtnText}>Add Authorized Pickup</Text>
+              </TouchableOpacity>
+            )
+          }
+        </View>
+      ))}
 
       {/* Change Password */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Change Password</Text>
-
         <View style={styles.field}>
           <Text style={styles.label}>Current Password</Text>
           <TextInput style={styles.input} value={passwords.current_password}
             secureTextEntry autoComplete="current-password"
             onChangeText={v => setPasswords(p => ({ ...p, current_password: v }))} />
         </View>
-
         <View style={styles.row}>
           <View style={styles.field}>
             <Text style={styles.label}>New Password</Text>
@@ -267,7 +450,6 @@ export default function AccountScreen() {
               onChangeText={v => setPasswords(p => ({ ...p, confirm_password: v }))} />
           </View>
         </View>
-
         <TouchableOpacity
           style={[styles.saveBtn, (!passwords.current_password || !passwords.new_password) && styles.saveBtnDisabled]}
           onPress={handleChangePassword}
@@ -290,18 +472,20 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.cream },
   content: { padding: 20, paddingBottom: 60 },
 
-  alert: {
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 16,
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 8,
   },
+  logo: {
+    width: 80,
+    height: 80,
+    borderRadius: 16,
+  },
+
+  alert: { borderRadius: 10, padding: 12, marginBottom: 16 },
   alertSuccess: { backgroundColor: Colors.statusPresentBg },
   alertError: { backgroundColor: Colors.errorLight },
-  alertText: {
-    fontSize: 14,
-    fontFamily: 'OpenSans-Medium',
-    textAlign: 'center',
-  },
+  alertText: { fontSize: 14, fontFamily: 'OpenSans-Medium', textAlign: 'center' },
 
   section: {
     backgroundColor: Colors.white,
@@ -361,29 +545,132 @@ const styles = StyleSheet.create({
     fontFamily: 'OpenSans-SemiBold',
   },
 
-  contactCard: {
+  // Entry cards (pickups & contacts)
+  entryCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: Colors.cream,
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 10,
+  },
+  entryAvatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: Colors.pistachio,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  entryAvatarText: {
+    fontSize: 17,
+    fontFamily: 'Poppins-SemiBold',
+    color: Colors.charcoal,
+  },
+  entryInfo: { flex: 1 },
+  entryNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  entryName: {
+    fontSize: 15,
+    fontFamily: 'Poppins-SemiBold',
+    color: Colors.charcoal,
+  },
+  entryDetails: {
+    fontSize: 13,
+    fontFamily: 'OpenSans-Regular',
+    color: Colors.gray500,
+    marginTop: 2,
+  },
+  entryActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  iconBtn: {
+    padding: 6,
+  },
+
+  primaryBadge: {
+    backgroundColor: Colors.peach,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  primaryBadgeText: {
+    fontSize: 11,
+    fontFamily: 'OpenSans-SemiBold',
+    color: Colors.white,
+  },
+
+  emptyText: {
+    fontSize: 14,
+    fontFamily: 'OpenSans-Regular',
+    color: Colors.gray500,
+    fontStyle: 'italic',
+    marginBottom: 8,
+  },
+
+  addBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    marginTop: 4,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: Colors.gray300,
+    borderRadius: 10,
+  },
+  addBtnText: {
+    fontSize: 14,
+    fontFamily: 'OpenSans-SemiBold',
+    color: Colors.gray500,
+  },
+
+  // Inline form
+  formContainer: {
     backgroundColor: Colors.cream,
     borderRadius: 10,
     padding: 16,
-    marginBottom: 12,
+    marginTop: 8,
   },
-  contactChildName: {
+  formTitle: {
     fontSize: 15,
     fontFamily: 'Poppins-SemiBold',
     color: Colors.charcoal,
     marginBottom: 12,
   },
-  saveContactBtn: {
-    alignSelf: 'flex-end',
-    backgroundColor: Colors.primary,
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+  switchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
   },
-  saveContactText: {
-    color: Colors.white,
-    fontSize: 13,
+  switchLabel: {
+    fontSize: 14,
+    fontFamily: 'OpenSans-Regular',
+    color: Colors.charcoal,
+  },
+  formActions: {
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'flex-end',
+  },
+  cancelBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.gray300,
+  },
+  cancelBtnText: {
+    fontSize: 14,
     fontFamily: 'OpenSans-SemiBold',
+    color: Colors.gray600,
   },
 
   logoutBtn: {

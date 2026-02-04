@@ -365,6 +365,36 @@
   width: 100%;
 }
 
+/* Authorized Pickups in Kiosk */
+.kiosk-pickups {
+  width: 100%;
+  padding: 10px 16px;
+  background: var(--cream, #FAF8F5);
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.kiosk-pickups-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-600, #6B6B6B);
+  margin-right: 4px;
+}
+
+.kiosk-pickup-tag {
+  display: inline-flex;
+  padding: 3px 10px;
+  background: var(--color-pistachio, #C6C09C);
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-charcoal, #3D3D3D);
+}
+
 .child-complete {
   padding: 16px;
   font-size: 18px;

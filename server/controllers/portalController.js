@@ -1239,6 +1239,388 @@ const getUnreadCount = async (req, res) => {
   }
 };
 
+// ============================================
+// AUTHORIZED PICKUPS (per child)
+// ============================================
+
+/**
+ * GET /portal/my-children/:childId/authorized-pickups
+ * List authorized pickups for a child
+ */
+const getAuthorizedPickups = async (req, res) => {
+  try {
+    const { childId } = req.params;
+    const parent = await getParentByUserId(req.user.id);
+    if (!parent) {
+      return res.status(404).json({ success: false, error: 'Parent not found' });
+    }
+
+    const hasAccess = await parentHasAccessToChild(parent.id, childId);
+    if (!hasAccess) {
+      return res.status(403).json({ success: false, error: 'Access denied' });
+    }
+
+    const result = await db.query(`
+      SELECT id, name, relationship, phone, photo_url, parent_id, created_at
+      FROM authorized_pickups
+      WHERE child_id = $1 AND is_active = true
+      ORDER BY created_at ASC
+    `, [childId]);
+
+    res.json({
+      success: true,
+      data: {
+        pickups: result.rows.map(p => ({
+          id: p.id,
+          name: p.name,
+          relationship: p.relationship,
+          phone: p.phone,
+          photoUrl: p.photo_url,
+          parentId: p.parent_id,
+          createdAt: p.created_at,
+        })),
+      },
+    });
+  } catch (error) {
+    console.error('Get authorized pickups error:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch authorized pickups' });
+  }
+};
+
+/**
+ * POST /portal/my-children/:childId/authorized-pickups
+ * Add an authorized pickup for a child
+ */
+const createAuthorizedPickup = async (req, res) => {
+  try {
+    const { childId } = req.params;
+    const { name, relationship, phone } = req.body;
+
+    const parent = await getParentByUserId(req.user.id);
+    if (!parent) {
+      return res.status(404).json({ success: false, error: 'Parent not found' });
+    }
+
+    const hasAccess = await parentHasAccessToChild(parent.id, childId);
+    if (!hasAccess) {
+      return res.status(403).json({ success: false, error: 'Access denied' });
+    }
+
+    const result = await db.query(`
+      INSERT INTO authorized_pickups (child_id, parent_id, name, relationship, phone)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING id, name, relationship, phone, photo_url, parent_id, created_at
+    `, [childId, parent.id, name, relationship || null, phone]);
+
+    const p = result.rows[0];
+    res.status(201).json({
+      success: true,
+      data: {
+        pickup: {
+          id: p.id,
+          name: p.name,
+          relationship: p.relationship,
+          phone: p.phone,
+          photoUrl: p.photo_url,
+          parentId: p.parent_id,
+          createdAt: p.created_at,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Create authorized pickup error:', error);
+    res.status(500).json({ success: false, error: 'Failed to add authorized pickup' });
+  }
+};
+
+/**
+ * PUT /portal/my-children/:childId/authorized-pickups/:pickupId
+ * Update an authorized pickup
+ */
+const updateAuthorizedPickup = async (req, res) => {
+  try {
+    const { childId, pickupId } = req.params;
+    const { name, relationship, phone } = req.body;
+
+    const parent = await getParentByUserId(req.user.id);
+    if (!parent) {
+      return res.status(404).json({ success: false, error: 'Parent not found' });
+    }
+
+    const hasAccess = await parentHasAccessToChild(parent.id, childId);
+    if (!hasAccess) {
+      return res.status(403).json({ success: false, error: 'Access denied' });
+    }
+
+    const result = await db.query(`
+      UPDATE authorized_pickups
+      SET name = COALESCE($1, name),
+          relationship = COALESCE($2, relationship),
+          phone = COALESCE($3, phone)
+      WHERE id = $4 AND child_id = $5 AND is_active = true
+      RETURNING id, name, relationship, phone, photo_url, parent_id, created_at
+    `, [name, relationship, phone, pickupId, childId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Authorized pickup not found' });
+    }
+
+    const p = result.rows[0];
+    res.json({
+      success: true,
+      data: {
+        pickup: {
+          id: p.id,
+          name: p.name,
+          relationship: p.relationship,
+          phone: p.phone,
+          photoUrl: p.photo_url,
+          parentId: p.parent_id,
+          createdAt: p.created_at,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Update authorized pickup error:', error);
+    res.status(500).json({ success: false, error: 'Failed to update authorized pickup' });
+  }
+};
+
+/**
+ * DELETE /portal/my-children/:childId/authorized-pickups/:pickupId
+ * Soft-delete an authorized pickup (set is_active = false)
+ */
+const deleteAuthorizedPickup = async (req, res) => {
+  try {
+    const { childId, pickupId } = req.params;
+
+    const parent = await getParentByUserId(req.user.id);
+    if (!parent) {
+      return res.status(404).json({ success: false, error: 'Parent not found' });
+    }
+
+    const hasAccess = await parentHasAccessToChild(parent.id, childId);
+    if (!hasAccess) {
+      return res.status(403).json({ success: false, error: 'Access denied' });
+    }
+
+    const result = await db.query(`
+      UPDATE authorized_pickups
+      SET is_active = false
+      WHERE id = $1 AND child_id = $2 AND is_active = true
+      RETURNING id
+    `, [pickupId, childId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Authorized pickup not found' });
+    }
+
+    res.json({ success: true, data: { message: 'Authorized pickup removed' } });
+  } catch (error) {
+    console.error('Delete authorized pickup error:', error);
+    res.status(500).json({ success: false, error: 'Failed to remove authorized pickup' });
+  }
+};
+
+// ============================================
+// EMERGENCY CONTACTS (per child, multi-entry)
+// ============================================
+
+/**
+ * GET /portal/my-children/:childId/emergency-contacts
+ * List emergency contacts for a child
+ */
+const getEmergencyContacts = async (req, res) => {
+  try {
+    const { childId } = req.params;
+    const parent = await getParentByUserId(req.user.id);
+    if (!parent) {
+      return res.status(404).json({ success: false, error: 'Parent not found' });
+    }
+
+    const hasAccess = await parentHasAccessToChild(parent.id, childId);
+    if (!hasAccess) {
+      return res.status(403).json({ success: false, error: 'Access denied' });
+    }
+
+    const result = await db.query(`
+      SELECT id, name, relationship, phone, is_primary, parent_id, created_at
+      FROM emergency_contacts
+      WHERE child_id = $1
+      ORDER BY is_primary DESC, created_at ASC
+    `, [childId]);
+
+    res.json({
+      success: true,
+      data: {
+        contacts: result.rows.map(c => ({
+          id: c.id,
+          name: c.name,
+          relationship: c.relationship,
+          phone: c.phone,
+          isPrimary: c.is_primary,
+          parentId: c.parent_id,
+          createdAt: c.created_at,
+        })),
+      },
+    });
+  } catch (error) {
+    console.error('Get emergency contacts error:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch emergency contacts' });
+  }
+};
+
+/**
+ * POST /portal/my-children/:childId/emergency-contacts
+ * Add an emergency contact for a child
+ */
+const createEmergencyContact = async (req, res) => {
+  try {
+    const { childId } = req.params;
+    const { name, relationship, phone, is_primary } = req.body;
+
+    const parent = await getParentByUserId(req.user.id);
+    if (!parent) {
+      return res.status(404).json({ success: false, error: 'Parent not found' });
+    }
+
+    const hasAccess = await parentHasAccessToChild(parent.id, childId);
+    if (!hasAccess) {
+      return res.status(403).json({ success: false, error: 'Access denied' });
+    }
+
+    // If setting as primary, unset other primary contacts for this child
+    if (is_primary) {
+      await db.query(`
+        UPDATE emergency_contacts SET is_primary = false
+        WHERE child_id = $1 AND is_primary = true
+      `, [childId]);
+    }
+
+    const result = await db.query(`
+      INSERT INTO emergency_contacts (child_id, parent_id, name, relationship, phone, is_primary)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING id, name, relationship, phone, is_primary, parent_id, created_at
+    `, [childId, parent.id, name, relationship || null, phone, is_primary || false]);
+
+    const c = result.rows[0];
+    res.status(201).json({
+      success: true,
+      data: {
+        contact: {
+          id: c.id,
+          name: c.name,
+          relationship: c.relationship,
+          phone: c.phone,
+          isPrimary: c.is_primary,
+          parentId: c.parent_id,
+          createdAt: c.created_at,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Create emergency contact error:', error);
+    res.status(500).json({ success: false, error: 'Failed to add emergency contact' });
+  }
+};
+
+/**
+ * PUT /portal/my-children/:childId/emergency-contacts/:contactId
+ * Update an emergency contact
+ */
+const updateEmergencyContactEntry = async (req, res) => {
+  try {
+    const { childId, contactId } = req.params;
+    const { name, relationship, phone, is_primary } = req.body;
+
+    const parent = await getParentByUserId(req.user.id);
+    if (!parent) {
+      return res.status(404).json({ success: false, error: 'Parent not found' });
+    }
+
+    const hasAccess = await parentHasAccessToChild(parent.id, childId);
+    if (!hasAccess) {
+      return res.status(403).json({ success: false, error: 'Access denied' });
+    }
+
+    // If setting as primary, unset other primary contacts for this child
+    if (is_primary) {
+      await db.query(`
+        UPDATE emergency_contacts SET is_primary = false
+        WHERE child_id = $1 AND is_primary = true AND id != $2
+      `, [childId, contactId]);
+    }
+
+    const result = await db.query(`
+      UPDATE emergency_contacts
+      SET name = COALESCE($1, name),
+          relationship = COALESCE($2, relationship),
+          phone = COALESCE($3, phone),
+          is_primary = COALESCE($4, is_primary)
+      WHERE id = $5 AND child_id = $6
+      RETURNING id, name, relationship, phone, is_primary, parent_id, created_at
+    `, [name, relationship, phone, is_primary, contactId, childId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Emergency contact not found' });
+    }
+
+    const c = result.rows[0];
+    res.json({
+      success: true,
+      data: {
+        contact: {
+          id: c.id,
+          name: c.name,
+          relationship: c.relationship,
+          phone: c.phone,
+          isPrimary: c.is_primary,
+          parentId: c.parent_id,
+          createdAt: c.created_at,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Update emergency contact error:', error);
+    res.status(500).json({ success: false, error: 'Failed to update emergency contact' });
+  }
+};
+
+/**
+ * DELETE /portal/my-children/:childId/emergency-contacts/:contactId
+ * Delete an emergency contact
+ */
+const deleteEmergencyContact = async (req, res) => {
+  try {
+    const { childId, contactId } = req.params;
+
+    const parent = await getParentByUserId(req.user.id);
+    if (!parent) {
+      return res.status(404).json({ success: false, error: 'Parent not found' });
+    }
+
+    const hasAccess = await parentHasAccessToChild(parent.id, childId);
+    if (!hasAccess) {
+      return res.status(403).json({ success: false, error: 'Access denied' });
+    }
+
+    const result = await db.query(`
+      DELETE FROM emergency_contacts
+      WHERE id = $1 AND child_id = $2
+      RETURNING id
+    `, [contactId, childId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Emergency contact not found' });
+    }
+
+    res.json({ success: true, data: { message: 'Emergency contact deleted' } });
+  } catch (error) {
+    console.error('Delete emergency contact error:', error);
+    res.status(500).json({ success: false, error: 'Failed to delete emergency contact' });
+  }
+};
+
 module.exports = {
   getDashboard,
   getMyChildren,
@@ -1257,4 +1639,12 @@ module.exports = {
   getNotifications,
   markNotificationRead,
   getUnreadCount,
+  getAuthorizedPickups,
+  createAuthorizedPickup,
+  updateAuthorizedPickup,
+  deleteAuthorizedPickup,
+  getEmergencyContacts,
+  createEmergencyContact,
+  updateEmergencyContactEntry,
+  deleteEmergencyContact,
 };

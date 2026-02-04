@@ -145,6 +145,49 @@ const getParentChildren = async (req, res) => {
       ORDER BY c.first_name
     `, [parentId]);
 
+    const childIds = result.rows.map(r => r.id);
+
+    // Fetch authorized pickups for all children in one query
+    let pickupsByChild = {};
+    let contactsByChild = {};
+    if (childIds.length > 0) {
+      const pickupsResult = await db.query(`
+        SELECT id, child_id, name, relationship, phone, photo_url
+        FROM authorized_pickups
+        WHERE child_id = ANY($1) AND is_active = true
+        ORDER BY created_at ASC
+      `, [childIds]);
+
+      pickupsResult.rows.forEach(p => {
+        if (!pickupsByChild[p.child_id]) pickupsByChild[p.child_id] = [];
+        pickupsByChild[p.child_id].push({
+          id: p.id,
+          name: p.name,
+          relationship: p.relationship,
+          phone: p.phone,
+          photoUrl: p.photo_url,
+        });
+      });
+
+      const contactsResult = await db.query(`
+        SELECT id, child_id, name, relationship, phone, is_primary
+        FROM emergency_contacts
+        WHERE child_id = ANY($1)
+        ORDER BY is_primary DESC, created_at ASC
+      `, [childIds]);
+
+      contactsResult.rows.forEach(c => {
+        if (!contactsByChild[c.child_id]) contactsByChild[c.child_id] = [];
+        contactsByChild[c.child_id].push({
+          id: c.id,
+          name: c.name,
+          relationship: c.relationship,
+          phone: c.phone,
+          isPrimary: c.is_primary,
+        });
+      });
+    }
+
     const children = result.rows.map(child => {
       let status = 'not_checked_in';
       if (child.check_in_time && child.check_out_time) {
@@ -163,7 +206,9 @@ const getParentChildren = async (req, res) => {
         status,
         checkinId: child.checkin_id,
         checkInTime: child.check_in_time,
-        checkOutTime: child.check_out_time
+        checkOutTime: child.check_out_time,
+        authorizedPickups: pickupsByChild[child.id] || [],
+        emergencyContacts: contactsByChild[child.id] || [],
       };
     });
 

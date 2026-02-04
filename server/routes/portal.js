@@ -258,6 +258,132 @@ router.put(
 );
 
 // ============================================
+// AUTHORIZED PICKUPS (per child)
+// ============================================
+
+const childIdParamValidation = [
+  param('childId')
+    .isUUID()
+    .withMessage('Invalid child ID')
+];
+
+const pickupIdValidation = [
+  param('pickupId')
+    .isUUID()
+    .withMessage('Invalid pickup ID')
+];
+
+const contactIdValidation = [
+  param('contactId')
+    .isUUID()
+    .withMessage('Invalid contact ID')
+];
+
+const pickupBodyValidation = [
+  body('name')
+    .trim()
+    .notEmpty()
+    .withMessage('Name is required')
+    .isLength({ max: 200 })
+    .withMessage('Name must be less than 200 characters'),
+  body('phone')
+    .trim()
+    .notEmpty()
+    .withMessage('Phone is required')
+    .isLength({ max: 20 })
+    .withMessage('Phone must be less than 20 characters'),
+  body('relationship')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Relationship must be less than 100 characters'),
+];
+
+const contactBodyValidation = [
+  body('name')
+    .trim()
+    .notEmpty()
+    .withMessage('Name is required')
+    .isLength({ max: 200 })
+    .withMessage('Name must be less than 200 characters'),
+  body('phone')
+    .trim()
+    .notEmpty()
+    .withMessage('Phone is required')
+    .isLength({ max: 20 })
+    .withMessage('Phone must be less than 20 characters'),
+  body('relationship')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Relationship must be less than 100 characters'),
+  body('is_primary')
+    .optional()
+    .isBoolean()
+    .withMessage('is_primary must be a boolean'),
+];
+
+router.get(
+  '/my-children/:childId/authorized-pickups',
+  childIdParamValidation,
+  handleValidationErrors,
+  portalController.getAuthorizedPickups
+);
+
+router.post(
+  '/my-children/:childId/authorized-pickups',
+  [...childIdParamValidation, ...pickupBodyValidation],
+  handleValidationErrors,
+  portalController.createAuthorizedPickup
+);
+
+router.put(
+  '/my-children/:childId/authorized-pickups/:pickupId',
+  [...childIdParamValidation, ...pickupIdValidation],
+  handleValidationErrors,
+  portalController.updateAuthorizedPickup
+);
+
+router.delete(
+  '/my-children/:childId/authorized-pickups/:pickupId',
+  [...childIdParamValidation, ...pickupIdValidation],
+  handleValidationErrors,
+  portalController.deleteAuthorizedPickup
+);
+
+// ============================================
+// EMERGENCY CONTACTS (per child, multi-entry)
+// ============================================
+
+router.get(
+  '/my-children/:childId/emergency-contacts',
+  childIdParamValidation,
+  handleValidationErrors,
+  portalController.getEmergencyContacts
+);
+
+router.post(
+  '/my-children/:childId/emergency-contacts',
+  [...childIdParamValidation, ...contactBodyValidation],
+  handleValidationErrors,
+  portalController.createEmergencyContact
+);
+
+router.put(
+  '/my-children/:childId/emergency-contacts/:contactId',
+  [...childIdParamValidation, ...contactIdValidation],
+  handleValidationErrors,
+  portalController.updateEmergencyContactEntry
+);
+
+router.delete(
+  '/my-children/:childId/emergency-contacts/:contactId',
+  [...childIdParamValidation, ...contactIdValidation],
+  handleValidationErrors,
+  portalController.deleteEmergencyContact
+);
+
+// ============================================
 // DIRECT MESSAGE ROUTES
 // ============================================
 

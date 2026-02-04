@@ -152,6 +152,18 @@ export const portalAPI = {
   markNotificationRead: (id) => api.put(`/portal/notifications/${id}/read`),
   getUnreadCount: () => api.get('/portal/notifications/unread-count'),
 
+  // Authorized Pickups (per child)
+  getAuthorizedPickups: (childId) => api.get(`/portal/my-children/${childId}/authorized-pickups`),
+  createAuthorizedPickup: (childId, data) => api.post(`/portal/my-children/${childId}/authorized-pickups`, data),
+  updateAuthorizedPickup: (childId, pickupId, data) => api.put(`/portal/my-children/${childId}/authorized-pickups/${pickupId}`, data),
+  deleteAuthorizedPickup: (childId, pickupId) => api.delete(`/portal/my-children/${childId}/authorized-pickups/${pickupId}`),
+
+  // Emergency Contacts (per child, multi-entry)
+  getEmergencyContacts: (childId) => api.get(`/portal/my-children/${childId}/emergency-contacts`),
+  createEmergencyContact: (childId, data) => api.post(`/portal/my-children/${childId}/emergency-contacts`, data),
+  updateEmergencyContactEntry: (childId, contactId, data) => api.put(`/portal/my-children/${childId}/emergency-contacts/${contactId}`, data),
+  deleteEmergencyContact: (childId, contactId) => api.delete(`/portal/my-children/${childId}/emergency-contacts/${contactId}`),
+
   // Direct Messages
   getMessages: (params) => api.get('/portal/messages', { params }),
   markMessageRead: (id) => api.put(`/portal/messages/${id}/read`),

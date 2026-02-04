@@ -126,6 +126,14 @@ const getById = async (req, res) => {
       WHERE child_id = $1 AND is_active = true
     `, [id]);
 
+    // Get emergency contacts from emergency_contacts table
+    const emergencyContactsResult = await db.query(`
+      SELECT id, name, relationship, phone, is_primary, parent_id, created_at
+      FROM emergency_contacts
+      WHERE child_id = $1
+      ORDER BY is_primary DESC, created_at ASC
+    `, [id]);
+
     // Get recent attendance (last 30 days)
     const attendanceResult = await db.query(`
       SELECT
@@ -173,6 +181,15 @@ const getById = async (req, res) => {
           relationship: ap.relationship,
           phone: ap.phone,
           photoUrl: ap.photo_url
+        })),
+        emergencyContacts: emergencyContactsResult.rows.map(ec => ({
+          id: ec.id,
+          name: ec.name,
+          relationship: ec.relationship,
+          phone: ec.phone,
+          isPrimary: ec.is_primary,
+          parentId: ec.parent_id,
+          createdAt: ec.created_at,
         })),
         recentAttendance: attendanceResult.rows.map(a => ({
           id: a.id,

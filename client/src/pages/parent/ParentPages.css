@@ -1032,14 +1032,20 @@
   transition: var(--transition);
 }
 
-/* Authorized Pickups */
-.pickups-list {
+/* Entry Cards (Pickups & Emergency Contacts) */
+.section-description {
+  color: var(--gray-600);
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.entry-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.pickup-card {
+.entry-card {
   display: flex;
   align-items: center;
   gap: 16px;
@@ -1049,7 +1055,7 @@
   border: 1px solid var(--gray-200);
 }
 
-.pickup-avatar {
+.entry-avatar {
   width: 48px;
   height: 48px;
   border-radius: 50%;
@@ -1060,35 +1066,55 @@
   flex-shrink: 0;
 }
 
-.pickup-avatar span {
+.entry-avatar span {
   font-size: 18px;
   font-weight: 600;
   color: var(--color-charcoal);
 }
 
-.pickup-info {
+.entry-info {
   flex: 1;
 }
 
-.pickup-info h4 {
+.entry-name {
   font-size: 15px;
   font-weight: 600;
   color: var(--color-charcoal);
-  margin: 0 0 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.pickup-info p {
+.entry-details {
   font-size: 13px;
   color: var(--gray-500);
-  margin: 0;
+  margin-top: 2px;
 }
 
-.pickup-actions {
+.entry-actions {
   display: flex;
   gap: 8px;
 }
 
-.add-pickup-btn {
+.badge-primary {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  background: var(--color-peach);
+  color: var(--white);
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 10px;
+}
+
+.empty-text {
+  color: var(--gray-500);
+  font-size: 14px;
+  font-style: italic;
+  padding: 8px 0;
+}
+
+.add-entry-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1106,9 +1132,51 @@
   transition: var(--transition);
 }
 
-.add-pickup-btn:hover {
+.add-entry-btn:hover {
   border-color: var(--color-fern);
   color: var(--color-fern);
+}
+
+/* Inline Add/Edit Forms */
+.inline-form {
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--gray-50);
+  border-radius: var(--radius);
+  border: 1px solid var(--gray-200);
+}
+
+.inline-form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  justify-content: flex-end;
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius);
+  background: var(--white);
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--gray-600);
+  transition: var(--transition);
+}
+
+.btn-icon:hover {
+  background: var(--gray-100);
+  color: var(--color-charcoal);
+}
+
+.btn-icon.danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border-color: rgba(239, 68, 68, 0.3);
 }
 
 /* Alert Messages */
