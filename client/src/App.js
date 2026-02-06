@@ -5,10 +5,13 @@ import Footer from './components/Footer';
 import IntroVideo from './components/IntroVideo';
 import Home from './pages/Home';
 import Programs from './pages/Programs';
+import Curriculum from './pages/Curriculum';
 import About from './pages/About';
 import Gallery from './pages/Gallery';
 import Contact from './pages/Contact';
 import Careers from './pages/Careers';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 import {
@@ -61,10 +64,13 @@ function App() {
         {/* Public Routes */}
         <Route path="/" element={<><Navbar /><Home /><Footer /></>} />
         <Route path="/programs" element={<><Navbar /><Programs /><Footer /></>} />
+        <Route path="/curriculum" element={<><Navbar /><Curriculum /><Footer /></>} />
         <Route path="/about" element={<><Navbar /><About /><Footer /></>} />
         <Route path="/gallery" element={<><Navbar /><Gallery /><Footer /></>} />
         <Route path="/contact" element={<><Navbar /><Contact /><Footer /></>} />
         <Route path="/careers" element={<><Navbar /><Careers /><Footer /></>} />
+        <Route path="/privacy-policy" element={<><Navbar /><PrivacyPolicy /><Footer /></>} />
+        <Route path="/terms-of-service" element={<><Navbar /><TermsOfService /><Footer /></>} />
 
         {/* Parent Portal Login */}
         <Route path="/login" element={<Login />} />

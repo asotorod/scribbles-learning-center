@@ -40,6 +40,8 @@ const Footer = () => {
                 <li><Link to="/careers">Careers</Link></li>
                 <li><Link to="/login">Parent Portal</Link></li>
                 <li><Link to="/admin/login">Admin Login</Link></li>
+                <li><Link to="/privacy-policy">Privacy Policy</Link></li>
+                <li><Link to="/terms-of-service">Terms of Service</Link></li>
               </ul>
             </div>
 
@@ -81,6 +83,11 @@ const Footer = () => {
       <div className="footer-bottom">
         <div className="container">
           <p>&copy; 2008-2026 Scribbles Learning Center. All rights reserved.</p>
+          <div className="footer-bottom-links">
+            <Link to="/privacy-policy">Privacy Policy</Link>
+            <span>|</span>
+            <Link to="/terms-of-service">Terms of Service</Link>
+          </div>
           <p className="footer-credit">
             Website by <a href="https://svtconsulting.com" target="_blank" rel="noopener noreferrer">SVT Consulting</a>
           </p>

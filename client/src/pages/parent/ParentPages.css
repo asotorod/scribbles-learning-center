@@ -1199,6 +1199,90 @@
   border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
+/* Delete Account Section */
+.delete-account-section {
+  border: 1px solid #fee2e2;
+  background: #fef2f2 !important;
+}
+
+.delete-account-section h2 {
+  color: #dc2626;
+  border-bottom-color: #fecaca;
+}
+
+.btn-danger {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-danger:hover {
+  background: #b91c1c;
+}
+
+.btn-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Confirmation Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modal-content h3 {
+  margin: 0 0 16px;
+  font-size: 20px;
+  color: #dc2626;
+}
+
+.modal-content p {
+  color: var(--gray-600);
+  margin-bottom: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.modal-content ul {
+  color: var(--gray-600);
+  font-size: 14px;
+  line-height: 1.8;
+  margin: 0 0 12px;
+  padding-left: 20px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
 /* ==================== RESPONSIVE ==================== */
 @media (max-width: 768px) {
   .welcome-section {

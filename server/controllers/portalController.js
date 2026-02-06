@@ -1621,6 +1621,82 @@ const deleteEmergencyContact = async (req, res) => {
   }
 };
 
+/**
+ * DELETE /portal/account
+ * Permanently delete parent account and all associated data
+ */
+const deleteAccount = async (req, res) => {
+  const client = await db.pool.connect();
+
+  try {
+    const { confirmation } = req.body;
+
+    if (confirmation !== 'DELETE') {
+      return res.status(400).json({
+        success: false,
+        error: 'Please type DELETE to confirm account deletion'
+      });
+    }
+
+    const parent = await getParentByUserId(req.user.id);
+    if (!parent) {
+      return res.status(404).json({ success: false, error: 'Parent profile not found' });
+    }
+
+    await client.query('BEGIN');
+
+    // Find children ONLY linked to this parent (no other parents)
+    const exclusiveChildrenResult = await client.query(`
+      SELECT pc.child_id
+      FROM parent_children pc
+      WHERE pc.parent_id = $1
+        AND NOT EXISTS (
+          SELECT 1 FROM parent_children pc2
+          WHERE pc2.child_id = pc.child_id
+            AND pc2.parent_id != $1
+        )
+    `, [parent.id]);
+
+    const exclusiveChildIds = exclusiveChildrenResult.rows.map(r => r.child_id);
+
+    // Delete exclusive children's S3 photos (best-effort)
+    if (exclusiveChildIds.length > 0) {
+      const photosResult = await client.query(
+        'SELECT photo_url FROM children WHERE id = ANY($1) AND photo_url IS NOT NULL',
+        [exclusiveChildIds]
+      );
+      for (const row of photosResult.rows) {
+        const key = getKeyFromUrl(row.photo_url);
+        if (key) {
+          deleteFromS3(key).catch(err =>
+            console.error('Failed to delete child photo during account deletion:', err)
+          );
+        }
+      }
+
+      // Delete exclusive children (CASCADE handles their related records)
+      await client.query('DELETE FROM children WHERE id = ANY($1)', [exclusiveChildIds]);
+    }
+
+    // Delete the users row — CASCADE handles:
+    //   refresh_tokens, parents -> parent_children, notification_recipients, messages
+    // SET NULL handles:
+    //   absences.reported_by, child_checkins parent refs,
+    //   authorized_pickups.parent_id, emergency_contacts.parent_id
+    await client.query('DELETE FROM users WHERE id = $1', [req.user.id]);
+
+    await client.query('COMMIT');
+
+    res.json({ success: true, data: { message: 'Account deleted successfully' } });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Delete account error:', error);
+    res.status(500).json({ success: false, error: 'Failed to delete account' });
+  } finally {
+    client.release();
+  }
+};
+
 module.exports = {
   getDashboard,
   getMyChildren,
@@ -1647,4 +1723,5 @@ module.exports = {
   createEmergencyContact,
   updateEmergencyContactEntry,
   deleteEmergencyContact,
+  deleteAccount,
 };

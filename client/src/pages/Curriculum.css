@@ -1,0 +1,423 @@
+/* Curriculum Intro */
+.curriculum-intro {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.curriculum-intro h2 {
+  font-size: 36px;
+  margin-bottom: 20px;
+  color: var(--dark);
+}
+
+.curriculum-intro p {
+  font-size: 18px;
+  color: var(--gray-600);
+  line-height: 1.8;
+}
+
+/* Dual Language Section */
+.dual-language-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.section-badge {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.section-badge svg {
+  width: 36px;
+  height: 36px;
+  color: var(--white);
+}
+
+.dual-language-content h2 {
+  font-size: 36px;
+  margin-bottom: 12px;
+  color: var(--dark);
+}
+
+.dual-language-content .subtitle {
+  font-size: 18px;
+  color: var(--primary);
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.dual-language-content > p {
+  font-size: 16px;
+  color: var(--gray-600);
+  line-height: 1.8;
+  margin-bottom: 24px;
+}
+
+.language-benefits {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.language-benefit {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.language-benefit svg {
+  width: 22px;
+  height: 22px;
+  color: #768E78;
+  flex-shrink: 0;
+}
+
+.language-benefit span {
+  font-size: 15px;
+  color: var(--gray-700);
+}
+
+.dual-language-image {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+
+.dual-language-image img {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+}
+
+/* Framework Grid */
+.framework-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+}
+
+.framework-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 40px 30px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+
+.framework-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-lg);
+}
+
+.framework-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+}
+
+.framework-icon svg {
+  width: 40px;
+  height: 40px;
+  color: var(--white);
+}
+
+.framework-card h3 {
+  font-size: 22px;
+  margin-bottom: 16px;
+  color: var(--dark);
+}
+
+.framework-card p {
+  font-size: 15px;
+  color: var(--gray-600);
+  line-height: 1.7;
+}
+
+/* Domains Grid */
+.domains-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.domain-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 30px;
+  box-shadow: var(--shadow);
+}
+
+.domain-icon {
+  width: 60px;
+  height: 60px;
+  background: var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.domain-icon svg {
+  width: 28px;
+  height: 28px;
+  color: var(--white);
+}
+
+.domain-card h3 {
+  font-size: 20px;
+  margin-bottom: 16px;
+  color: var(--dark);
+}
+
+.domain-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.domain-card ul li {
+  padding: 8px 0;
+  font-size: 14px;
+  color: var(--gray-600);
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.domain-card ul li:last-child {
+  border-bottom: none;
+}
+
+/* Age Curriculum Grid */
+.age-curriculum-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.age-curriculum-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+
+.age-curriculum-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.age-header {
+  padding: 24px;
+  text-align: center;
+}
+
+.age-header h3 {
+  font-size: 22px;
+  color: var(--dark);
+  margin-bottom: 4px;
+}
+
+.age-range {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dark);
+  opacity: 0.8;
+}
+
+.age-content {
+  padding: 24px;
+}
+
+.age-content > p {
+  font-size: 14px;
+  color: var(--gray-600);
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.age-content ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px;
+}
+
+.age-content ul li {
+  padding: 8px 0;
+  font-size: 13px;
+  color: var(--gray-700);
+  border-bottom: 1px solid var(--gray-100);
+  padding-left: 20px;
+  position: relative;
+}
+
+.age-content ul li:before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--primary);
+  font-weight: bold;
+}
+
+.age-content ul li:last-child {
+  border-bottom: none;
+}
+
+.ratio-badge {
+  background: var(--cream);
+  padding: 10px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary);
+  text-align: center;
+}
+
+/* Schedule Grid */
+.schedule-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.schedule-item {
+  display: flex;
+  gap: 20px;
+  background: var(--white);
+  padding: 20px 24px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.schedule-time {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--primary);
+  min-width: 90px;
+  white-space: nowrap;
+}
+
+.schedule-activity h4 {
+  font-size: 16px;
+  margin-bottom: 4px;
+  color: var(--dark);
+}
+
+.schedule-activity p {
+  font-size: 14px;
+  color: var(--gray-600);
+  margin: 0;
+}
+
+.schedule-note {
+  text-align: center;
+  font-size: 14px;
+  color: var(--gray-500);
+  font-style: italic;
+  margin-top: 24px;
+}
+
+/* Curriculum CTA */
+.curriculum-cta {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.curriculum-cta h2 {
+  font-size: 36px;
+  color: var(--white);
+  margin-bottom: 16px;
+}
+
+.curriculum-cta p {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 32px;
+}
+
+.curriculum-cta .cta-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-outline-white {
+  background: transparent;
+  color: var(--white);
+  border: 2px solid var(--white);
+}
+
+.btn-outline-white:hover {
+  background: var(--white);
+  color: var(--primary);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .dual-language-section {
+    grid-template-columns: 1fr;
+  }
+
+  .dual-language-image {
+    order: -1;
+  }
+
+  .framework-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .domains-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .age-curriculum-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .schedule-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .curriculum-intro h2 {
+    font-size: 28px;
+  }
+
+  .dual-language-content h2 {
+    font-size: 28px;
+  }
+
+  .language-benefits {
+    grid-template-columns: 1fr;
+  }
+
+  .domains-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .age-curriculum-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .curriculum-cta h2 {
+    font-size: 28px;
+  }
+}

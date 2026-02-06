@@ -120,8 +120,58 @@ const About = () => {
         </div>
       </section>
 
-      {/* NJ Requirements Section */}
+      {/* Facility Features Section */}
       <section className="section">
+        <div className="container">
+          <div className="section-header">
+            <h2>Our Facility</h2>
+            <p>A clean, comfortable, and modern environment for your child</p>
+          </div>
+          <div className="facility-grid">
+            <div className="facility-card">
+              <div className="facility-icon" style={{ background: '#E79897' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
+                  <path d="M12 6v6l4 2"/>
+                </svg>
+              </div>
+              <h3>Medify Air Purifiers</h3>
+              <p>Medical-grade HEPA air purification in every classroom to keep the air clean and reduce allergens and germs.</p>
+            </div>
+            <div className="facility-card">
+              <div className="facility-icon" style={{ background: '#C6C09C' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/>
+                </svg>
+              </div>
+              <h3>Climate Control</h3>
+              <p>Central air conditioning and heating keeps every room at the perfect temperature year-round for your child's comfort.</p>
+            </div>
+            <div className="facility-card">
+              <div className="facility-icon" style={{ background: '#FCC88A' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+                </svg>
+              </div>
+              <h3>Filtered Water</h3>
+              <p>Clean, filtered drinking water available throughout the facility. All systems are serviced biannually for quality assurance.</p>
+            </div>
+            <div className="facility-card">
+              <div className="facility-icon" style={{ background: '#768E78' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+              </div>
+              <h3>Biannual Maintenance</h3>
+              <p>All HVAC, water, and air purification systems are professionally serviced twice yearly to ensure optimal performance.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* NJ Requirements Section */}
+      <section className="section section-cream">
         <div className="container">
           <div className="section-header">
             <h2>NJ Licensing & Requirements</h2>
@@ -153,14 +203,14 @@ const About = () => {
                 </svg>
               </div>
               <div className="requirement-info">
-                <h3>Staff-to-Child Ratios</h3>
+                <h3>Lower Staff-to-Child Ratios</h3>
                 <p>
-                  We meet or exceed NJ required staff-to-child ratios to ensure individualized attention:
+                  We exceed NJ required staff-to-child ratios to ensure more individualized attention:
                 </p>
                 <ul>
-                  <li><strong>Infants:</strong> 1 teacher per 4 children</li>
-                  <li><strong>Toddlers:</strong> 1 teacher per 6 children</li>
-                  <li><strong>Preschool:</strong> 1 teacher per 10 children</li>
+                  <li><strong>Infants:</strong> 1:3 ratio (NJ requires 1:4)</li>
+                  <li><strong>Toddlers:</strong> 1:5 ratio (NJ requires 1:6)</li>
+                  <li><strong>Preschool:</strong> 1:10 ratio (meets NJ requirement)</li>
                 </ul>
               </div>
             </div>
@@ -230,64 +280,6 @@ const About = () => {
                 alt="Healthcare network"
               />
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Staff Section */}
-      <section className="section">
-        <div className="container">
-          <div className="section-header">
-            <h2>Meet Our Team</h2>
-            <p>Dedicated educators who love what they do</p>
-          </div>
-          <div className="staff-grid">
-            <div className="staff-card">
-              <div className="staff-image">
-                <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400" alt="Director" />
-              </div>
-              <div className="staff-info">
-                <h3>Maria Rodriguez</h3>
-                <p className="staff-role">Director & Founder</p>
-                <p className="staff-bio">With over 20 years in early childhood education, Maria founded Scribbles to create the loving environment she always envisioned for children.</p>
-                <div className="staff-credentials">
-                  <span className="credential-badge">CDA Certified</span>
-                  <span className="credential-badge">CPR/First Aid</span>
-                </div>
-              </div>
-            </div>
-            <div className="staff-card">
-              <div className="staff-image">
-                <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400" alt="Lead Teacher" />
-              </div>
-              <div className="staff-info">
-                <h3>Sarah Johnson</h3>
-                <p className="staff-role">Lead Preschool Teacher</p>
-                <p className="staff-bio">Sarah brings creativity and enthusiasm to our preschool classroom, preparing children for kindergarten success.</p>
-                <div className="staff-credentials">
-                  <span className="credential-badge">B.A. Early Childhood</span>
-                  <span className="credential-badge">NJ Certified</span>
-                </div>
-              </div>
-            </div>
-            <div className="staff-card">
-              <div className="staff-image">
-                <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400" alt="Infant Supervisor" />
-              </div>
-              <div className="staff-info">
-                <h3>Emily Chen</h3>
-                <p className="staff-role">Infant Room Supervisor</p>
-                <p className="staff-bio">Emily's gentle approach and expertise in infant development make her a favorite among our youngest learners and their families.</p>
-                <div className="staff-credentials">
-                  <span className="credential-badge">Infant/Toddler CDA</span>
-                  <span className="credential-badge">CPR/First Aid</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="staff-cta">
-            <p>Interested in joining our team?</p>
-            <Link to="/careers" className="btn btn-outline">View Open Positions</Link>
           </div>
         </div>
       </section>

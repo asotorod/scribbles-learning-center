@@ -141,6 +141,28 @@
   font-size: 14px;
 }
 
+.footer-bottom-links {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.footer-bottom-links a {
+  color: var(--gray-400);
+  font-size: 14px;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer-bottom-links a:hover {
+  color: var(--primary);
+}
+
+.footer-bottom-links span {
+  color: var(--gray-500);
+  font-size: 14px;
+}
+
 .footer-credit a {
   color: var(--primary);
 }

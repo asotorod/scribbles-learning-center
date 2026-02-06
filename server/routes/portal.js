@@ -468,4 +468,26 @@ router.post(
   portalController.uploadChildPhoto
 );
 
+// ============================================
+// ACCOUNT DELETION
+// ============================================
+
+const deleteAccountValidation = [
+  body('confirmation')
+    .equals('DELETE')
+    .withMessage('You must type DELETE to confirm account deletion')
+];
+
+/**
+ * @route   DELETE /api/v1/portal/account
+ * @desc    Permanently delete parent account and all associated data
+ * @access  Protected (parent only)
+ */
+router.delete(
+  '/account',
+  deleteAccountValidation,
+  handleValidationErrors,
+  portalController.deleteAccount
+);
+
 module.exports = router;

@@ -168,6 +168,9 @@ export const portalAPI = {
   getMessages: (params) => api.get('/portal/messages', { params }),
   markMessageRead: (id) => api.put(`/portal/messages/${id}/read`),
   getUnreadMessageCount: () => api.get('/portal/messages/unread-count'),
+
+  // Account deletion
+  deleteAccount: (confirmation) => api.delete('/portal/account', { data: { confirmation } }),
 };
 
 export default api;

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator,
+  KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator, Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -52,9 +52,11 @@ export default function LoginScreen() {
         >
           {/* Logo / Branding */}
           <View style={styles.branding}>
-            <View style={styles.logoCircle}>
-              <Text style={styles.logoEmoji}>🎨</Text>
-            </View>
+            <Image
+              source={require('../assets/images/logo.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
             <Text style={styles.title}>Scribbles</Text>
             <Text style={styles.subtitle}>Parent Portal</Text>
           </View>
@@ -138,17 +140,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 40,
   },
-  logoCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: Colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
+  logoImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 24,
     marginBottom: 16,
-  },
-  logoEmoji: {
-    fontSize: 36,
   },
   title: {
     fontSize: 32,

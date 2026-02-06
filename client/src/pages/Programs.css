@@ -7,6 +7,152 @@
   line-height: 1.8;
 }
 
+/* Dual Language Banner */
+.dual-language-banner {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  background: linear-gradient(135deg, #768E78 0%, #5a7a5c 100%);
+  border-radius: var(--radius-lg);
+  padding: 32px 40px;
+  margin-bottom: 60px;
+  color: var(--white);
+}
+
+.dual-language-icon {
+  width: 60px;
+  height: 60px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dual-language-icon svg {
+  width: 32px;
+  height: 32px;
+  color: var(--white);
+}
+
+.dual-language-content h3 {
+  font-size: 24px;
+  margin-bottom: 8px;
+  color: var(--white);
+}
+
+.dual-language-content p {
+  font-size: 16px;
+  color: rgba(255,255,255,0.9);
+  margin: 0;
+}
+
+/* Staff Ratios Section */
+.section-ratios {
+  background: var(--cream);
+}
+
+.ratios-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.ratio-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 40px 24px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+
+.ratio-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.ratio-number {
+  font-size: 56px;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.ratio-label {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--dark);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.ratio-note {
+  font-size: 14px;
+  color: #768E78;
+  font-weight: 600;
+}
+
+.ratios-description {
+  text-align: center;
+  font-size: 16px;
+  color: var(--gray-600);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Flexible Scheduling Section */
+.scheduling-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.scheduling-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 32px 24px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+
+.scheduling-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.scheduling-icon {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.scheduling-icon svg {
+  width: 32px;
+  height: 32px;
+  color: var(--white);
+}
+
+.scheduling-card h3 {
+  font-size: 20px;
+  margin-bottom: 12px;
+  color: var(--dark);
+}
+
+.scheduling-card p {
+  font-size: 15px;
+  color: var(--gray-600);
+  line-height: 1.6;
+}
+
 .program-detail {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -210,10 +356,36 @@
   .requirements-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .ratios-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .scheduling-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dual-language-banner {
+    flex-direction: column;
+    text-align: center;
+    padding: 24px;
+  }
 }
 
 @media (max-width: 600px) {
   .requirements-grid {
     grid-template-columns: 1fr;
+  }
+
+  .ratios-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .scheduling-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ratio-number {
+    font-size: 42px;
   }
 }

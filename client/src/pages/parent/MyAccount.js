@@ -4,7 +4,7 @@ import { portalAPI } from '../../services/api';
 import './ParentPages.css';
 
 const MyAccount = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -31,6 +31,11 @@ const MyAccount = () => {
   const [contactForm, setContactForm] = useState({ name: '', relationship: '', phone: '', is_primary: false });
 
   const [savingItem, setSavingItem] = useState(null);
+
+  // Delete account state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => { fetchAccountData(); }, []);
 
@@ -311,6 +316,18 @@ const MyAccount = () => {
     </form>
   );
 
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmation !== 'DELETE') return;
+    setDeleting(true);
+    try {
+      await portalAPI.deleteAccount(deleteConfirmation);
+      logout();
+    } catch (err) {
+      showMsg('error', 'Failed to delete account. Please try again.');
+      setDeleting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="loading-container">
@@ -510,6 +527,60 @@ const MyAccount = () => {
           </div>
         </form>
       </section>
+
+      {/* Delete Account */}
+      <section className="account-section delete-account-section">
+        <h2>Delete Account</h2>
+        <p className="section-description">
+          Permanently delete your account and all associated data. This action cannot be undone.
+        </p>
+        <button className="btn btn-danger" onClick={() => setShowDeleteModal(true)}>
+          Delete My Account
+        </button>
+      </section>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="modal-overlay" onClick={() => { setShowDeleteModal(false); setDeleteConfirmation(''); }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>Delete Your Account?</h3>
+            <p>This will permanently delete:</p>
+            <ul>
+              <li>Your account and profile information</li>
+              <li>Children linked only to your account</li>
+              <li>Authorized pickups and emergency contacts you created</li>
+              <li>All associated messages and notifications</li>
+            </ul>
+            <p><strong>This action cannot be undone.</strong></p>
+            <div className="form-group">
+              <label>Type <strong>DELETE</strong> to confirm:</label>
+              <input
+                type="text"
+                className="form-input"
+                value={deleteConfirmation}
+                onChange={(e) => setDeleteConfirmation(e.target.value)}
+                placeholder="DELETE"
+                autoComplete="off"
+              />
+            </div>
+            <div className="modal-actions">
+              <button
+                className="btn btn-secondary"
+                onClick={() => { setShowDeleteModal(false); setDeleteConfirmation(''); }}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={handleDeleteAccount}
+                disabled={deleteConfirmation !== 'DELETE' || deleting}
+              >
+                {deleting ? 'Deleting...' : 'Permanently Delete Account'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

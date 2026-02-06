@@ -18,7 +18,7 @@ const defaultJobs = [
       "Strong classroom management skills",
       "Excellent communication with children and parents"
     ],
-    benefits: ["Health insurance", "Paid time off", "Professional development", "Childcare discount"],
+    benefits: ["Professional development", "Childcare discount", "Flexible scheduling"],
     is_active: true
   },
   {
@@ -26,7 +26,7 @@ const defaultJobs = [
     title: "Infant Room Caregiver",
     department: "Education",
     type: "Full-Time",
-    description: "Join our infant care team to provide nurturing care for children ages 6 weeks to 18 months. This role requires patience, gentleness, and a genuine love for working with babies.",
+    description: "Join our infant care team to provide nurturing care for children ages 0 to 18 months. This role requires patience, gentleness, and a genuine love for working with babies.",
     requirements: [
       "CDA credential or equivalent",
       "Experience with infants required",
@@ -34,7 +34,7 @@ const defaultJobs = [
       "Understanding of infant development milestones",
       "Ability to lift up to 30 lbs"
     ],
-    benefits: ["Health insurance", "Paid time off", "Professional development", "Childcare discount"],
+    benefits: ["Professional development", "Childcare discount", "Flexible scheduling"],
     is_active: true
   },
   {
@@ -56,16 +56,6 @@ const defaultJobs = [
 ];
 
 const benefits = [
-  {
-    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>,
-    title: "Health Benefits",
-    description: "Comprehensive health insurance for full-time employees"
-  },
-  {
-    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
-    title: "Paid Time Off",
-    description: "Generous vacation, sick days, and holiday pay"
-  },
   {
     icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>,
     title: "Professional Growth",

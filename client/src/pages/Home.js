@@ -67,27 +67,27 @@ const defaultTestimonials = [
 
 const features = [
   {
-    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
-    title: "Safe & Secure",
-    description: "Video-monitored rooms and secure entry systems for your peace of mind.",
+    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>,
+    title: "Curriculum-Based Learning",
+    description: "Creative Curriculum with HighScope approach aligned with NJ Preschool Standards.",
     color: "#E79897" // Peony
   },
   {
-    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
-    title: "Family Atmosphere",
-    description: "We treat every child as if they were our own family member.",
+    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
+    title: "Dual-Language Instruction",
+    description: "English and Spanish instruction integrated throughout our curriculum.",
     color: "#C6C09C" // Pistachio
   },
   {
-    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>,
-    title: "Quality Education",
-    description: "Curriculum aligned with NJ Preschool Teaching & Learning Standards.",
+    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+    title: "Lower Staff Ratios",
+    description: "1:3 for infants and 1:5 for toddlers — better than NJ requirements.",
     color: "#FCC88A" // Honey
   },
   {
-    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>,
-    title: "Healthcare On-Site",
-    description: "Pediatrician and dentist located right in our building for convenience.",
+    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+    title: "Safe & Secure",
+    description: "Video-monitored rooms and secure entry systems for your peace of mind.",
     color: "#768E78" // Fern
   }
 ];
@@ -132,7 +132,7 @@ const Home = () => {
     <main>
       <Hero
         title="Where Little Minds Grow Big"
-        subtitle="A nurturing home away from home for your child in Edgewater, NJ since 2008"
+        subtitle="A dual-language early learning center with curriculum-based education in Edgewater, NJ"
         backgroundImage="https://plus.unsplash.com/premium_photo-1681842152160-cb5e5d470ddd?q=80&w=2456&auto=format&fit=crop"
         ctaPrimary="Schedule a Tour"
         ctaPrimaryLink="/contact"
@@ -145,7 +145,7 @@ const Home = () => {
         <div className="container">
           <div className="section-header">
             <h2>Why Choose Scribbles?</h2>
-            <p>We're more than just a daycare - we're a family</p>
+            <p>An early learning center, not just childcare</p>
           </div>
           <div className="features-grid">
             {features.map((feature, index) => (
