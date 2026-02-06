@@ -51,7 +51,7 @@
 
 .dual-language-content strong {
   font-weight: 700;
-  color: #fff;
+  color: #fff !important;
 }
 
 /* Staff Ratios Section */
