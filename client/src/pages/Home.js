@@ -10,27 +10,27 @@ const defaultPrograms = [
     id: 1,
     name: "Infant Care",
     slug: "infant",
-    age_range: "6 weeks - 18 months",
+    age_range: "0–18 months",
     short_description: "A gentle, nurturing environment for your baby's first experiences with learning.",
-    image_url: "https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=800",
+    image_url: "https://plus.unsplash.com/premium_photo-1679288660582-3cc3d3c65bb8?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     color: "#E79897" // Peony
   },
   {
     id: 2,
     name: "Toddler Program",
     slug: "toddler",
-    age_range: "18 months - 3 years",
+    age_range: "18–30 months",
     short_description: "Active exploration and discovery for curious toddlers!",
-    image_url: "https://images.unsplash.com/photo-1566004100631-35d015d6a491?w=800",
+    image_url: "https://images.unsplash.com/photo-1501686637-b7aa9c48a882?q=80&w=1335&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     color: "#C6C09C" // Pistachio
   },
   {
     id: 3,
     name: "Preschool",
     slug: "preschool",
-    age_range: "3 - 5 years",
+    age_range: "2 & 3 years",
     short_description: "Kindergarten readiness through play-based learning.",
-    image_url: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=800",
+    image_url: "https://plus.unsplash.com/premium_photo-1684291228086-4fd45b967992?q=80&w=2342&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     color: "#FCC88A" // Honey
   },
   {
@@ -39,7 +39,7 @@ const defaultPrograms = [
     slug: "summer-camp",
     age_range: "Up to 5 years",
     short_description: "Fun-filled summer adventures with learning and outdoor activities.",
-    image_url: "https://images.unsplash.com/photo-1472162072942-cd5147eb3902?w=800",
+    image_url: "https://plus.unsplash.com/premium_photo-1723874432108-5057464ddd8f?q=80&w=2412&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     color: "#768E78" // Fern
   }
 ];
