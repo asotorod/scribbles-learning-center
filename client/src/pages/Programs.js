@@ -115,7 +115,19 @@ const Programs = () => {
       const response = await programsAPI.getAll();
       const apiPrograms = response?.data?.data?.programs;
       if (Array.isArray(apiPrograms) && apiPrograms.length > 0) {
-        setPrograms(apiPrograms);
+        // Merge API data with defaults to ensure images and colors are present
+        const mergedPrograms = apiPrograms.map(apiProg => {
+          const defaultProg = defaultPrograms.find(d => d.slug === apiProg.slug || d.id === apiProg.id);
+          return {
+            ...defaultProg,
+            ...apiProg,
+            image_url: apiProg.image_url || defaultProg?.image_url,
+            color: apiProg.color || defaultProg?.color,
+            age_range: apiProg.age_range || defaultProg?.age_range,
+            features: apiProg.features || defaultProg?.features,
+          };
+        });
+        setPrograms(mergedPrograms);
       }
     } catch (error) {
       console.error('Error fetching programs:', error);

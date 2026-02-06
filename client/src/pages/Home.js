@@ -115,9 +115,19 @@ const Home = () => {
         contentAPI.getSection('testimonials').catch(() => null),
       ]);
 
-      const programs = programsRes?.data?.data?.programs;
-      if (Array.isArray(programs)) {
-        setPrograms(programs);
+      const apiPrograms = programsRes?.data?.data?.programs;
+      if (Array.isArray(apiPrograms) && apiPrograms.length > 0) {
+        // Merge API data with defaults to ensure images and colors are present
+        const mergedPrograms = apiPrograms.map(apiProg => {
+          const defaultProg = defaultPrograms.find(d => d.slug === apiProg.slug || d.id === apiProg.id);
+          return {
+            ...defaultProg,
+            ...apiProg,
+            image_url: apiProg.image_url || defaultProg?.image_url,
+            color: apiProg.color || defaultProg?.color,
+          };
+        });
+        setPrograms(mergedPrograms);
       }
       const testimonials = testimonialsRes?.data?.data?.testimonials;
       if (Array.isArray(testimonials)) {
