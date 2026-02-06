@@ -12,7 +12,7 @@
   display: flex;
   align-items: center;
   gap: 24px;
-  background: linear-gradient(135deg, #768E78 0%, #5a7a5c 100%);
+  background: linear-gradient(135deg, #4a6b4c 0%, #3d5a3f 100%);
   border-radius: var(--radius-lg);
   padding: 32px 40px;
   margin-bottom: 60px;
@@ -22,7 +22,7 @@
 .dual-language-icon {
   width: 60px;
   height: 60px;
-  background: rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.25);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -40,12 +40,18 @@
   font-size: 24px;
   margin-bottom: 8px;
   color: var(--white);
+  font-weight: 700;
 }
 
 .dual-language-content p {
   font-size: 16px;
-  color: rgba(255,255,255,0.9);
+  color: var(--white);
   margin: 0;
+  line-height: 1.6;
+}
+
+.dual-language-content strong {
+  font-weight: 700;
 }
 
 /* Staff Ratios Section */
