@@ -20,7 +20,7 @@ const defaultPrograms = [
       "Flexible feeding schedules",
       "Dual-language instruction (English & Spanish)"
     ],
-    image_url: "https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=800",
+    image_url: "https://plus.unsplash.com/premium_photo-1679288660582-3cc3d3c65bb8?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     color: "#E79897" // Peony
   },
   {
@@ -37,7 +37,7 @@ const defaultPrograms = [
       "Outdoor playground time daily",
       "Social-emotional skill building"
     ],
-    image_url: "https://images.unsplash.com/photo-1566004100631-35d015d6a491?w=800",
+    image_url: "https://images.unsplash.com/photo-1501686637-b7aa9c48a882?q=80&w=1335&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     color: "#C6C09C" // Pistachio
   },
   {
@@ -54,7 +54,7 @@ const defaultPrograms = [
       "Aligned with NJ Preschool Standards",
       "Dual-language instruction (English & Spanish)"
     ],
-    image_url: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=800",
+    image_url: "https://plus.unsplash.com/premium_photo-1684291228086-4fd45b967992?q=80&w=2342&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     color: "#FCC88A" // Honey
   },
   {
@@ -88,7 +88,7 @@ const defaultPrograms = [
       "Sports and outdoor games",
       "Flexible enrollment options"
     ],
-    image_url: "https://images.unsplash.com/photo-1472162072942-cd5147eb3902?w=800",
+    image_url: "https://plus.unsplash.com/premium_photo-1723874432108-5057464ddd8f?q=80&w=2412&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     color: "#E79897" // Peony
   }
 ];
@@ -127,7 +127,7 @@ const Programs = () => {
       <Hero
         title="Our Programs"
         subtitle="Curriculum-based early learning experiences designed to nurture your child's growth"
-        backgroundImage="https://images.unsplash.com/photo-1544776193-352d25ca82cd?w=1920"
+        backgroundImage="https://plus.unsplash.com/premium_photo-1663127348902-44f1f20dd92d?q=80&w=2338&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
         size="medium"
         ctaPrimary="Schedule a Tour"
         ctaPrimaryLink="/contact"
@@ -166,7 +166,7 @@ const Programs = () => {
               className={`program-detail ${index % 2 === 1 ? 'reverse' : ''}`}
             >
               <div className="program-detail-image">
-                <img src={program.image_url} alt={program.name} />
+                <img src={program.image_url} alt={`${program.name} - children learning and playing in our ${program.age_range} classroom`} />
                 <div className="program-detail-badge" style={{ background: program.color }}>
                   {program.age_range}
                 </div>
