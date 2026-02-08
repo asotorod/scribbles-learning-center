@@ -6,12 +6,14 @@ import {
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
+import { useNotifications } from '../../context/NotificationContext';
 import { portalAPI } from '../../services/api';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import Colors from '../../constants/colors';
 
 export default function AccountScreen() {
   const { logout } = useAuth();
+  const { unregisterPushNotifications } = useNotifications();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -214,7 +216,14 @@ export default function AccountScreen() {
   const handleLogout = () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Sign Out', style: 'destructive', onPress: () => logout() },
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: async () => {
+          await unregisterPushNotifications();
+          logout();
+        },
+      },
     ]);
   };
 
@@ -222,6 +231,7 @@ export default function AccountScreen() {
     if (deleteConfirmation !== 'DELETE') return;
     setDeleting(true);
     try {
+      await unregisterPushNotifications();
       await portalAPI.deleteAccount(deleteConfirmation);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setShowDeleteModal(false);

@@ -497,6 +497,37 @@ router.post(
 );
 
 // ============================================
+// PUSH NOTIFICATIONS
+// ============================================
+
+const pushTokenValidation = [
+  body('token')
+    .notEmpty()
+    .withMessage('Push token is required')
+    .isString()
+    .withMessage('Push token must be a string')
+];
+
+/**
+ * @route   POST /api/v1/portal/push-token
+ * @desc    Save Expo push token for notifications
+ * @access  Protected (parent only)
+ */
+router.post(
+  '/push-token',
+  pushTokenValidation,
+  handleValidationErrors,
+  portalController.savePushToken
+);
+
+/**
+ * @route   DELETE /api/v1/portal/push-token
+ * @desc    Remove Expo push token (e.g., on logout)
+ * @access  Protected (parent only)
+ */
+router.delete('/push-token', portalController.removePushToken);
+
+// ============================================
 // ACCOUNT DELETION
 // ============================================
 

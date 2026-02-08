@@ -173,6 +173,10 @@ export const portalAPI = {
   markMessageRead: (id) => api.put(`/portal/messages/${id}/read`),
   getUnreadMessageCount: () => api.get('/portal/messages/unread-count'),
 
+  // Push Notifications
+  savePushToken: (token) => api.post('/portal/push-token', { token }),
+  removePushToken: () => api.delete('/portal/push-token'),
+
   // Account deletion
   deleteAccount: (confirmation) => api.delete('/portal/account', { data: { confirmation } }),
 };

@@ -1,5 +1,6 @@
 const db = require('../config/database');
 const { uploadToS3, deleteFromS3, getKeyFromUrl } = require('../services/uploadService');
+const pushNotificationService = require('../services/pushNotificationService');
 
 /**
  * Helper: Get parent record for current user
@@ -1805,6 +1806,51 @@ const deleteAccount = async (req, res) => {
   }
 };
 
+// ============================================
+// PUSH NOTIFICATIONS
+// ============================================
+
+/**
+ * Save Expo push token
+ * POST /api/v1/portal/push-token
+ */
+const savePushToken = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    await pushNotificationService.savePushToken(req.user.id, token);
+
+    res.json({
+      success: true,
+      data: { message: 'Push token saved successfully' }
+    });
+  } catch (error) {
+    console.error('Save push token error:', error);
+    if (error.message === 'Invalid Expo push token format') {
+      return res.status(400).json({ success: false, error: error.message });
+    }
+    res.status(500).json({ success: false, error: 'Failed to save push token' });
+  }
+};
+
+/**
+ * Remove Expo push token
+ * DELETE /api/v1/portal/push-token
+ */
+const removePushToken = async (req, res) => {
+  try {
+    await pushNotificationService.removePushToken(req.user.id);
+
+    res.json({
+      success: true,
+      data: { message: 'Push token removed successfully' }
+    });
+  } catch (error) {
+    console.error('Remove push token error:', error);
+    res.status(500).json({ success: false, error: 'Failed to remove push token' });
+  }
+};
+
 module.exports = {
   getDashboard,
   getMyChildren,
@@ -1834,4 +1880,6 @@ module.exports = {
   updateEmergencyContactEntry,
   deleteEmergencyContact,
   deleteAccount,
+  savePushToken,
+  removePushToken,
 };

@@ -1,4 +1,5 @@
 const db = require('../config/database');
+const pushNotificationService = require('../services/pushNotificationService');
 
 // ============================================
 // PIN VERIFICATION
@@ -342,10 +343,20 @@ const checkIn = async (req, res) => {
 
     await client.query('COMMIT');
 
+    // Send push notifications for newly checked-in children (don't await - fire and forget)
+    const newlyCheckedIn = checkedIn.filter(c => c.status === 'checked_in');
+    for (const child of newlyCheckedIn) {
+      pushNotificationService.sendCheckInNotification(
+        child.childId,
+        `${child.firstName} ${child.lastName}`,
+        child.checkInTime
+      ).catch(err => console.error('Push notification error:', err));
+    }
+
     res.json({
       success: true,
       data: {
-        message: `Successfully checked in ${checkedIn.filter(c => c.status === 'checked_in').length} child(ren)`,
+        message: `Successfully checked in ${newlyCheckedIn.length} child(ren)`,
         checkedIn,
         checkedInBy: parentName,
         timestamp: new Date().toISOString()
@@ -482,10 +493,20 @@ const checkOut = async (req, res) => {
 
     await client.query('COMMIT');
 
+    // Send push notifications for newly checked-out children (don't await - fire and forget)
+    const newlyCheckedOut = checkedOut.filter(c => c.status === 'checked_out');
+    for (const child of newlyCheckedOut) {
+      pushNotificationService.sendCheckOutNotification(
+        child.childId,
+        `${child.firstName} ${child.lastName}`,
+        child.checkOutTime
+      ).catch(err => console.error('Push notification error:', err));
+    }
+
     res.json({
       success: true,
       data: {
-        message: `Successfully checked out ${checkedOut.filter(c => c.status === 'checked_out').length} child(ren)`,
+        message: `Successfully checked out ${newlyCheckedOut.length} child(ren)`,
         checkedOut,
         checkedOutBy: parentName,
         timestamp: new Date().toISOString()

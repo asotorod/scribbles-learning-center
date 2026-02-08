@@ -4,6 +4,7 @@ import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from '../context/AuthContext';
+import { NotificationProvider } from '../context/NotificationContext';
 import { fontAssets } from '../constants/fonts';
 import Colors from '../constants/colors';
 
@@ -52,7 +53,9 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      <RootLayoutNav />
+      <NotificationProvider>
+        <RootLayoutNav />
+      </NotificationProvider>
     </AuthProvider>
   );
 }

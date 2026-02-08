@@ -4,7 +4,7 @@
     "slug": "scribbles-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/ios-icons/icon-1024x1024.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "scheme": "scribbles",
@@ -15,7 +15,8 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.scribbleslearning.parent"
+      "bundleIdentifier": "com.scribbleslearning.parent",
+      "icon": "./assets/ios-icons/icon-1024x1024.png"
     },
     "android": {
       "adaptiveIcon": {
