@@ -121,10 +121,18 @@ export const NotificationProvider = ({ children }) => {
       // Save token to backend
       try {
         console.log('[PUSH] Saving token to backend...');
+        console.log('[PUSH] Token being sent:', token);
+        console.log('[PUSH] User authenticated:', !!user);
         const response = await portalAPI.savePushToken(token);
-        console.log('[PUSH] Token saved successfully:', response.data);
+        console.log('[PUSH] Token saved successfully!');
+        console.log('[PUSH] Response status:', response.status);
+        console.log('[PUSH] Response data:', JSON.stringify(response.data));
       } catch (err) {
-        console.error('[PUSH] Failed to save push token:', err.response?.data || err.message);
+        console.error('[PUSH] Failed to save push token!');
+        console.error('[PUSH] Error message:', err.message);
+        console.error('[PUSH] Error response status:', err.response?.status);
+        console.error('[PUSH] Error response data:', JSON.stringify(err.response?.data));
+        console.error('[PUSH] Full error:', err);
       }
 
       // Configure Android notification channel
