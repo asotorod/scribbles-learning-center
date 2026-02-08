@@ -70,23 +70,33 @@ const sendPushNotifications = async (pushTokens, title, body, data = {}) => {
  */
 const sendCheckInNotification = async (childId, childName, checkInTime) => {
   try {
+    console.log(`[PUSH] Sending check-in notification for child: ${childName} (${childId})`);
+
     // Get all parent push tokens for this child
     const result = await db.query(`
-      SELECT DISTINCT u.expo_push_token
+      SELECT DISTINCT u.id, u.email, u.expo_push_token
       FROM users u
       JOIN parents p ON p.user_id = u.id
       JOIN parent_children pc ON pc.parent_id = p.id
       WHERE pc.child_id = $1
-        AND u.expo_push_token IS NOT NULL
         AND u.is_active = true
     `, [childId]);
 
-    const pushTokens = result.rows.map(r => r.expo_push_token);
+    console.log(`[PUSH] Found ${result.rows.length} parent(s) for child ${childName}:`);
+    result.rows.forEach(r => {
+      console.log(`[PUSH]   - ${r.email}: token=${r.expo_push_token ? 'YES' : 'NO'}`);
+    });
+
+    const pushTokens = result.rows
+      .filter(r => r.expo_push_token)
+      .map(r => r.expo_push_token);
 
     if (pushTokens.length === 0) {
-      console.log(`No push tokens found for child ${childId}`);
+      console.log(`[PUSH] No push tokens found for child ${childId} - parents have no tokens registered`);
       return { sent: 0, failed: 0 };
     }
+
+    console.log(`[PUSH] Sending to ${pushTokens.length} token(s)`);
 
     return await sendPushNotifications(
       pushTokens,
@@ -113,23 +123,33 @@ const sendCheckInNotification = async (childId, childName, checkInTime) => {
  */
 const sendCheckOutNotification = async (childId, childName, checkOutTime) => {
   try {
+    console.log(`[PUSH] Sending check-out notification for child: ${childName} (${childId})`);
+
     // Get all parent push tokens for this child
     const result = await db.query(`
-      SELECT DISTINCT u.expo_push_token
+      SELECT DISTINCT u.id, u.email, u.expo_push_token
       FROM users u
       JOIN parents p ON p.user_id = u.id
       JOIN parent_children pc ON pc.parent_id = p.id
       WHERE pc.child_id = $1
-        AND u.expo_push_token IS NOT NULL
         AND u.is_active = true
     `, [childId]);
 
-    const pushTokens = result.rows.map(r => r.expo_push_token);
+    console.log(`[PUSH] Found ${result.rows.length} parent(s) for child ${childName}:`);
+    result.rows.forEach(r => {
+      console.log(`[PUSH]   - ${r.email}: token=${r.expo_push_token ? 'YES' : 'NO'}`);
+    });
+
+    const pushTokens = result.rows
+      .filter(r => r.expo_push_token)
+      .map(r => r.expo_push_token);
 
     if (pushTokens.length === 0) {
-      console.log(`No push tokens found for child ${childId}`);
+      console.log(`[PUSH] No push tokens found for child ${childId} - parents have no tokens registered`);
       return { sent: 0, failed: 0 };
     }
+
+    console.log(`[PUSH] Sending to ${pushTokens.length} token(s)`);
 
     return await sendPushNotifications(
       pushTokens,
@@ -154,14 +174,19 @@ const sendCheckOutNotification = async (childId, childName, checkOutTime) => {
  * @param {string} pushToken - The Expo push token
  */
 const savePushToken = async (userId, pushToken) => {
+  console.log(`[PUSH] Saving push token for user ${userId}: ${pushToken}`);
+
   if (!Expo.isExpoPushToken(pushToken)) {
+    console.log(`[PUSH] Invalid token format: ${pushToken}`);
     throw new Error('Invalid Expo push token format');
   }
 
-  await db.query(
-    'UPDATE users SET expo_push_token = $1 WHERE id = $2',
+  const result = await db.query(
+    'UPDATE users SET expo_push_token = $1 WHERE id = $2 RETURNING email',
     [pushToken, userId]
   );
+
+  console.log(`[PUSH] Token saved successfully for user: ${result.rows[0]?.email || userId}`);
 };
 
 /**

@@ -1818,6 +1818,13 @@ const savePushToken = async (req, res) => {
   try {
     const { token } = req.body;
 
+    console.log(`[PUSH] savePushToken endpoint called - user: ${req.user.id}, token: ${token}`);
+
+    if (!token) {
+      console.log('[PUSH] No token provided in request body');
+      return res.status(400).json({ success: false, error: 'Push token is required' });
+    }
+
     await pushNotificationService.savePushToken(req.user.id, token);
 
     res.json({
@@ -1825,7 +1832,7 @@ const savePushToken = async (req, res) => {
       data: { message: 'Push token saved successfully' }
     });
   } catch (error) {
-    console.error('Save push token error:', error);
+    console.error('[PUSH] Save push token error:', error);
     if (error.message === 'Invalid Expo push token format') {
       return res.status(400).json({ success: false, error: error.message });
     }
