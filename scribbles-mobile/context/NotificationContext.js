@@ -79,42 +79,52 @@ export const NotificationProvider = ({ children }) => {
 
   const registerForPushNotifications = async () => {
     try {
+      console.log('[PUSH] Starting push notification registration...');
+      console.log('[PUSH] Device.isDevice:', Device.isDevice);
+
       // Must be physical device for push notifications
       if (!Device.isDevice) {
-        console.log('Push notifications require a physical device');
+        console.log('[PUSH] Push notifications require a physical device');
         return;
       }
 
       // Check existing permission
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      console.log('[PUSH] Existing permission status:', existingStatus);
       let finalStatus = existingStatus;
 
       // Request permission if not already granted
       if (existingStatus !== 'granted') {
+        console.log('[PUSH] Requesting notification permission...');
         const { status } = await Notifications.requestPermissionsAsync();
         finalStatus = status;
+        console.log('[PUSH] New permission status:', finalStatus);
       }
 
       if (finalStatus !== 'granted') {
-        console.log('Push notification permission denied');
+        console.log('[PUSH] Push notification permission denied');
         return;
       }
 
       // Get push token
       const projectId = Constants.expoConfig?.extra?.eas?.projectId;
-      const tokenData = await Notifications.getExpoPushTokenAsync({
-        projectId,
-      });
+      console.log('[PUSH] EAS Project ID:', projectId || '(not configured - using default)');
+
+      // Get token - projectId is optional for development builds
+      const tokenOptions = projectId ? { projectId } : {};
+      const tokenData = await Notifications.getExpoPushTokenAsync(tokenOptions);
       const token = tokenData.data;
+      console.log('[PUSH] Got Expo push token:', token);
 
       setExpoPushToken(token);
 
       // Save token to backend
       try {
-        await portalAPI.savePushToken(token);
-        console.log('Push token saved successfully');
+        console.log('[PUSH] Saving token to backend...');
+        const response = await portalAPI.savePushToken(token);
+        console.log('[PUSH] Token saved successfully:', response.data);
       } catch (err) {
-        console.error('Failed to save push token:', err);
+        console.error('[PUSH] Failed to save push token:', err.response?.data || err.message);
       }
 
       // Configure Android notification channel
@@ -127,7 +137,7 @@ export const NotificationProvider = ({ children }) => {
         });
       }
     } catch (error) {
-      console.error('Error registering for push notifications:', error);
+      console.error('[PUSH] Error registering for push notifications:', error);
     }
   };
 

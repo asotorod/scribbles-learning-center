@@ -16,7 +16,10 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.scribbleslearning.parent",
-      "icon": "./assets/ios-icons/icon-1024x1024.png"
+      "icon": "./assets/ios-icons/icon-1024x1024.png",
+      "infoPlist": {
+        "UIBackgroundModes": ["remote-notification"]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +27,8 @@
         "backgroundColor": "#EBDEC0"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.scribbleslearning.parent"
+      "package": "com.scribbleslearning.parent",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -35,7 +39,13 @@
       "expo-secure-store",
       "expo-font",
       "expo-image-picker",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-notifications",
+        {
+          "color": "#43a047"
+        }
+      ]
     ]
   }
 }
