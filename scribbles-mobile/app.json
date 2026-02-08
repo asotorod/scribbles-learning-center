@@ -8,6 +8,12 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "scheme": "scribbles",
+    "owner": "asotorod",
+    "extra": {
+      "eas": {
+        "projectId": "c32b8f49-1524-43eb-a356-4973a0c1b765"
+      }
+    },
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",

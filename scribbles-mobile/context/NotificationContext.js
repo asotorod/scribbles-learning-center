@@ -106,13 +106,18 @@ export const NotificationProvider = ({ children }) => {
         return;
       }
 
-      // Get push token
+      // Get push token - projectId is REQUIRED for standalone/TestFlight builds
       const projectId = Constants.expoConfig?.extra?.eas?.projectId;
-      console.log('[PUSH] EAS Project ID:', projectId || '(not configured - using default)');
+      console.log('[PUSH] EAS Project ID:', projectId);
 
-      // Get token - projectId is optional for development builds
-      const tokenOptions = projectId ? { projectId } : {};
-      const tokenData = await Notifications.getExpoPushTokenAsync(tokenOptions);
+      if (!projectId) {
+        console.error('[PUSH] ERROR: No projectId found! Add extra.eas.projectId to app.json');
+        console.error('[PUSH] Get your projectId from expo.dev dashboard');
+        return;
+      }
+
+      console.log('[PUSH] Getting push token with projectId:', projectId);
+      const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
       const token = tokenData.data;
       console.log('[PUSH] Got Expo push token:', token);
 
