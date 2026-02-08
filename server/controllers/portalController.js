@@ -167,6 +167,7 @@ const getMyChildren = async (req, res) => {
         c.program_id, c.allergies, c.medical_notes,
         c.emergency_contact_name, c.emergency_contact_phone,
         c.enrollment_date, c.is_active,
+        c.photo_consent_given, c.photo_consent_date,
         p.name as program_name, p.color as program_color,
         pc.relationship, pc.is_primary_contact,
         cc.check_in_time, cc.check_out_time
@@ -204,7 +205,9 @@ const getMyChildren = async (req, res) => {
             isPrimaryContact: child.is_primary_contact,
             status: todayStatus,
             checkInTime: child.check_in_time,
-            checkOutTime: child.check_out_time
+            checkOutTime: child.check_out_time,
+            photoConsentGiven: child.photo_consent_given || false,
+            photoConsentDate: child.photo_consent_date
           };
         })
       }
@@ -941,6 +944,98 @@ const updateEmergencyContact = async (req, res) => {
   }
 };
 
+// ============================================
+// PHOTO CONSENT
+// ============================================
+
+/**
+ * Check photo consent status for a child
+ * GET /api/v1/portal/my-children/:id/photo-consent
+ */
+const getPhotoConsent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const parent = await getParentByUserId(req.user.id);
+
+    if (!parent) {
+      return res.status(404).json({ success: false, error: 'Parent profile not found' });
+    }
+
+    const hasAccess = await parentHasAccessToChild(parent.id, id);
+    if (!hasAccess) {
+      return res.status(403).json({ success: false, error: 'You do not have access to this child' });
+    }
+
+    const result = await db.query(
+      'SELECT photo_consent_given, photo_consent_date FROM children WHERE id = $1',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Child not found' });
+    }
+
+    const child = result.rows[0];
+
+    res.json({
+      success: true,
+      data: {
+        consentGiven: child.photo_consent_given || false,
+        consentDate: child.photo_consent_date
+      }
+    });
+  } catch (error) {
+    console.error('Get photo consent error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get consent status' });
+  }
+};
+
+/**
+ * Record photo consent for a child
+ * POST /api/v1/portal/my-children/:id/photo-consent
+ */
+const givePhotoConsent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const parent = await getParentByUserId(req.user.id);
+
+    if (!parent) {
+      return res.status(404).json({ success: false, error: 'Parent profile not found' });
+    }
+
+    const hasAccess = await parentHasAccessToChild(parent.id, id);
+    if (!hasAccess) {
+      return res.status(403).json({ success: false, error: 'You do not have access to this child' });
+    }
+
+    // Update consent status
+    const result = await db.query(`
+      UPDATE children
+      SET photo_consent_given = true,
+          photo_consent_date = CURRENT_TIMESTAMP,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1
+      RETURNING photo_consent_given, photo_consent_date
+    `, [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Child not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        consentGiven: result.rows[0].photo_consent_given,
+        consentDate: result.rows[0].photo_consent_date,
+        message: 'Photo consent recorded successfully'
+      }
+    });
+  } catch (error) {
+    console.error('Give photo consent error:', error);
+    res.status(500).json({ success: false, error: 'Failed to record consent' });
+  }
+};
+
 /**
  * Upload / replace child profile photo (parent side)
  * POST /api/v1/portal/my-children/:id/photo
@@ -964,11 +1059,24 @@ const uploadChildPhoto = async (req, res) => {
       return res.status(400).json({ success: false, error: 'No file provided' });
     }
 
-    // Get old photo URL for cleanup
-    const childResult = await db.query('SELECT photo_url FROM children WHERE id = $1', [id]);
+    // Get child info including consent status
+    const childResult = await db.query(
+      'SELECT photo_url, photo_consent_given FROM children WHERE id = $1',
+      [id]
+    );
     if (childResult.rows.length === 0) {
       return res.status(404).json({ success: false, error: 'Child not found' });
     }
+
+    // Check if consent has been given
+    if (!childResult.rows[0].photo_consent_given) {
+      return res.status(403).json({
+        success: false,
+        error: 'Photo consent required',
+        code: 'CONSENT_REQUIRED'
+      });
+    }
+
     const oldPhotoUrl = childResult.rows[0].photo_url;
 
     // Upload to S3
@@ -1710,6 +1818,8 @@ module.exports = {
   getProfile,
   updateProfile,
   updateEmergencyContact,
+  getPhotoConsent,
+  givePhotoConsent,
   uploadChildPhoto,
   changePassword,
   getNotifications,

@@ -11,6 +11,7 @@ import PhotoAvatar from '../../components/PhotoAvatar';
 import StatusBadge from '../../components/StatusBadge';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import ErrorState from '../../components/ErrorState';
+import PhotoConsentModal from '../../components/PhotoConsentModal';
 import Colors from '../../constants/colors';
 
 export default function ChildrenScreen() {
@@ -20,6 +21,9 @@ export default function ChildrenScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [expandedId, setExpandedId] = useState(null);
   const [uploadingId, setUploadingId] = useState(null);
+  const [consentModalVisible, setConsentModalVisible] = useState(false);
+  const [consentLoading, setConsentLoading] = useState(false);
+  const [pendingPhotoChild, setPendingPhotoChild] = useState(null);
 
   const fetchChildren = useCallback(async () => {
     try {
@@ -41,7 +45,56 @@ export default function ChildrenScreen() {
     setRefreshing(false);
   };
 
-  const handlePhotoUpload = async (childId) => {
+  const handlePhotoPress = (child) => {
+    // Check if consent has been given
+    if (!child.photoConsentGiven) {
+      // Show consent modal
+      setPendingPhotoChild(child);
+      setConsentModalVisible(true);
+    } else {
+      // Consent already given, proceed to image picker
+      launchImagePicker(child.id);
+    }
+  };
+
+  const handleConsentAgree = async () => {
+    if (!pendingPhotoChild) return;
+
+    setConsentLoading(true);
+    try {
+      // Record consent via API
+      await portalAPI.givePhotoConsent(pendingPhotoChild.id);
+
+      // Update local state
+      setChildren(prev =>
+        prev.map(c => c.id === pendingPhotoChild.id
+          ? { ...c, photoConsentGiven: true, photoConsentDate: new Date().toISOString() }
+          : c
+        )
+      );
+
+      // Close modal
+      setConsentModalVisible(false);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+      // Launch image picker after consent
+      const childId = pendingPhotoChild.id;
+      setPendingPhotoChild(null);
+      launchImagePicker(childId);
+    } catch (err) {
+      Alert.alert('Error', 'Failed to record consent. Please try again.');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    } finally {
+      setConsentLoading(false);
+    }
+  };
+
+  const handleConsentClose = () => {
+    setConsentModalVisible(false);
+    setPendingPhotoChild(null);
+  };
+
+  const launchImagePicker = async (childId) => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
@@ -103,7 +156,7 @@ export default function ChildrenScreen() {
         <View style={styles.cardHeader}>
           <TouchableOpacity
             style={styles.avatarWrap}
-            onPress={() => handlePhotoUpload(child.id)}
+            onPress={() => handlePhotoPress(child)}
             disabled={isUploading}
           >
             {isUploading ? (
@@ -120,6 +173,11 @@ export default function ChildrenScreen() {
           <View style={styles.headerInfo}>
             <Text style={styles.childName}>{child.firstName} {child.lastName}</Text>
             <Text style={styles.childProgram}>{child.programName}</Text>
+            {child.photoConsentGiven && child.photoConsentDate && (
+              <Text style={styles.consentStatus}>
+                Photo consent given on {formatDate(child.photoConsentDate)}
+              </Text>
+            )}
           </View>
         </View>
 
@@ -197,21 +255,32 @@ export default function ChildrenScreen() {
   if (error) return <ErrorState message={error} onRetry={fetchChildren} />;
 
   return (
-    <FlatList
-      style={styles.container}
-      contentContainerStyle={styles.listContent}
-      data={children}
-      keyExtractor={(item) => item.id}
-      renderItem={renderChild}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
-      }
-    />
+    <View style={styles.container}>
+      <FlatList
+        style={styles.list}
+        contentContainerStyle={styles.listContent}
+        data={children}
+        keyExtractor={(item) => item.id}
+        renderItem={renderChild}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
+        }
+      />
+
+      <PhotoConsentModal
+        visible={consentModalVisible}
+        onClose={handleConsentClose}
+        onAgree={handleConsentAgree}
+        childName={pendingPhotoChild ? `${pendingPhotoChild.firstName} ${pendingPhotoChild.lastName}` : ''}
+        loading={consentLoading}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.cream },
+  list: { flex: 1 },
   listContent: { padding: 20, paddingBottom: 40 },
 
   card: {
@@ -262,6 +331,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'OpenSans-Regular',
     color: 'rgba(255,255,255,0.85)',
+  },
+  consentStatus: {
+    fontSize: 11,
+    fontFamily: 'OpenSans-Regular',
+    color: 'rgba(255,255,255,0.6)',
+    marginTop: 4,
   },
 
   infoGrid: {

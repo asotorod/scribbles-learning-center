@@ -570,6 +570,30 @@ const AdminChildren = () => {
                   </span>
                 </div>
                 <div className="detail-item">
+                  <span className="detail-label">Photo Consent</span>
+                  <span className="detail-value">
+                    {viewData.child?.photoConsentGiven ? (
+                      <span className="consent-status consent-given">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        Yes (given {viewData.child.photoConsentDate
+                          ? new Date(viewData.child.photoConsentDate).toLocaleDateString()
+                          : 'date unknown'})
+                      </span>
+                    ) : (
+                      <span className="consent-status consent-not-given">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <line x1="15" y1="9" x2="9" y2="15"></line>
+                          <line x1="9" y1="9" x2="15" y2="15"></line>
+                        </svg>
+                        Not yet given
+                      </span>
+                    )}
+                  </span>
+                </div>
+                <div className="detail-item">
                   <span className="detail-label">Allergies</span>
                   <span className="detail-value">{viewData.child?.allergies || 'None'}</span>
                 </div>

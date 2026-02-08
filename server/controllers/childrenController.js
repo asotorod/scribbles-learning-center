@@ -163,7 +163,9 @@ const getById = async (req, res) => {
           enrollmentDate: child.enrollment_date,
           isActive: child.is_active,
           createdAt: child.created_at,
-          updatedAt: child.updated_at
+          updatedAt: child.updated_at,
+          photoConsentGiven: child.photo_consent_given || false,
+          photoConsentDate: child.photo_consent_date
         },
         parents: parentsResult.rows.map(p => ({
           id: p.id,

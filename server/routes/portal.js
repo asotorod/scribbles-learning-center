@@ -423,6 +423,34 @@ router.put(
 );
 
 // ============================================
+// PHOTO CONSENT
+// ============================================
+
+/**
+ * @route   GET /api/v1/portal/my-children/:id/photo-consent
+ * @desc    Check if photo consent has been given for a child
+ * @access  Protected (parent only, own children)
+ */
+router.get(
+  '/my-children/:id/photo-consent',
+  childIdValidation,
+  handleValidationErrors,
+  portalController.getPhotoConsent
+);
+
+/**
+ * @route   POST /api/v1/portal/my-children/:id/photo-consent
+ * @desc    Record photo consent for a child
+ * @access  Protected (parent only, own children)
+ */
+router.post(
+  '/my-children/:id/photo-consent',
+  childIdValidation,
+  handleValidationErrors,
+  portalController.givePhotoConsent
+);
+
+// ============================================
 // CHILD PHOTO UPLOAD
 // ============================================
 

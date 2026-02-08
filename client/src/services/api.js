@@ -143,6 +143,9 @@ export const portalAPI = {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
+  // Photo Consent
+  getPhotoConsent: (childId) => api.get(`/portal/my-children/${childId}/photo-consent`),
+  givePhotoConsent: (childId) => api.post(`/portal/my-children/${childId}/photo-consent`),
   // Authorized Pickups (per child)
   getAuthorizedPickups: (childId) => api.get(`/portal/my-children/${childId}/authorized-pickups`),
   createAuthorizedPickup: (childId, data) => api.post(`/portal/my-children/${childId}/authorized-pickups`, data),

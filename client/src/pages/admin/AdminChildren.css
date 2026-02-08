@@ -251,6 +251,31 @@
   margin: 0;
 }
 
+/* Photo Consent Status */
+.consent-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: var(--radius-md);
+}
+
+.consent-status svg {
+  flex-shrink: 0;
+}
+
+.consent-given {
+  color: #166534;
+  background: #DCFCE7;
+}
+
+.consent-not-given {
+  color: #C2410C;
+  background: #FFEDD5;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .admin-page-header {

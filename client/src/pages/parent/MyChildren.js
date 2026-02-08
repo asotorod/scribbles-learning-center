@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { portalAPI } from '../../services/api';
 import { compressImage, validateImageFile, ACCEPTED_IMAGE_TYPES } from '../../utils/imageUtils';
+import PhotoConsentModal from '../../components/PhotoConsentModal';
 import './ParentPages.css';
 
 const MyChildren = () => {
@@ -9,6 +10,9 @@ const MyChildren = () => {
   const [expandedChild, setExpandedChild] = useState(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(null); // child id currently uploading
+  const [consentModalOpen, setConsentModalOpen] = useState(false);
+  const [consentLoading, setConsentLoading] = useState(false);
+  const [pendingPhotoChild, setPendingPhotoChild] = useState(null);
   const fileInputRefs = useRef({});
 
   useEffect(() => {
@@ -31,6 +35,8 @@ const MyChildren = () => {
         medical_notes: c.medicalNotes || c.medical_notes || '',
         emergency_contact_name: c.emergencyContactName || c.emergency_contact_name || '',
         emergency_contact_phone: c.emergencyContactPhone || c.emergency_contact_phone || '',
+        photo_consent_given: c.photoConsentGiven || c.photo_consent_given || false,
+        photo_consent_date: c.photoConsentDate || c.photo_consent_date || null,
       })) : [];
       setChildren(childrenData.length > 0 ? childrenData : []);
     } catch (error) {
@@ -43,7 +49,56 @@ const MyChildren = () => {
 
   const handlePhotoClick = (childId) => {
     if (uploading) return;
-    fileInputRefs.current[childId]?.click();
+
+    const child = children.find(c => c.id === childId);
+    if (!child) return;
+
+    // Check if consent has been given
+    if (!child.photo_consent_given) {
+      // Show consent modal
+      setPendingPhotoChild(child);
+      setConsentModalOpen(true);
+    } else {
+      // Consent already given, proceed to file picker
+      fileInputRefs.current[childId]?.click();
+    }
+  };
+
+  const handleConsentAgree = async () => {
+    if (!pendingPhotoChild) return;
+
+    setConsentLoading(true);
+    try {
+      // Record consent via API
+      await portalAPI.givePhotoConsent(pendingPhotoChild.id);
+
+      // Update local state
+      setChildren(prev =>
+        prev.map(c => c.id === pendingPhotoChild.id
+          ? { ...c, photo_consent_given: true, photo_consent_date: new Date().toISOString() }
+          : c
+        )
+      );
+
+      // Close modal and trigger file picker
+      setConsentModalOpen(false);
+
+      // Small delay to allow modal to close before opening file picker
+      setTimeout(() => {
+        fileInputRefs.current[pendingPhotoChild.id]?.click();
+        setPendingPhotoChild(null);
+      }, 100);
+    } catch (error) {
+      console.error('Error recording consent:', error);
+      alert('Failed to record consent. Please try again.');
+    } finally {
+      setConsentLoading(false);
+    }
+  };
+
+  const handleConsentClose = () => {
+    setConsentModalOpen(false);
+    setPendingPhotoChild(null);
   };
 
   const handlePhotoChange = async (e, childId) => {
@@ -160,6 +215,11 @@ const MyChildren = () => {
               <div className="child-header-info">
                 <h3>{child.first_name} {child.last_name}</h3>
                 <p>{child.program}</p>
+                {child.photo_consent_given && child.photo_consent_date && (
+                  <span className="photo-consent-status given">
+                    Photo consent given on {new Date(child.photo_consent_date).toLocaleDateString()}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -260,6 +320,14 @@ const MyChildren = () => {
           </div>
         ))}
       </div>
+
+      <PhotoConsentModal
+        isOpen={consentModalOpen}
+        onClose={handleConsentClose}
+        onAgree={handleConsentAgree}
+        childName={pendingPhotoChild ? `${pendingPhotoChild.first_name} ${pendingPhotoChild.last_name}` : ''}
+        loading={consentLoading}
+      />
     </div>
   );
 };

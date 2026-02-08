@@ -130,6 +130,10 @@ export const portalAPI = {
     });
   },
 
+  // Photo Consent
+  getPhotoConsent: (childId) => api.get(`/portal/my-children/${childId}/photo-consent`),
+  givePhotoConsent: (childId) => api.post(`/portal/my-children/${childId}/photo-consent`),
+
   // Emergency contact
   updateEmergencyContact: (childId, data) =>
     api.put(`/portal/my-children/${childId}/emergency-contact`, data),

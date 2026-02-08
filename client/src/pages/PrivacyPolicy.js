@@ -45,7 +45,7 @@ const PrivacyPolicy = () => {
             <ul>
               <li>Full name and date of birth</li>
               <li>Allergies and medical notes</li>
-              <li>Profile photographs</li>
+              <li>Optional profile photos of enrolled children uploaded by parents/guardians for identification purposes</li>
               <li>Program enrollment information</li>
               <li>Attendance and check-in/check-out records</li>
               <li>Absence reports</li>
@@ -99,7 +99,63 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="legal-section">
-            <h2>5. Data Storage and Security</h2>
+            <h2>5. Children's Photos and Images</h2>
+            <p>
+              At Scribbles Learning Center, we collect photos of enrolled children solely for identification
+              and safety purposes. This section explains how we handle children's images in compliance with
+              the Children's Online Privacy Protection Act (COPPA).
+            </p>
+
+            <h3>What We Collect</h3>
+            <ul>
+              <li>Profile photos of enrolled children uploaded by parents/guardians</li>
+              <li>Photos are used for child identification during check-in/check-out and by authorized staff</li>
+            </ul>
+
+            <h3>Parental Consent</h3>
+            <ul>
+              <li>Only parents or legal guardians may upload photos of their children</li>
+              <li>By uploading a photo, the parent/guardian provides verifiable consent</li>
+              <li>Parents may withdraw consent at any time by deleting the photo or contacting us</li>
+            </ul>
+
+            <h3>How Photos Are Stored</h3>
+            <ul>
+              <li>Photos are securely stored using Amazon Web Services (AWS) S3 with encryption</li>
+              <li>Access is restricted to authenticated parents/guardians and authorized daycare staff only</li>
+              <li>Photos are never shared publicly or with third parties</li>
+            </ul>
+
+            <h3>Who Can Access Photos</h3>
+            <ul>
+              <li>The child's parent(s)/guardian(s) who have linked accounts</li>
+              <li>Authorized daycare staff for identification purposes</li>
+              <li>Authorized pickup persons (view only during pickup verification)</li>
+            </ul>
+
+            <h3>Retention and Deletion</h3>
+            <ul>
+              <li>Photos are retained only while the child is actively enrolled</li>
+              <li>Upon disenrollment or account deletion, photos are permanently deleted within 30 days</li>
+              <li>Parents may delete their child's photo at any time through the Parent Portal or mobile app</li>
+            </ul>
+
+            <h3>Your Rights</h3>
+            <ul>
+              <li>Request to view what photos we have stored</li>
+              <li>Request deletion of photos at any time</li>
+              <li>Withdraw consent for photo storage</li>
+              <li>Request a copy of stored photos</li>
+            </ul>
+
+            <p>
+              For any questions about children's photos or to exercise your rights, contact us at{' '}
+              <a href="mailto:info@scribbleslearning.com">info@scribbleslearning.com</a> or call (201) 945-9445.
+            </p>
+          </section>
+
+          <section className="legal-section">
+            <h2>6. Data Storage and Security</h2>
             <p>We take the security of your data seriously and implement the following measures:</p>
             <ul>
               <li>All data is stored in a secure PostgreSQL database hosted on encrypted cloud infrastructure</li>
@@ -111,7 +167,7 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="legal-section">
-            <h2>6. Third-Party Services</h2>
+            <h2>7. Third-Party Services</h2>
             <p>We use the following third-party services in the operation of our platform:</p>
             <ul>
               <li>
@@ -131,7 +187,7 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="legal-section">
-            <h2>7. Your Rights</h2>
+            <h2>8. Your Rights</h2>
             <p>As a user of our Services, you have the following rights:</p>
             <ul>
               <li><strong>Access:</strong> You may view your personal information and your children's information through the parent portal or mobile app at any time</li>
@@ -143,7 +199,7 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="legal-section">
-            <h2>8. Data Retention</h2>
+            <h2>9. Data Retention</h2>
             <p>
               We retain your personal information for as long as your account is active and your child
               is enrolled at our center. Upon account deletion:
@@ -157,7 +213,7 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="legal-section">
-            <h2>9. Changes to This Policy</h2>
+            <h2>10. Changes to This Policy</h2>
             <p>
               We may update this Privacy Policy from time to time to reflect changes in our practices
               or applicable laws. We will notify you of material changes through the parent portal,
@@ -167,7 +223,7 @@ const PrivacyPolicy = () => {
           </section>
 
           <section className="legal-section">
-            <h2>10. Contact Us</h2>
+            <h2>11. Contact Us</h2>
             <p>
               If you have any questions or concerns about this Privacy Policy or our data practices,
               please contact us:
