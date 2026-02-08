@@ -32,11 +32,15 @@ export const NotificationProvider = ({ children }) => {
 
     return () => {
       // Clean up listeners
-      if (notificationListener.current) {
-        Notifications.removeNotificationSubscription(notificationListener.current);
-      }
-      if (responseListener.current) {
-        Notifications.removeNotificationSubscription(responseListener.current);
+      try {
+        if (notificationListener.current) {
+          notificationListener.current.remove();
+        }
+        if (responseListener.current) {
+          responseListener.current.remove();
+        }
+      } catch (err) {
+        console.log('Error cleaning up notification listeners:', err);
       }
     };
   }, [isAuthenticated, user]);
@@ -60,11 +64,15 @@ export const NotificationProvider = ({ children }) => {
     );
 
     return () => {
-      if (notificationListener.current) {
-        Notifications.removeNotificationSubscription(notificationListener.current);
-      }
-      if (responseListener.current) {
-        Notifications.removeNotificationSubscription(responseListener.current);
+      try {
+        if (notificationListener.current) {
+          notificationListener.current.remove();
+        }
+        if (responseListener.current) {
+          responseListener.current.remove();
+        }
+      } catch (err) {
+        console.log('Error cleaning up notification listeners:', err);
       }
     };
   }, []);
