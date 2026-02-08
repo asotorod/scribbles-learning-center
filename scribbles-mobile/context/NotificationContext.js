@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { Platform, Alert } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
@@ -21,8 +21,10 @@ export const NotificationProvider = ({ children }) => {
   const { isAuthenticated, user } = useAuth();
   const [expoPushToken, setExpoPushToken] = useState(null);
   const [notification, setNotification] = useState(null);
+  const [lastAttendanceUpdate, setLastAttendanceUpdate] = useState(null);
   const notificationListener = useRef();
   const responseListener = useRef();
+  const refreshCallbacksRef = useRef([]);
 
   // Register for push notifications when user logs in
   useEffect(() => {
@@ -45,12 +47,42 @@ export const NotificationProvider = ({ children }) => {
     };
   }, [isAuthenticated, user]);
 
+  // Register a callback to be called when attendance updates
+  const registerRefreshCallback = useCallback((callback) => {
+    refreshCallbacksRef.current.push(callback);
+    // Return unregister function
+    return () => {
+      refreshCallbacksRef.current = refreshCallbacksRef.current.filter(cb => cb !== callback);
+    };
+  }, []);
+
+  // Trigger all registered refresh callbacks
+  const triggerAttendanceRefresh = useCallback(() => {
+    console.log('[PUSH] Triggering attendance refresh for all registered callbacks');
+    setLastAttendanceUpdate(new Date().toISOString());
+    refreshCallbacksRef.current.forEach(callback => {
+      try {
+        callback();
+      } catch (err) {
+        console.error('[PUSH] Error calling refresh callback:', err);
+      }
+    });
+  }, []);
+
   // Set up notification listeners
   useEffect(() => {
     // Listener for notifications received while app is foregrounded
     notificationListener.current = Notifications.addNotificationReceivedListener(
-      (notification) => {
-        setNotification(notification);
+      (notif) => {
+        console.log('[PUSH] Notification received:', notif.request.content);
+        setNotification(notif);
+
+        // Check if this is a check-in/check-out notification
+        const data = notif.request.content.data;
+        if (data?.type === 'check_in' || data?.type === 'check_out') {
+          console.log('[PUSH] Attendance notification detected, triggering refresh');
+          triggerAttendanceRefresh();
+        }
       }
     );
 
@@ -58,8 +90,12 @@ export const NotificationProvider = ({ children }) => {
     responseListener.current = Notifications.addNotificationResponseReceivedListener(
       (response) => {
         const data = response.notification.request.content.data;
-        // Handle navigation based on notification type if needed
-        console.log('Notification tapped:', data);
+        console.log('[PUSH] Notification tapped:', data);
+
+        // Trigger refresh when user taps on attendance notification
+        if (data?.type === 'check_in' || data?.type === 'check_out') {
+          triggerAttendanceRefresh();
+        }
       }
     );
 
@@ -75,7 +111,7 @@ export const NotificationProvider = ({ children }) => {
         console.log('Error cleaning up notification listeners:', err);
       }
     };
-  }, []);
+  }, [triggerAttendanceRefresh]);
 
   const registerForPushNotifications = async () => {
     try {
@@ -169,8 +205,11 @@ export const NotificationProvider = ({ children }) => {
   const value = {
     expoPushToken,
     notification,
+    lastAttendanceUpdate,
     registerForPushNotifications,
     unregisterPushNotifications,
+    registerRefreshCallback,
+    triggerAttendanceRefresh,
   };
 
   return (

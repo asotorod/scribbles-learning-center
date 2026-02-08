@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View, Text, ScrollView, RefreshControl, TouchableOpacity,
-  StyleSheet,
+  StyleSheet, AppState,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
+import { useNotifications } from '../../context/NotificationContext';
 import { portalAPI } from '../../services/api';
 import PhotoAvatar from '../../components/PhotoAvatar';
 import StatusBadge from '../../components/StatusBadge';
@@ -12,18 +13,23 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import ErrorState from '../../components/ErrorState';
 import Colors from '../../constants/colors';
 
+const POLLING_INTERVAL = 30000; // 30 seconds
+
 export default function DashboardScreen() {
   const { user } = useAuth();
+  const { registerRefreshCallback } = useNotifications();
   const router = useRouter();
   const [children, setChildren] = useState([]);
   const [absences, setAbsences] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const pollingIntervalRef = useRef(null);
+  const appStateRef = useRef(AppState.currentState);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (silent = false) => {
     try {
-      setError(null);
+      if (!silent) setError(null);
       const [childrenRes, absencesRes] = await Promise.all([
         portalAPI.getMyChildren().catch(() => null),
         portalAPI.getAbsences({ upcoming: 'true' }).catch(() => null),
@@ -35,13 +41,62 @@ export default function DashboardScreen() {
       const absencesData = absencesRes?.data?.data?.absences || [];
       setAbsences(absencesData.slice(0, 3));
     } catch (err) {
-      setError('Unable to load dashboard data.');
+      if (!silent) setError('Unable to load dashboard data.');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
+  // Initial fetch
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Register for push notification triggered refreshes
+  useEffect(() => {
+    const unregister = registerRefreshCallback(() => {
+      console.log('[Dashboard] Refresh triggered by push notification');
+      fetchData(true); // Silent refresh
+    });
+    return unregister;
+  }, [registerRefreshCallback, fetchData]);
+
+  // Polling for attendance updates
+  useEffect(() => {
+    const startPolling = () => {
+      if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = setInterval(() => {
+        console.log('[Dashboard] Polling for attendance updates');
+        fetchData(true); // Silent refresh
+      }, POLLING_INTERVAL);
+    };
+
+    const stopPolling = () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    };
+
+    // Handle app state changes - only poll when app is active
+    const handleAppStateChange = (nextAppState) => {
+      if (appStateRef.current.match(/inactive|background/) && nextAppState === 'active') {
+        console.log('[Dashboard] App became active, refreshing and starting polling');
+        fetchData(true);
+        startPolling();
+      } else if (nextAppState.match(/inactive|background/)) {
+        console.log('[Dashboard] App went to background, stopping polling');
+        stopPolling();
+      }
+      appStateRef.current = nextAppState;
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    startPolling();
+
+    return () => {
+      stopPolling();
+      subscription?.remove();
+    };
+  }, [fetchData]);
 
   const onRefresh = async () => {
     setRefreshing(true);

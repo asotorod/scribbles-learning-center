@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, RefreshControl,
-  StyleSheet, Alert, ActivityIndicator,
+  StyleSheet, Alert, ActivityIndicator, AppState,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
+import { useNotifications } from '../../context/NotificationContext';
 import { portalAPI } from '../../services/api';
 import PhotoAvatar from '../../components/PhotoAvatar';
 import StatusBadge from '../../components/StatusBadge';
@@ -14,7 +15,10 @@ import ErrorState from '../../components/ErrorState';
 import PhotoConsentModal from '../../components/PhotoConsentModal';
 import Colors from '../../constants/colors';
 
+const POLLING_INTERVAL = 30000; // 30 seconds
+
 export default function ChildrenScreen() {
+  const { registerRefreshCallback } = useNotifications();
   const [children, setChildren] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,20 +28,71 @@ export default function ChildrenScreen() {
   const [consentModalVisible, setConsentModalVisible] = useState(false);
   const [consentLoading, setConsentLoading] = useState(false);
   const [pendingPhotoChild, setPendingPhotoChild] = useState(null);
+  const pollingIntervalRef = useRef(null);
+  const appStateRef = useRef(AppState.currentState);
 
-  const fetchChildren = useCallback(async () => {
+  const fetchChildren = useCallback(async (silent = false) => {
     try {
-      setError(null);
+      if (!silent) setError(null);
       const res = await portalAPI.getMyChildren();
       setChildren(res.data?.data?.children || []);
     } catch (err) {
-      setError('Unable to load children.');
+      if (!silent) setError('Unable to load children.');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
+  // Initial fetch
   useEffect(() => { fetchChildren(); }, [fetchChildren]);
+
+  // Register for push notification triggered refreshes
+  useEffect(() => {
+    const unregister = registerRefreshCallback(() => {
+      console.log('[Children] Refresh triggered by push notification');
+      fetchChildren(true); // Silent refresh
+    });
+    return unregister;
+  }, [registerRefreshCallback, fetchChildren]);
+
+  // Polling for attendance updates
+  useEffect(() => {
+    const startPolling = () => {
+      if (pollingIntervalRef.current) clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = setInterval(() => {
+        console.log('[Children] Polling for attendance updates');
+        fetchChildren(true); // Silent refresh
+      }, POLLING_INTERVAL);
+    };
+
+    const stopPolling = () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    };
+
+    // Handle app state changes - only poll when app is active
+    const handleAppStateChange = (nextAppState) => {
+      if (appStateRef.current.match(/inactive|background/) && nextAppState === 'active') {
+        console.log('[Children] App became active, refreshing and starting polling');
+        fetchChildren(true);
+        startPolling();
+      } else if (nextAppState.match(/inactive|background/)) {
+        console.log('[Children] App went to background, stopping polling');
+        stopPolling();
+      }
+      appStateRef.current = nextAppState;
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    startPolling();
+
+    return () => {
+      stopPolling();
+      subscription?.remove();
+    };
+  }, [fetchChildren]);
 
   const onRefresh = async () => {
     setRefreshing(true);

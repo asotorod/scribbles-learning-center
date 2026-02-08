@@ -98,15 +98,23 @@ const sendCheckInNotification = async (childId, childName, checkInTime) => {
 
     console.log(`[PUSH] Sending to ${pushTokens.length} token(s)`);
 
+    // Format time for display
+    const formattedTime = new Date(checkInTime).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+
     return await sendPushNotifications(
       pushTokens,
       'Child Checked In',
-      `${childName} has been checked in at ${checkInTime}`,
+      `${childName} has been checked in at ${formattedTime}`,
       {
         type: 'check_in',
         childId,
         childName,
         time: checkInTime,
+        timestamp: new Date().toISOString(),
       }
     );
   } catch (error) {
@@ -151,15 +159,23 @@ const sendCheckOutNotification = async (childId, childName, checkOutTime) => {
 
     console.log(`[PUSH] Sending to ${pushTokens.length} token(s)`);
 
+    // Format time for display
+    const formattedTime = new Date(checkOutTime).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+
     return await sendPushNotifications(
       pushTokens,
       'Child Checked Out',
-      `${childName} has been checked out at ${checkOutTime}`,
+      `${childName} has been checked out at ${formattedTime}`,
       {
         type: 'check_out',
         childId,
         childName,
         time: checkOutTime,
+        timestamp: new Date().toISOString(),
       }
     );
   } catch (error) {
