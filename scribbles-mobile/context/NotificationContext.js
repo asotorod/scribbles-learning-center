@@ -115,78 +115,122 @@ export const NotificationProvider = ({ children }) => {
 
   const registerForPushNotifications = async () => {
     try {
-      console.log('[PUSH] Starting push notification registration...');
+      console.log('[PUSH] ========== PUSH NOTIFICATION REGISTRATION ==========');
+      console.log('[PUSH] Step 1: Checking device...');
       console.log('[PUSH] Device.isDevice:', Device.isDevice);
+      console.log('[PUSH] Platform:', Platform.OS);
 
       // Must be physical device for push notifications
       if (!Device.isDevice) {
-        console.log('[PUSH] Push notifications require a physical device');
+        console.log('[PUSH] STOPPED: Push notifications require a physical device');
         return;
       }
 
       // Check existing permission
+      console.log('[PUSH] Step 2: Checking notification permissions...');
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
       console.log('[PUSH] Existing permission status:', existingStatus);
       let finalStatus = existingStatus;
 
       // Request permission if not already granted
       if (existingStatus !== 'granted') {
-        console.log('[PUSH] Requesting notification permission...');
+        console.log('[PUSH] Step 2b: Requesting notification permission...');
         const { status } = await Notifications.requestPermissionsAsync();
         finalStatus = status;
         console.log('[PUSH] New permission status:', finalStatus);
       }
 
       if (finalStatus !== 'granted') {
-        console.log('[PUSH] Push notification permission denied');
+        console.log('[PUSH] STOPPED: Push notification permission denied');
         return;
       }
 
-      // Get push token - projectId is REQUIRED for standalone/TestFlight builds
-      const projectId = Constants.expoConfig?.extra?.eas?.projectId;
-      console.log('[PUSH] EAS Project ID:', projectId);
+      // Log all available config for debugging
+      console.log('[PUSH] Step 3: Reading project configuration...');
+      console.log('[PUSH] Constants.expoConfig:', JSON.stringify(Constants.expoConfig, null, 2));
+      console.log('[PUSH] Constants.manifest:', JSON.stringify(Constants.manifest, null, 2));
+      console.log('[PUSH] Constants.manifest2:', JSON.stringify(Constants.manifest2, null, 2));
+
+      // Get push token - try multiple sources for projectId
+      let projectId = Constants.expoConfig?.extra?.eas?.projectId;
+
+      // Fallback: try manifest2 (used in newer Expo versions)
+      if (!projectId) {
+        projectId = Constants.manifest2?.extra?.eas?.projectId;
+        console.log('[PUSH] Trying manifest2 for projectId:', projectId);
+      }
+
+      // Fallback: try manifest (used in older Expo versions)
+      if (!projectId) {
+        projectId = Constants.manifest?.extra?.eas?.projectId;
+        console.log('[PUSH] Trying manifest for projectId:', projectId);
+      }
+
+      console.log('[PUSH] Final projectId:', projectId);
 
       if (!projectId) {
-        console.error('[PUSH] ERROR: No projectId found! Add extra.eas.projectId to app.json');
-        console.error('[PUSH] Get your projectId from expo.dev dashboard');
+        console.error('[PUSH] ERROR: No projectId found in any config!');
+        console.error('[PUSH] Available in Constants.expoConfig.extra:', Constants.expoConfig?.extra);
+        console.error('[PUSH] You need to:');
+        console.error('[PUSH]   1. Run: eas login');
+        console.error('[PUSH]   2. Run: eas project:info');
+        console.error('[PUSH]   3. Add the projectId to app.json under extra.eas.projectId');
+        console.error('[PUSH]   4. Rebuild the app with: eas build --platform ios');
         return;
       }
 
-      console.log('[PUSH] Getting push token with projectId:', projectId);
-      const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
-      const token = tokenData.data;
-      console.log('[PUSH] Got Expo push token:', token);
+      console.log('[PUSH] Step 4: Getting Expo push token with projectId:', projectId);
+      let token;
+      try {
+        const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
+        token = tokenData.data;
+        console.log('[PUSH] SUCCESS: Got Expo push token:', token);
+      } catch (tokenError) {
+        console.error('[PUSH] ERROR getting push token:', tokenError.message);
+        console.error('[PUSH] This usually means the projectId is invalid or mismatched');
+        console.error('[PUSH] Current projectId:', projectId);
+        return;
+      }
 
       setExpoPushToken(token);
 
       // Save token to backend
+      console.log('[PUSH] Step 5: Saving token to backend...');
+      console.log('[PUSH] API URL: POST /portal/push-token');
+      console.log('[PUSH] Token being sent:', token);
+      console.log('[PUSH] User ID:', user?.id);
+      console.log('[PUSH] User email:', user?.email);
+
       try {
-        console.log('[PUSH] Saving token to backend...');
-        console.log('[PUSH] Token being sent:', token);
-        console.log('[PUSH] User authenticated:', !!user);
         const response = await portalAPI.savePushToken(token);
-        console.log('[PUSH] Token saved successfully!');
+        console.log('[PUSH] SUCCESS: Token saved to backend!');
         console.log('[PUSH] Response status:', response.status);
         console.log('[PUSH] Response data:', JSON.stringify(response.data));
       } catch (err) {
-        console.error('[PUSH] Failed to save push token!');
+        console.error('[PUSH] FAILED to save push token to backend!');
         console.error('[PUSH] Error message:', err.message);
         console.error('[PUSH] Error response status:', err.response?.status);
         console.error('[PUSH] Error response data:', JSON.stringify(err.response?.data));
-        console.error('[PUSH] Full error:', err);
+        if (err.response?.status === 401) {
+          console.error('[PUSH] 401 Unauthorized - Auth token may be missing or expired');
+        }
       }
 
       // Configure Android notification channel
       if (Platform.OS === 'android') {
-        Notifications.setNotificationChannelAsync('default', {
+        console.log('[PUSH] Step 6: Configuring Android notification channel...');
+        await Notifications.setNotificationChannelAsync('default', {
           name: 'default',
           importance: Notifications.AndroidImportance.MAX,
           vibrationPattern: [0, 250, 250, 250],
           lightColor: '#43a047',
         });
       }
+
+      console.log('[PUSH] ========== REGISTRATION COMPLETE ==========');
     } catch (error) {
-      console.error('[PUSH] Error registering for push notifications:', error);
+      console.error('[PUSH] FATAL ERROR during push notification registration:', error);
+      console.error('[PUSH] Error stack:', error.stack);
     }
   };
 
