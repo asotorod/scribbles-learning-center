@@ -31,10 +31,8 @@ const defaultPrograms = [
     description: "Active exploration and discovery for curious toddlers! We encourage independence, language development, and social skills through structured play and creative activities designed to spark imagination and build confidence. Our curriculum-based approach ensures every activity supports your child's development.",
     features: [
       "1:5 teacher-to-child ratio (lower than NJ requirements)",
-      "Potty training support",
       "Language-rich dual-language environment",
       "Music, movement, and art",
-      "Outdoor playground time daily",
       "Social-emotional skill building"
     ],
     image_url: "https://images.unsplash.com/photo-1501686637-b7aa9c48a882?q=80&w=1335&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
@@ -82,7 +80,6 @@ const defaultPrograms = [
     description: "Fun-filled summer adventures combining learning and outdoor activities! Our summer camp provides engaging themed weeks, field trips, arts and crafts, and plenty of opportunities to make lasting friendships while continuing educational growth.",
     features: [
       "Weekly themed activities",
-      "Field trips and special events",
       "Water play activities",
       "Arts, crafts, and STEM projects",
       "Sports and outdoor games",
