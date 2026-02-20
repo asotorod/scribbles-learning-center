@@ -143,7 +143,7 @@ const Home = () => {
       <Hero
         title="Where Little Minds Grow Big"
         subtitle="A dual-language early learning center with curriculum-based education in Edgewater, NJ"
-        backgroundImage="https://plus.unsplash.com/premium_photo-1681842152160-cb5e5d470ddd?q=80&w=2456&auto=format&fit=crop"
+        backgroundImage="https://images.unsplash.com/photo-1453749024858-4bca89bd9edc?q=80&w=2240&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
         ctaPrimary="Schedule a Tour"
         ctaPrimaryLink="/contact"
         ctaSecondary="Our Programs"
