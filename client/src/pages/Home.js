@@ -39,7 +39,7 @@ const defaultPrograms = [
     slug: "pre-k",
     age_range: "4–5 years",
     short_description: "Preparing children for kindergarten success with structured learning.",
-    image_url: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800",
+    image_url: "https://images.unsplash.com/photo-1588075592446-265fd1e6e76f?q=80&w=2344&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     color: "#768E78" // Fern
   },
   {
