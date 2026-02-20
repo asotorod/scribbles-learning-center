@@ -35,6 +35,15 @@ const defaultPrograms = [
   },
   {
     id: 4,
+    name: "Pre-Kindergarten",
+    slug: "pre-k",
+    age_range: "4–5 years",
+    short_description: "Preparing children for kindergarten success with structured learning.",
+    image_url: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800",
+    color: "#768E78" // Fern
+  },
+  {
+    id: 5,
     name: "Summer Camp",
     slug: "summer-camp",
     age_range: "Up to 5 years",

@@ -71,7 +71,7 @@ const defaultPrograms = [
       "Aligned with NJ Preschool Standards",
       "Kindergarten readiness assessment"
     ],
-    image_url: "https://images.unsplash.com/photo-1544776193-352d25ca82cd?w=800",
+    image_url: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800",
     color: "#768E78" // Fern
   },
   {
@@ -228,6 +228,11 @@ const Programs = () => {
             <div className="ratio-card">
               <div className="ratio-number">1:10</div>
               <div className="ratio-label">Preschool</div>
+              <div className="ratio-note">Meets NJ requirement</div>
+            </div>
+            <div className="ratio-card">
+              <div className="ratio-number">1:10</div>
+              <div className="ratio-label">Pre-Kindergarten</div>
               <div className="ratio-note">Meets NJ requirement</div>
             </div>
           </div>
