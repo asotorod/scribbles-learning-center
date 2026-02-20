@@ -146,6 +146,13 @@
   line-height: 1.7;
 }
 
+.framework-subtitle {
+  font-weight: 600;
+  color: var(--primary) !important;
+  margin-bottom: 8px;
+  font-size: 14px !important;
+}
+
 /* Domains Grid */
 .domains-grid {
   display: grid;

@@ -146,6 +146,63 @@ const Curriculum = () => {
         </div>
       </section>
 
+      {/* Curriculum for Every Age */}
+      <section className="section section-cream">
+        <div className="container">
+          <div className="section-header">
+            <h2>Curriculum for Every Age</h2>
+            <p>Developmentally appropriate learning from infancy through Pre-K</p>
+          </div>
+          <div className="framework-grid">
+            <div className="framework-card">
+              <div className="framework-icon" style={{ background: '#E79897' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 2a5 5 0 0 1 5 5c0 2-1 3-2 4l-3 3-3-3c-1-1-2-2-2-4a5 5 0 0 1 5-5z"/>
+                  <circle cx="12" cy="6" r="1.5"/>
+                  <path d="M8 14c-3 0-5 2-5 4v2h18v-2c0-2-2-4-5-4"/>
+                </svg>
+              </div>
+              <h3>Birth to 3 Years</h3>
+              <p className="framework-subtitle">Infants & Toddlers</p>
+              <p>
+                Based on Creative Curriculum for Infants, Toddlers & Twos, aligned with NJ Birth to
+                Three Early Learning Standards. Focus on sensory exploration, language development,
+                and secure attachments.
+              </p>
+            </div>
+            <div className="framework-card">
+              <div className="framework-icon" style={{ background: '#C6C09C' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="8" width="6" height="12" rx="1"/>
+                  <rect x="9" y="4" width="6" height="16" rx="1"/>
+                  <rect x="15" y="10" width="6" height="10" rx="1"/>
+                </svg>
+              </div>
+              <h3>Preschool</h3>
+              <p className="framework-subtitle">2 & 3 Years</p>
+              <p>
+                Creative Curriculum with HighScope approach. Hands-on learning, problem-solving,
+                and early literacy through play-based social skill development.
+              </p>
+            </div>
+            <div className="framework-card">
+              <div className="framework-icon" style={{ background: '#768E78' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                  <path d="M6 12v5c0 2 3 3 6 3s6-1 6-3v-5"/>
+                </svg>
+              </div>
+              <h3>Pre-Kindergarten</h3>
+              <p className="framework-subtitle">4–5 Years</p>
+              <p>
+                Kindergarten readiness program aligned with NJ Preschool Teaching & Learning Standards.
+                Early reading, writing, math, and independence skills.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Learning Domains */}
       <section className="section section-primary">
         <div className="container">
