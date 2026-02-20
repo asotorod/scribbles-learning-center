@@ -127,7 +127,10 @@ const Programs = () => {
             features: apiProg.features || defaultProg?.features,
           };
         });
-        setPrograms(mergedPrograms);
+        // Include any default programs not in API (e.g. newly added)
+        const apiSlugs = apiPrograms.map(p => p.slug);
+        const missingDefaults = defaultPrograms.filter(d => !apiSlugs.includes(d.slug));
+        setPrograms([...mergedPrograms, ...missingDefaults].sort((a, b) => (a.id || a.sortOrder || 0) - (b.id || b.sortOrder || 0)));
       }
     } catch (error) {
       console.error('Error fetching programs:', error);
