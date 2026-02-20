@@ -112,6 +112,18 @@ export const employeesAPI = {
   create: (data) => api.post('/employees', data),
   update: (id, data) => api.put(`/employees/${id}`, data),
   delete: (id) => api.delete(`/employees/${id}`),
+  updatePin: (id, data) => api.put(`/employees/${id}/pin`, data),
+};
+
+// Timeclock API (Admin HR)
+export const timeclockAPI = {
+  getToday: () => api.get('/timeclock/today'),
+  getDailyReport: (date) => api.get('/timeclock/daily-report', { params: { date } }),
+  getWeeklyReport: (startDate, endDate) => api.get('/timeclock/report', { params: { startDate, endDate } }),
+  getEmployeeRecords: (id, params) => api.get(`/timeclock/employee/${id}`, { params }),
+  addPunch: (data) => api.post('/timeclock/add-punch', data),
+  editEntry: (id, data) => api.put(`/timeclock/${id}`, data),
+  deleteEntry: (id) => api.delete(`/timeclock/${id}`),
 };
 
 // Kiosk API
