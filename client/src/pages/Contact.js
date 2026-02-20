@@ -51,6 +51,7 @@ const Contact = () => {
     state: "NJ",
     zip: "07020",
     phone: "(201) 945-9445",
+    mobile: "(201) 957-9779",
     email: "info@scribbleslearning.com",
     hours: {
       weekdays: "7:30 AM - 6:30 PM",
@@ -201,6 +202,13 @@ const Contact = () => {
                     <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72"/>
                   </svg>
                   <a href={`tel:+12019459445`}>{contactInfo.phone}</a>
+                </div>
+                <div className="info-item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+                    <line x1="12" y1="18" x2="12.01" y2="18"/>
+                  </svg>
+                  <a href={`tel:+12019579779`}>{contactInfo.mobile} (Mobile)</a>
                 </div>
               </div>
 
