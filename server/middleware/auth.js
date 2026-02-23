@@ -6,7 +6,7 @@ const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret
 
 // Token expiry times
 const ACCESS_TOKEN_EXPIRY = '15m';
-const REFRESH_TOKEN_EXPIRY = '7d';
+const REFRESH_TOKEN_EXPIRY = '14d';
 
 /**
  * Verify JWT access token from Authorization header
