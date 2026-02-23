@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import IntroVideo from './components/IntroVideo';
 import Home from './pages/Home';
 import Programs from './pages/Programs';
 import Curriculum from './pages/Curriculum';
@@ -23,6 +22,7 @@ import {
   AdminAttendance,
   AdminReports,
   AdminHR,
+  AdminCMS,
 } from './pages/admin';
 import { KioskHome, KioskParent, KioskEmployee } from './pages/kiosk';
 import {
@@ -37,25 +37,8 @@ import {
 import './App.css';
 
 function App() {
-  const [showIntro, setShowIntro] = useState(true);
-  const location = useLocation();
-
-  const handleIntroComplete = () => {
-    setShowIntro(false);
-  };
-
-  // Don't show intro video on kiosk, admin, or parent portal routes
-  const isKiosk = location.pathname.startsWith('/kiosk');
-  const isAdminOrPortal = location.pathname.startsWith('/admin') ||
-                          location.pathname.startsWith('/parent') ||
-                          location.pathname === '/login';
-
   return (
     <div className="App">
-      {showIntro && !isKiosk && !isAdminOrPortal && (
-        <IntroVideo onComplete={handleIntroComplete} />
-      )}
-
       <Routes>
         {/* Kiosk Routes - Standalone, no header/footer */}
         <Route path="/kiosk" element={<KioskHome />} />
@@ -104,7 +87,7 @@ function App() {
           <Route path="parents" element={<AdminParents />} />
           <Route path="attendance" element={<AdminAttendance />} />
           <Route path="hr" element={<AdminHR />} />
-          <Route path="content" element={<PlaceholderPage title="Content Management" description="Edit website content, gallery, and testimonials" />} />
+          <Route path="content" element={<AdminCMS />} />
           <Route path="reports" element={<AdminReports />} />
           <Route path="settings" element={<PlaceholderPage title="Settings" description="Configure system settings and admin users" />} />
         </Route>

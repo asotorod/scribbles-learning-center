@@ -1,14 +1,30 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Hero from '../components/Hero';
+import { contentAPI } from '../services/api';
 import './Curriculum.css';
 
 const Curriculum = () => {
+  const [cms, setCms] = useState({});
+
+  useEffect(() => {
+    contentAPI.getPage('curriculum').then(res => {
+      const content = res?.data?.data?.content;
+      if (Array.isArray(content)) {
+        const map = {};
+        content.forEach(item => { map[`${item.section}.${item.content_key}`] = item.content_en; });
+        setCms(map);
+      }
+    }).catch(() => {});
+  }, []);
+
+  const c = (section, key, fallback) => cms[`${section}.${key}`] || fallback;
+
   return (
     <main>
       <Hero
-        title="Our Curriculum"
-        subtitle="A comprehensive, dual-language approach to early childhood education"
+        title={c('hero', 'title', 'Our Curriculum')}
+        subtitle={c('hero', 'subtitle', 'A comprehensive, dual-language approach to early childhood education')}
         backgroundImage="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1920"
         size="medium"
         ctaPrimary="Schedule a Tour"
@@ -19,12 +35,9 @@ const Curriculum = () => {
       <section className="section">
         <div className="container">
           <div className="curriculum-intro">
-            <h2>An Early Learning Center, Not Just Childcare</h2>
+            <h2>{c('intro', 'heading', 'An Early Learning Center, Not Just Childcare')}</h2>
             <p>
-              At Scribbles Learning Center, we are an <strong>early learning facility</strong> with
-              curriculum implemented from infancy through pre-kindergarten. Our approach combines
-              proven educational frameworks with a nurturing environment, preparing children for
-              academic success while fostering their natural curiosity and love of learning.
+              {c('intro', 'body', 'At Scribbles Learning Center, we are an early learning facility with curriculum implemented from infancy through pre-kindergarten. Our approach combines proven educational frameworks with a nurturing environment, preparing children for academic success while fostering their natural curiosity and love of learning.')}
             </p>
           </div>
         </div>
@@ -42,8 +55,8 @@ const Curriculum = () => {
                   <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
                 </svg>
               </div>
-              <h2>Dual-Language Learning Center</h2>
-              <p className="subtitle">English and Spanish instruction throughout our curriculum</p>
+              <h2>{c('dual_language', 'heading', 'Dual-Language Learning Center')}</h2>
+              <p className="subtitle">{c('dual_language', 'subtitle', 'English and Spanish instruction throughout our curriculum')}</p>
               <p>
                 We are a <strong>dual-language learning center</strong>, with instruction implemented
                 in both English and Spanish as part of our everyday curriculum. Research shows that

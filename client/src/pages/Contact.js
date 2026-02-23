@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Hero from '../components/Hero';
-import api from '../services/api';
+import api, { contentAPI } from '../services/api';
 import './Contact.css';
 
 const Contact = () => {
@@ -14,6 +14,20 @@ const Contact = () => {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const [cms, setCms] = useState({});
+
+  useEffect(() => {
+    contentAPI.getPage('contact').then(res => {
+      const content = res?.data?.data?.content;
+      if (Array.isArray(content)) {
+        const map = {};
+        content.forEach(item => { map[`${item.section}.${item.content_key}`] = item.content_en; });
+        setCms(map);
+      }
+    }).catch(() => {});
+  }, []);
+
+  const c = (section, key, fallback) => cms[`${section}.${key}`] || fallback;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -46,24 +60,24 @@ const Contact = () => {
   };
 
   const contactInfo = {
-    address: "725 River Rd, Suite 103",
-    city: "Edgewater",
-    state: "NJ",
-    zip: "07020",
-    phone: "(201) 945-9445",
-    mobile: "(201) 957-9779",
-    email: "info@scribbleslearning.com",
+    address: c('info', 'address', '725 River Rd, Suite 103'),
+    city: c('info', 'city', 'Edgewater'),
+    state: c('info', 'state', 'NJ'),
+    zip: c('info', 'zip', '07020'),
+    phone: c('info', 'phone', '(201) 945-9445'),
+    mobile: c('info', 'mobile', '(201) 957-9779'),
+    email: c('info', 'email', 'info@scribbleslearning.com'),
     hours: {
-      weekdays: "7:30 AM - 6:30 PM",
-      saturday: "Closed"
+      weekdays: c('info', 'hours_weekday', '7:30 AM - 6:30 PM'),
+      saturday: c('info', 'hours_weekend', 'Closed')
     }
   };
 
   return (
     <main>
       <Hero
-        title="Contact Us"
-        subtitle="We'd love to hear from you! Schedule a tour or ask us a question."
+        title={c('hero', 'title', 'Contact Us')}
+        subtitle={c('hero', 'subtitle', "We'd love to hear from you! Schedule a tour or ask us a question.")}
         backgroundImage="https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=1920"
         size="medium"
         ctaPrimary="Call Now"
@@ -300,8 +314,8 @@ const Contact = () => {
       <section className="section section-primary">
         <div className="container">
           <div className="quick-contact">
-            <h2>Prefer to Talk?</h2>
-            <p>Give us a call and we'll be happy to answer your questions!</p>
+            <h2>{c('cta', 'heading', 'Prefer to Talk?')}</h2>
+            <p>{c('cta', 'body', "Give us a call and we'll be happy to answer your questions!")}</p>
             <a href="tel:+12019459445" className="btn btn-white btn-large">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 20, height: 20 }}>
                 <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72"/>

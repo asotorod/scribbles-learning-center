@@ -105,6 +105,7 @@ const Home = () => {
   const [programs, setPrograms] = useState(defaultPrograms);
   const [testimonials, setTestimonials] = useState(defaultTestimonials);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
+  const [cms, setCms] = useState({});
 
   useEffect(() => {
     fetchData();
@@ -117,12 +118,24 @@ const Home = () => {
     return () => clearInterval(interval);
   }, [testimonials.length]);
 
+  // Helper to get CMS value with fallback
+  const c = (section, key, fallback) => cms[`${section}.${key}`] || fallback;
+
   const fetchData = async () => {
     try {
-      const [programsRes, testimonialsRes] = await Promise.all([
+      const [programsRes, testimonialsRes, cmsRes] = await Promise.all([
         programsAPI.getAll().catch(() => null),
-        contentAPI.getSection('testimonials').catch(() => null),
+        contentAPI.getPage('testimonials').catch(() => null),
+        contentAPI.getPage('home').catch(() => null),
       ]);
+
+      // Parse CMS content into a flat lookup
+      const cmsContent = cmsRes?.data?.data?.content;
+      if (Array.isArray(cmsContent)) {
+        const map = {};
+        cmsContent.forEach(item => { map[`${item.section}.${item.content_key}`] = item.content_en; });
+        setCms(map);
+      }
 
       const apiPrograms = programsRes?.data?.data?.programs;
       if (Array.isArray(apiPrograms) && apiPrograms.length > 0) {
@@ -153,12 +166,12 @@ const Home = () => {
   return (
     <main>
       <Hero
-        title="Where Little Minds Grow Big"
-        subtitle="A dual-language early learning center with curriculum-based education in Edgewater, NJ"
+        title={c('hero', 'title', 'Where Little Minds Grow Big')}
+        subtitle={c('hero', 'subtitle', 'A dual-language early learning center with curriculum-based education in Edgewater, NJ')}
         backgroundImage="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=2244&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        ctaPrimary="Schedule a Tour"
+        ctaPrimary={c('hero', 'cta_primary', 'Schedule a Tour')}
         ctaPrimaryLink="/contact"
-        ctaSecondary="Our Programs"
+        ctaSecondary={c('hero', 'cta_secondary', 'Our Programs')}
         ctaSecondaryLink="/programs"
       />
 
@@ -166,8 +179,8 @@ const Home = () => {
       <section className="section section-cream">
         <div className="container">
           <div className="section-header">
-            <h2>Why Choose Scribbles?</h2>
-            <p>An early learning center, not just childcare</p>
+            <h2>{c('features', 'heading', 'Why Choose Scribbles?')}</h2>
+            <p>{c('features', 'subheading', 'An early learning center, not just childcare')}</p>
           </div>
           <div className="features-grid">
             {features.map((feature, index) => (
@@ -187,8 +200,8 @@ const Home = () => {
       <section className="section">
         <div className="container">
           <div className="section-header">
-            <h2>Our Programs</h2>
-            <p>Age-appropriate learning experiences for every stage</p>
+            <h2>{c('programs_section', 'heading', 'Our Programs')}</h2>
+            <p>{c('programs_section', 'subheading', 'Age-appropriate learning experiences for every stage')}</p>
           </div>
           <div className="programs-grid">
             {(programs || []).map((program) => (
@@ -217,8 +230,8 @@ const Home = () => {
       <section className="section section-primary">
         <div className="container">
           <div className="section-header light">
-            <h2>What Parents Say</h2>
-            <p>Real stories from our Scribbles family</p>
+            <h2>{c('testimonials', 'heading', 'What Parents Say')}</h2>
+            <p>{c('testimonials', 'subheading', 'Real stories from our Scribbles family')}</p>
           </div>
           <div className="testimonials-carousel">
             <div className="testimonial-main">
@@ -257,8 +270,8 @@ const Home = () => {
       <section className="cta-section">
         <div className="container">
           <div className="cta-content">
-            <h2>Ready to Join Our Family?</h2>
-            <p>Schedule a tour and see why families have trusted Scribbles since 2008!</p>
+            <h2>{c('cta', 'heading', 'Ready to Join Our Family?')}</h2>
+            <p>{c('cta', 'body', 'Schedule a tour and see why families have trusted Scribbles since 2008!')}</p>
             <div className="cta-buttons">
               <Link to="/contact" className="btn btn-cta">Schedule a Tour</Link>
               <a href="tel:+12019459445" className="btn btn-outline">

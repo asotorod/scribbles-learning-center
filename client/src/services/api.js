@@ -88,11 +88,17 @@ export const programsAPI = {
 // Content API
 export const contentAPI = {
   getAll: () => api.get('/content'),
-  getSection: (section) => api.get(`/content/${section}`),
-  updateSection: (section, data) => api.put(`/content/${section}`, data),
-  updateItem: (section, id, data) => api.put(`/content/${section}/${id}`, data),
-  addItem: (section, data) => api.post(`/content/${section}`, data),
-  deleteItem: (section, id) => api.delete(`/content/${section}/${id}`),
+  getPage: (page) => api.get(`/content/${page}`),
+  update: (page, section, key, data) => api.put(`/content/${page}/${section}/${key}`, data),
+};
+
+// Gallery API
+export const galleryAPI = {
+  getAll: (params) => api.get('/gallery', { params }),
+  add: (data) => api.post('/gallery', data),
+  update: (id, data) => api.put(`/gallery/${id}`, data),
+  delete: (id) => api.delete(`/gallery/${id}`),
+  reorder: (images) => api.put('/gallery/reorder', { images }),
 };
 
 // Inquiries API

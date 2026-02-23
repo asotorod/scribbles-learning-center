@@ -1,14 +1,30 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Hero from '../components/Hero';
+import { contentAPI } from '../services/api';
 import './About.css';
 
 const About = () => {
+  const [cms, setCms] = useState({});
+
+  useEffect(() => {
+    contentAPI.getPage('about').then(res => {
+      const content = res?.data?.data?.content;
+      if (Array.isArray(content)) {
+        const map = {};
+        content.forEach(item => { map[`${item.section}.${item.content_key}`] = item.content_en; });
+        setCms(map);
+      }
+    }).catch(() => {});
+  }, []);
+
+  const c = (section, key, fallback) => cms[`${section}.${key}`] || fallback;
+
   return (
     <main>
       <Hero
-        title="About Us"
-        subtitle="Learn about our story, mission, and the dedicated team behind Scribbles"
+        title={c('hero', 'title', 'About Us')}
+        subtitle={c('hero', 'subtitle', 'Learn about our story, mission, and the dedicated team behind Scribbles')}
         backgroundImage="https://plus.unsplash.com/premium_photo-1681842152160-cb5e5d470ddd?q=80&w=2456&auto=format&fit=crop"
         size="medium"
         ctaPrimary="Schedule a Tour"
@@ -20,35 +36,29 @@ const About = () => {
         <div className="container">
           <div className="about-story">
             <div className="about-story-content">
-              <h2>The Scribbles Difference</h2>
-              <p className="story-subtitle">Nurturing Young Minds Since 2008</p>
+              <h2>{c('story', 'heading', 'The Scribbles Difference')}</h2>
+              <p className="story-subtitle">{c('story', 'subheading', 'Nurturing Young Minds Since 2008')}</p>
               <p>
-                Scribbles Learning Center is a family-owned childcare facility dedicated to providing
-                a safe, loving, and educational environment for children. Founded in 2008, we've spent
-                over 17 years caring for the children of Edgewater and surrounding communities,
-                becoming a trusted partner for hundreds of families.
+                {c('story', 'body_1', "Scribbles Learning Center is a family-owned childcare facility dedicated to providing a safe, loving, and educational environment for children. Founded in 2008, we've spent over 17 years caring for the children of Edgewater and surrounding communities, becoming a trusted partner for hundreds of families.")}
               </p>
               <p>
-                With a capacity of 45 children, we maintain an intimate, family-like atmosphere where
-                every child receives the individual attention they deserve. Our experienced staff knows
-                each child by name and works closely with parents to support their child's unique
-                development journey.
+                {c('story', 'body_2', "With a capacity of 45 children, we maintain an intimate, family-like atmosphere where every child receives the individual attention they deserve. Our experienced staff knows each child by name and works closely with parents to support their child's unique development journey.")}
               </p>
               <div className="about-stats">
                 <div className="stat-item">
-                  <span className="stat-number">2008</span>
+                  <span className="stat-number">{c('stats', 'founded', '2008')}</span>
                   <span className="stat-label">Founded</span>
                 </div>
                 <div className="stat-item">
-                  <span className="stat-number">45</span>
+                  <span className="stat-number">{c('stats', 'capacity', '45')}</span>
                   <span className="stat-label">Children Capacity</span>
                 </div>
                 <div className="stat-item">
-                  <span className="stat-number">500+</span>
+                  <span className="stat-number">{c('stats', 'families', '500+')}</span>
                   <span className="stat-label">Families Served</span>
                 </div>
                 <div className="stat-item">
-                  <span className="stat-number">17+</span>
+                  <span className="stat-number">{c('stats', 'years', '17+')}</span>
                   <span className="stat-label">Years Experience</span>
                 </div>
               </div>
@@ -67,14 +77,12 @@ const About = () => {
       <section className="section section-cream">
         <div className="container">
           <div className="section-header">
-            <h2>Our Mission & Values</h2>
-            <p>The principles that guide everything we do</p>
+            <h2>{c('mission', 'heading', 'Our Mission & Values')}</h2>
+            <p>{c('mission', 'subheading', 'The principles that guide everything we do')}</p>
           </div>
           <div className="mission-box">
             <p>
-              Our mission is to create a nurturing home away from home where every child can learn,
-              grow, and thrive. We believe every child is unique and deserves individualized attention
-              to reach their full potential.
+              {c('mission', 'body', 'Our mission is to create a nurturing home away from home where every child can learn, grow, and thrive. We believe every child is unique and deserves individualized attention to reach their full potential.')}
             </p>
           </div>
           <div className="values-grid">
@@ -239,12 +247,10 @@ const About = () => {
         <div className="container">
           <div className="healthcare-content">
             <div className="healthcare-text">
-              <h2>Healthcare Network On-Site</h2>
-              <p className="healthcare-subtitle">Convenient access to pediatric care</p>
+              <h2>{c('healthcare', 'heading', 'Healthcare Network On-Site')}</h2>
+              <p className="healthcare-subtitle">{c('healthcare', 'subtitle', 'Convenient access to pediatric care')}</p>
               <p>
-                One of the unique advantages of Scribbles Learning Center is our location within a
-                healthcare network. We share our building with trusted medical professionals, providing
-                parents with convenient access to healthcare services for their children.
+                {c('healthcare', 'body', 'One of the unique advantages of Scribbles Learning Center is our location within a healthcare network. We share our building with trusted medical professionals, providing parents with convenient access to healthcare services for their children.')}
               </p>
               <div className="healthcare-providers">
                 <div className="provider-card">

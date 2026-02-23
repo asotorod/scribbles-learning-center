@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Hero from '../components/Hero';
-import api from '../services/api';
+import api, { contentAPI } from '../services/api';
 import './Careers.css';
 
 const defaultJobs = [
@@ -82,10 +82,21 @@ const Careers = () => {
   const [jobs, setJobs] = useState([]);
   const [selectedJob, setSelectedJob] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [cms, setCms] = useState({});
 
   useEffect(() => {
     fetchJobs();
+    contentAPI.getPage('careers').then(res => {
+      const content = res?.data?.data?.content;
+      if (Array.isArray(content)) {
+        const map = {};
+        content.forEach(item => { map[`${item.section}.${item.content_key}`] = item.content_en; });
+        setCms(map);
+      }
+    }).catch(() => {});
   }, []);
+
+  const c = (section, key, fallback) => cms[`${section}.${key}`] || fallback;
 
   const fetchJobs = async () => {
     try {
@@ -105,8 +116,8 @@ const Careers = () => {
   return (
     <main>
       <Hero
-        title="Join Our Team"
-        subtitle="Build your career while making a difference in children's lives"
+        title={c('hero', 'title', 'Join Our Team')}
+        subtitle={c('hero', 'subtitle', "Build your career while making a difference in children's lives")}
         backgroundImage="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1920"
         size="medium"
         ctaPrimary="View Open Positions"
@@ -117,12 +128,9 @@ const Careers = () => {
       <section className="section">
         <div className="container">
           <div className="careers-intro">
-            <h2>Why Work at Scribbles?</h2>
+            <h2>{c('intro', 'heading', 'Why Work at Scribbles?')}</h2>
             <p>
-              At Scribbles Learning Center, we believe that happy teachers create happy classrooms.
-              We invest in our staff because we know that when our team thrives, our children thrive.
-              Join a supportive, family-like environment where your passion for early childhood
-              education is valued and nurtured.
+              {c('intro', 'body', 'At Scribbles Learning Center, we believe that happy teachers create happy classrooms. We invest in our staff because we know that when our team thrives, our children thrive. Join a supportive, family-like environment where your passion for early childhood education is valued and nurtured.')}
             </p>
           </div>
 
@@ -238,8 +246,8 @@ const Careers = () => {
       <section className="section section-primary">
         <div className="container">
           <div className="careers-cta">
-            <h2>Ready to Make a Difference?</h2>
-            <p>Join our team of passionate educators and help shape young minds</p>
+            <h2>{c('cta', 'heading', 'Ready to Make a Difference?')}</h2>
+            <p>{c('cta', 'body', 'Join our team of passionate educators and help shape young minds')}</p>
             <div className="cta-buttons">
               <Link to="/contact?subject=careers" className="btn btn-white">Apply Today</Link>
               <a href="mailto:careers@scribbleslearning.com" className="btn btn-outline-white">
