@@ -90,12 +90,6 @@ const AdminLogin = () => {
           </Button>
         </form>
 
-        <div className="admin-login-demo">
-          <p><strong>Demo Credentials:</strong></p>
-          <p>Email: admin@scribbleslearning.com</p>
-          <p>Password: admin123</p>
-        </div>
-
         <Link to="/" className="admin-login-back">
           ← Back to Website
         </Link>
