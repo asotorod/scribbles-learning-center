@@ -91,6 +91,18 @@ api.interceptors.response.use(
       }
     }
 
+    // Enhance error messages for known status codes
+    if (error.response?.status === 429) {
+      error.message = 'Too many attempts, please try again later.';
+    } else if (error.response?.status === 423) {
+      error.message = error.response?.data?.error || 'Account temporarily locked.';
+    } else if (error.response?.status === 401) {
+      const code = error.response?.data?.code;
+      if (code === 'INACTIVITY_TIMEOUT') {
+        error.message = 'Your session has expired, please log in again.';
+      }
+    }
+
     return Promise.reject(error);
   }
 );

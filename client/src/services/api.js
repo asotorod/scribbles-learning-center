@@ -182,4 +182,10 @@ export const portalAPI = {
   deleteAccount: (confirmation) => api.delete('/portal/account', { data: { confirmation } }),
 };
 
+// Admin API
+export const adminAPI = {
+  getAuditLog: (params) => api.get('/admin/audit-log', { params }),
+  changePassword: (data) => api.put('/admin/change-password', data),
+};
+
 export default api;

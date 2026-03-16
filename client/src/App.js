@@ -23,6 +23,8 @@ import {
   AdminReports,
   AdminHR,
   AdminCMS,
+  AdminSettings,
+  AdminAuditLog,
 } from './pages/admin';
 import { KioskHome, KioskParent, KioskEmployee } from './pages/kiosk';
 import {
@@ -89,7 +91,8 @@ function App() {
           <Route path="hr" element={<AdminHR />} />
           <Route path="content" element={<AdminCMS />} />
           <Route path="reports" element={<AdminReports />} />
-          <Route path="settings" element={<PlaceholderPage title="Settings" description="Configure system settings and admin users" />} />
+          <Route path="audit-log" element={<AdminAuditLog />} />
+          <Route path="settings" element={<AdminSettings />} />
         </Route>
       </Routes>
     </div>

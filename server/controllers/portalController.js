@@ -1127,6 +1127,8 @@ const changePassword = async (req, res) => {
   try {
     const { current_password, new_password } = req.body;
     const bcrypt = require('bcrypt');
+    const { validatePasswordComplexity } = require('./authController');
+    const { logAction, ACTIONS } = require('../services/auditLogger');
 
     if (!current_password || !new_password) {
       return res.status(400).json({
@@ -1135,11 +1137,10 @@ const changePassword = async (req, res) => {
       });
     }
 
-    if (new_password.length < 8) {
-      return res.status(400).json({
-        success: false,
-        error: 'New password must be at least 8 characters'
-      });
+    // Validate password complexity
+    const complexityError = validatePasswordComplexity(new_password);
+    if (complexityError) {
+      return res.status(400).json({ success: false, error: complexityError });
     }
 
     // Get current password hash
@@ -1162,13 +1163,14 @@ const changePassword = async (req, res) => {
     }
 
     // Hash new password and update
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(new_password, salt);
+    const hashedPassword = await bcrypt.hash(new_password, 12);
 
     await db.query(
-      'UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+      'UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP, last_password_change = CURRENT_TIMESTAMP WHERE id = $2',
       [hashedPassword, req.user.id]
     );
+
+    await logAction(req.user.id, ACTIONS.PASSWORD_CHANGE, 'users', {}, req);
 
     res.json({ success: true, data: { message: 'Password changed successfully' } });
   } catch (error) {

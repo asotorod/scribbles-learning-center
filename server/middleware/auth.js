@@ -55,6 +55,29 @@ const verifyToken = async (req, res, next) => {
       lastName: user.last_name
     };
 
+    // Check admin inactivity (30 min timeout)
+    const isAdminRole = ['super_admin', 'admin'].includes(user.role);
+    if (isAdminRole) {
+      const activityResult = await db.query(
+        'SELECT last_activity FROM users WHERE id = $1',
+        [user.id]
+      );
+      const lastActivity = activityResult.rows[0]?.last_activity;
+      if (lastActivity) {
+        const elapsed = Date.now() - new Date(lastActivity).getTime();
+        if (elapsed > 30 * 60 * 1000) {
+          return res.status(401).json({
+            success: false,
+            error: 'Session expired due to inactivity. Please log in again.',
+            code: 'INACTIVITY_TIMEOUT',
+          });
+        }
+      }
+    }
+
+    // Update last_activity (fire-and-forget)
+    db.query('UPDATE users SET last_activity = CURRENT_TIMESTAMP WHERE id = $1', [user.id]).catch(() => {});
+
     next();
   } catch (error) {
     if (error.name === 'TokenExpiredError') {

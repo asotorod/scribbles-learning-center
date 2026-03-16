@@ -31,7 +31,15 @@ const Login = () => {
         navigate('/');
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Invalid email or password');
+      const status = err.response?.status;
+      const serverError = err.response?.data?.error;
+      if (status === 429) {
+        setError('Too many login attempts. Please wait a minute and try again.');
+      } else if (status === 423) {
+        setError(serverError || 'Account temporarily locked. Please try again later.');
+      } else {
+        setError(serverError || 'Invalid email or password');
+      }
     } finally {
       setLoading(false);
     }

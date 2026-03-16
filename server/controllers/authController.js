@@ -5,8 +5,24 @@ const {
   generateRefreshToken,
   verifyRefreshToken
 } = require('../middleware/auth');
+const { logAction, ACTIONS } = require('../services/auditLogger');
 
-const SALT_ROUNDS = 10;
+const SALT_ROUNDS = 12;
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCKOUT_MINUTES = 15;
+
+/**
+ * Validate password complexity:
+ * min 8 chars, uppercase, lowercase, number, special character
+ */
+const validatePasswordComplexity = (password) => {
+  if (!password || password.length < 8) return 'Password must be at least 8 characters';
+  if (!/[A-Z]/.test(password)) return 'Password must contain an uppercase letter';
+  if (!/[a-z]/.test(password)) return 'Password must contain a lowercase letter';
+  if (!/[0-9]/.test(password)) return 'Password must contain a number';
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) return 'Password must contain a special character';
+  return null;
+};
 
 /**
  * Register a new user (admin use only)
@@ -15,6 +31,12 @@ const SALT_ROUNDS = 10;
 const register = async (req, res) => {
   try {
     const { email, password, firstName, lastName, role, phone } = req.body;
+
+    // Validate password complexity
+    const complexityError = validatePasswordComplexity(password);
+    if (complexityError) {
+      return res.status(400).json({ success: false, error: complexityError });
+    }
 
     // Check if user already exists
     const existingUser = await db.query(
@@ -34,8 +56,8 @@ const register = async (req, res) => {
 
     // Create user
     const result = await db.query(
-      `INSERT INTO users (email, password_hash, role, first_name, last_name, phone)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO users (email, password_hash, role, first_name, last_name, phone, last_password_change)
+       VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)
        RETURNING id, email, role, first_name, last_name, phone, created_at`,
       [email.toLowerCase(), passwordHash, role || 'parent', firstName, lastName, phone]
     );
@@ -75,12 +97,14 @@ const login = async (req, res) => {
 
     // Find user by email
     const result = await db.query(
-      `SELECT id, email, password_hash, role, first_name, last_name, phone, is_active
+      `SELECT id, email, password_hash, role, first_name, last_name, phone, is_active,
+              failed_login_attempts, locked_until
        FROM users WHERE email = $1`,
       [email.toLowerCase()]
     );
 
     if (result.rows.length === 0) {
+      await logAction(null, ACTIONS.LOGIN_FAILED, 'auth', { email: email.toLowerCase(), reason: 'user_not_found' }, req);
       return res.status(401).json({
         success: false,
         error: 'Invalid email or password'
@@ -89,8 +113,20 @@ const login = async (req, res) => {
 
     const user = result.rows[0];
 
+    // Check if account is locked
+    if (user.locked_until && new Date(user.locked_until) > new Date()) {
+      const minutesLeft = Math.ceil((new Date(user.locked_until) - new Date()) / 60000);
+      await logAction(user.id, ACTIONS.LOGIN_FAILED, 'auth', { reason: 'account_locked' }, req);
+      return res.status(423).json({
+        success: false,
+        error: `Account temporarily locked. Try again in ${minutesLeft} minute${minutesLeft !== 1 ? 's' : ''}.`,
+        code: 'ACCOUNT_LOCKED',
+      });
+    }
+
     // Check if account is active
     if (!user.is_active) {
+      await logAction(user.id, ACTIONS.LOGIN_FAILED, 'auth', { reason: 'deactivated' }, req);
       return res.status(401).json({
         success: false,
         error: 'Account is deactivated'
@@ -101,11 +137,40 @@ const login = async (req, res) => {
     const validPassword = await bcrypt.compare(password, user.password_hash);
 
     if (!validPassword) {
+      const attempts = (user.failed_login_attempts || 0) + 1;
+      const updates = { failed_login_attempts: attempts };
+
+      if (attempts >= MAX_FAILED_ATTEMPTS) {
+        const lockedUntil = new Date(Date.now() + LOCKOUT_MINUTES * 60 * 1000);
+        await db.query(
+          'UPDATE users SET failed_login_attempts = $1, locked_until = $2 WHERE id = $3',
+          [attempts, lockedUntil, user.id]
+        );
+        await logAction(user.id, ACTIONS.LOGIN_FAILED, 'auth', { reason: 'max_attempts_reached', attempts }, req);
+        return res.status(423).json({
+          success: false,
+          error: `Account temporarily locked. Try again in ${LOCKOUT_MINUTES} minutes.`,
+          code: 'ACCOUNT_LOCKED',
+        });
+      } else {
+        await db.query(
+          'UPDATE users SET failed_login_attempts = $1 WHERE id = $2',
+          [attempts, user.id]
+        );
+      }
+
+      await logAction(user.id, ACTIONS.LOGIN_FAILED, 'auth', { reason: 'wrong_password', attempts }, req);
       return res.status(401).json({
         success: false,
         error: 'Invalid email or password'
       });
     }
+
+    // Successful login — reset lockout counters
+    await db.query(
+      'UPDATE users SET failed_login_attempts = 0, locked_until = NULL, last_login = CURRENT_TIMESTAMP, last_activity = CURRENT_TIMESTAMP WHERE id = $1',
+      [user.id]
+    );
 
     // Generate tokens
     const accessToken = generateAccessToken(user);
@@ -122,11 +187,7 @@ const login = async (req, res) => {
       [user.id, refreshToken, expiresAt]
     );
 
-    // Update last login
-    await db.query(
-      'UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = $1',
-      [user.id]
-    );
+    await logAction(user.id, ACTIONS.LOGIN_SUCCESS, 'auth', { role: user.role }, req);
 
     res.json({
       success: true,
@@ -283,7 +344,6 @@ const logout = async (req, res) => {
  */
 const me = async (req, res) => {
   try {
-    // req.user is set by verifyToken middleware
     const result = await db.query(
       `SELECT id, email, role, first_name, last_name, phone, created_at, last_login
        FROM users WHERE id = $1`,
@@ -328,5 +388,6 @@ module.exports = {
   login,
   refresh,
   logout,
-  me
+  me,
+  validatePasswordComplexity
 };

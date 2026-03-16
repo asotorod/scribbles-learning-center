@@ -7,3 +7,5 @@ export { default as AdminAttendance } from './AdminAttendance';
 export { default as AdminReports } from './AdminReports';
 export { default as AdminHR } from './AdminHR';
 export { default as AdminCMS } from './AdminCMS';
+export { default as AdminSettings } from './AdminSettings';
+export { default as AdminAuditLog } from './AdminAuditLog';

@@ -1,9 +1,13 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const path = require('path');
 require('dotenv').config();
 
 const db = require('./config/database');
+const { generalLimiter, authLimiter, kioskLimiter } = require('./middleware/rateLimiter');
+const { sanitizeInputs } = require('./middleware/sanitizer');
+
 const authRoutes = require('./routes/auth');
 const contentRoutes = require('./routes/content');
 const inquiryRoutes = require('./routes/inquiries');
@@ -20,10 +24,25 @@ const testimonialsRoutes = require('./routes/testimonials');
 const programsRoutes = require('./routes/programs');
 const contactRoutes = require('./routes/contact');
 const uploadRoutes = require('./routes/uploads');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 
-// Middleware
+// Security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https:"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+}));
+
+// CORS
 const allowedOrigins = [
   process.env.CLIENT_URL,
   'https://scribbles-learning.com',
@@ -43,7 +62,21 @@ app.use(cors({
   },
   credentials: true
 }));
+
+// Body parsing and input sanitization
 app.use(express.json());
+app.use(sanitizeInputs);
+
+// General rate limiter for all API routes
+app.use('/api/', generalLimiter);
+
+// Auth rate limiters (more restrictive, applied before route handlers)
+app.use('/api/v1/auth/login', authLimiter);
+app.use('/api/v1/auth/register', authLimiter);
+app.use('/api/auth/login', authLimiter);
+
+// Kiosk rate limiter
+app.use('/api/v1/kiosk', kioskLimiter);
 
 // API Routes
 app.use('/api/v1/auth', authRoutes);
@@ -62,6 +95,7 @@ app.use('/api/v1/testimonials', testimonialsRoutes);
 app.use('/api/v1/programs', programsRoutes);
 app.use('/api/v1/contact', contactRoutes);
 app.use('/api/v1/uploads', uploadRoutes);
+app.use('/api/v1/admin', adminRoutes);
 app.use('/api/upload', uploadRoutes);
 
 // Legacy routes (for backwards compatibility)

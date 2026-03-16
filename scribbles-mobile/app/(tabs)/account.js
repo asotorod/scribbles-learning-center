@@ -103,12 +103,22 @@ export default function AccountScreen() {
   };
 
   // === Password ===
+  const validatePasswordComplexity = (pw) => {
+    if (!pw || pw.length < 8) return 'Must be at least 8 characters';
+    if (!/[A-Z]/.test(pw)) return 'Must contain an uppercase letter';
+    if (!/[a-z]/.test(pw)) return 'Must contain a lowercase letter';
+    if (!/[0-9]/.test(pw)) return 'Must contain a number';
+    if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(pw)) return 'Must contain a special character';
+    return null;
+  };
+
   const handleChangePassword = async () => {
     if (passwords.new_password !== passwords.confirm_password) {
       return showMsg('error', 'Passwords do not match.');
     }
-    if (passwords.new_password.length < 8) {
-      return showMsg('error', 'Password must be at least 8 characters.');
+    const complexityError = validatePasswordComplexity(passwords.new_password);
+    if (complexityError) {
+      return showMsg('error', complexityError);
     }
     setSaving(true);
     try {
@@ -119,8 +129,9 @@ export default function AccountScreen() {
       showMsg('success', 'Password changed!');
       setPasswords({ current_password: '', new_password: '', confirm_password: '' });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch {
-      showMsg('error', 'Failed to change password.');
+    } catch (err) {
+      const serverError = err.response?.data?.error;
+      showMsg('error', serverError || 'Failed to change password.');
     } finally {
       setSaving(false);
     }
@@ -480,6 +491,9 @@ export default function AccountScreen() {
               onChangeText={v => setPasswords(p => ({ ...p, confirm_password: v }))} />
           </View>
         </View>
+        <Text style={{ fontSize: 11, color: Colors.gray500, marginBottom: 8 }}>
+          Min 8 chars, uppercase, lowercase, number, and special character required.
+        </Text>
         <TouchableOpacity
           style={[styles.saveBtn, (!passwords.current_password || !passwords.new_password) && styles.saveBtnDisabled]}
           onPress={handleChangePassword}

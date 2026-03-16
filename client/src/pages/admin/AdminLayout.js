@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import './AdminLayout.css';
+
+const WARN_TIMEOUT = 25 * 60 * 1000; // 25 minutes
+const LOGOUT_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 
 const AdminLayout = () => {
   const { user, logout } = useAuth();
@@ -9,11 +12,50 @@ const AdminLayout = () => {
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
+  const lastActivityRef = useRef(Date.now());
+  const warnTimerRef = useRef(null);
+  const logoutTimerRef = useRef(null);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     logout();
     navigate('/admin/login');
-  };
+  }, [logout, navigate]);
+
+  const resetTimers = useCallback(() => {
+    lastActivityRef.current = Date.now();
+    setShowTimeoutWarning(false);
+
+    if (warnTimerRef.current) clearTimeout(warnTimerRef.current);
+    if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
+
+    warnTimerRef.current = setTimeout(() => {
+      setShowTimeoutWarning(true);
+    }, WARN_TIMEOUT);
+
+    logoutTimerRef.current = setTimeout(() => {
+      handleLogout();
+    }, LOGOUT_TIMEOUT);
+  }, [handleLogout]);
+
+  useEffect(() => {
+    resetTimers();
+
+    const events = ['mousedown', 'keydown', 'mousemove', 'touchstart', 'scroll'];
+    const onActivity = () => {
+      if (Date.now() - lastActivityRef.current > 1000) {
+        resetTimers();
+      }
+    };
+
+    events.forEach((evt) => window.addEventListener(evt, onActivity));
+
+    return () => {
+      events.forEach((evt) => window.removeEventListener(evt, onActivity));
+      if (warnTimerRef.current) clearTimeout(warnTimerRef.current);
+      if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
+    };
+  }, [resetTimers]);
 
   const menuItems = [
     { path: '/admin', icon: '🏠', label: 'Dashboard', exact: true },
@@ -23,6 +65,9 @@ const AdminLayout = () => {
     { path: '/admin/hr', icon: '👥', label: 'HR' },
     { path: '/admin/content', icon: '📝', label: 'Content' },
     { path: '/admin/reports', icon: '📊', label: 'Reports' },
+    ...(user?.role === 'super_admin'
+      ? [{ path: '/admin/audit-log', icon: '🔒', label: 'Audit Log' }]
+      : []),
     { path: '/admin/settings', icon: '⚙️', label: 'Settings' },
   ];
 
@@ -35,6 +80,33 @@ const AdminLayout = () => {
 
   return (
     <div className={`admin-layout ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+      {/* Session Expiring Modal */}
+      {showTimeoutWarning && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 10000,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <div style={{
+            background: '#fff', borderRadius: 12, padding: 32, maxWidth: 400, textAlign: 'center',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+          }}>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>&#9200;</div>
+            <h2 style={{ margin: '0 0 12px' }}>Session Expiring</h2>
+            <p style={{ color: '#6b7280', marginBottom: 24 }}>
+              Your session will expire in 5 minutes due to inactivity. Move your mouse or press any key to stay logged in.
+            </p>
+            <button
+              onClick={resetTimers}
+              className="btn btn-primary"
+              style={{ padding: '10px 32px', fontSize: 14 }}
+            >
+              Stay Logged In
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Mobile Header */}
       <header className="admin-mobile-header">
         <button
@@ -63,7 +135,7 @@ const AdminLayout = () => {
             className="sidebar-toggle"
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
           >
-            {sidebarCollapsed ? '→' : '←'}
+            {sidebarCollapsed ? '\u2192' : '\u2190'}
           </button>
         </div>
 

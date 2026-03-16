@@ -117,10 +117,11 @@ router.put(
 );
 
 /**
- * @route   POST /api/v1/portal/change-password
+ * @route   PUT /api/v1/portal/change-password
  * @desc    Change parent's password
  * @access  Protected (parent only)
  */
+router.put('/change-password', portalController.changePassword);
 router.post('/change-password', portalController.changePassword);
 
 // ============================================

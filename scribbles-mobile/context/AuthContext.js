@@ -1,17 +1,55 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { AppState } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { authAPI } from '../services/api';
 
 const AuthContext = createContext(null);
 
+const BACKGROUND_TIMEOUT_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const backgroundTimeRef = useRef(null);
+
+  // Track app background/foreground for inactivity timeout
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', async (nextState) => {
+      if (nextState === 'background' || nextState === 'inactive') {
+        backgroundTimeRef.current = Date.now();
+        await SecureStore.setItemAsync('lastBackgroundTime', String(Date.now())).catch(() => {});
+      } else if (nextState === 'active') {
+        try {
+          const stored = await SecureStore.getItemAsync('lastBackgroundTime');
+          if (stored) {
+            const elapsed = Date.now() - parseInt(stored, 10);
+            if (elapsed > BACKGROUND_TIMEOUT_MS) {
+              await logout();
+            }
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+    });
+    return () => subscription.remove();
+  }, []);
 
   // Restore session on app launch
   useEffect(() => {
     const restoreSession = async () => {
       try {
+        // Check if background timeout has elapsed
+        const lastBg = await SecureStore.getItemAsync('lastBackgroundTime');
+        if (lastBg && Date.now() - parseInt(lastBg, 10) > BACKGROUND_TIMEOUT_MS) {
+          await SecureStore.deleteItemAsync('accessToken').catch(() => {});
+          await SecureStore.deleteItemAsync('refreshToken').catch(() => {});
+          await SecureStore.deleteItemAsync('user').catch(() => {});
+          await SecureStore.deleteItemAsync('lastBackgroundTime').catch(() => {});
+          setLoading(false);
+          return;
+        }
+
         const storedUser = await SecureStore.getItemAsync('user');
         const accessToken = await SecureStore.getItemAsync('accessToken');
 
@@ -19,7 +57,6 @@ export const AuthProvider = ({ children }) => {
           setUser(JSON.parse(storedUser));
         }
       } catch (e) {
-        // Invalid stored data — clear it
         await SecureStore.deleteItemAsync('user').catch(() => {});
         await SecureStore.deleteItemAsync('accessToken').catch(() => {});
         await SecureStore.deleteItemAsync('refreshToken').catch(() => {});
@@ -44,6 +81,7 @@ export const AuthProvider = ({ children }) => {
     await SecureStore.setItemAsync('accessToken', accessToken);
     await SecureStore.setItemAsync('refreshToken', refreshToken);
     await SecureStore.setItemAsync('user', JSON.stringify(userData));
+    await SecureStore.deleteItemAsync('lastBackgroundTime').catch(() => {});
 
     setUser(userData);
     return userData;
@@ -53,6 +91,7 @@ export const AuthProvider = ({ children }) => {
     await SecureStore.deleteItemAsync('accessToken').catch(() => {});
     await SecureStore.deleteItemAsync('refreshToken').catch(() => {});
     await SecureStore.deleteItemAsync('user').catch(() => {});
+    await SecureStore.deleteItemAsync('lastBackgroundTime').catch(() => {});
     setUser(null);
   }, []);
 

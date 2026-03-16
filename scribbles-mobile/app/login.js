@@ -29,10 +29,18 @@ export default function LoginScreen() {
       await login(email.trim(), password);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (err) {
-      const msg =
-        err.message ||
-        err.response?.data?.error ||
-        'Login failed. Please check your credentials.';
+      const status = err.response?.status;
+      const serverError = err.response?.data?.error;
+      let msg;
+      if (status === 429) {
+        msg = 'Too many attempts, please try again later.';
+      } else if (status === 423) {
+        msg = serverError || 'Account temporarily locked. Please try again later.';
+      } else if (status === 401 && serverError) {
+        msg = serverError;
+      } else {
+        msg = err.message || serverError || 'Login failed. Please check your credentials.';
+      }
       setError(msg);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
