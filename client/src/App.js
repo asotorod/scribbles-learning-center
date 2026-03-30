@@ -11,6 +11,7 @@ import Contact from './pages/Contact';
 import Careers from './pages/Careers';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
+import ParentApp from './pages/ParentApp';
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 import {
@@ -57,6 +58,7 @@ function App() {
         <Route path="/careers" element={<><Navbar /><Careers /><Footer /></>} />
         <Route path="/privacy-policy" element={<><Navbar /><PrivacyPolicy /><Footer /></>} />
         <Route path="/terms-of-service" element={<><Navbar /><TermsOfService /><Footer /></>} />
+        <Route path="/app" element={<><Navbar /><ParentApp /><Footer /></>} />
 
         {/* Parent Portal Login */}
         <Route path="/login" element={<Login />} />

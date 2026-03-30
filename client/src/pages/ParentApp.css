@@ -1,0 +1,423 @@
+/* ========================================
+   Parent App Page
+   Follows site design system patterns
+   ======================================== */
+
+/* App Features Grid */
+.app-features-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30px;
+}
+
+.app-feature-card {
+  text-align: center;
+  padding: 40px 24px;
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+
+.app-feature-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-lg);
+}
+
+.app-feature-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+}
+
+.app-feature-icon svg {
+  width: 36px;
+  height: 36px;
+  color: var(--dark);
+}
+
+.app-feature-card h3 {
+  font-size: 20px;
+  margin-bottom: 12px;
+}
+
+.app-feature-card p {
+  color: var(--gray-600);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* App Showcase (split layout) */
+.app-showcase {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.app-showcase-content h2 {
+  font-size: 36px;
+  margin-bottom: 8px;
+}
+
+.app-showcase-subtitle {
+  font-size: 18px;
+  color: var(--gray-600);
+  margin-bottom: 20px;
+}
+
+.app-showcase-content > p {
+  color: var(--gray-600);
+  margin-bottom: 28px;
+  line-height: 1.8;
+}
+
+.app-highlights {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.app-highlights li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 0;
+  font-size: 16px;
+  color: var(--dark);
+}
+
+.highlight-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  border-radius: var(--radius-full);
+  background: var(--color-fern);
+  color: var(--white);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Phone Frame Mockup */
+.app-showcase-phone {
+  display: flex;
+  justify-content: center;
+}
+
+.phone-frame {
+  width: 280px;
+  background: var(--dark);
+  border-radius: 36px;
+  padding: 12px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.phone-notch {
+  width: 120px;
+  height: 28px;
+  background: var(--dark);
+  border-radius: 0 0 16px 16px;
+  margin: 0 auto;
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+}
+
+.phone-screen {
+  background: var(--cream);
+  border-radius: 26px;
+  min-height: 500px;
+  overflow: hidden;
+  padding: 0;
+}
+
+.phone-status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 24px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dark);
+}
+
+.phone-status-icons {
+  font-size: 8px;
+  letter-spacing: 4px;
+}
+
+.phone-app-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px 16px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--dark);
+}
+
+.phone-logo-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: var(--color-fern);
+}
+
+.phone-notification {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0 14px 10px;
+  padding: 14px;
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.notif-icon {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.notif-text strong {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 2px;
+}
+
+.notif-text p {
+  font-size: 12px;
+  color: var(--gray-600);
+  margin: 0;
+}
+
+.phone-card {
+  margin: 14px;
+  padding: 16px;
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+.phone-card-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--gray-500);
+  margin-bottom: 12px;
+}
+
+.phone-card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 14px;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.phone-card-row:last-child {
+  border-bottom: none;
+}
+
+/* Steps / How It Works */
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+}
+
+.step-card {
+  text-align: center;
+  padding: 40px 30px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius-lg);
+}
+
+.step-number {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--dark);
+}
+
+.step-card h3 {
+  font-size: 22px;
+  margin-bottom: 12px;
+  color: var(--white);
+}
+
+.step-card p {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.7;
+}
+
+/* Download Section */
+.download-section {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 60px;
+  align-items: center;
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.download-content h2 {
+  font-size: 36px;
+  margin-bottom: 12px;
+}
+
+.download-content > p {
+  font-size: 18px;
+  color: var(--gray-600);
+  margin-bottom: 32px;
+}
+
+.app-store-badge {
+  display: inline-block;
+  transition: var(--transition);
+}
+
+.app-store-badge:hover {
+  transform: translateY(-3px);
+  filter: brightness(1.1);
+}
+
+.app-store-badge svg {
+  width: 180px;
+  height: 60px;
+}
+
+.download-note {
+  margin-top: 24px;
+  font-size: 14px;
+  color: var(--gray-500);
+}
+
+.download-note a {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.download-note a:hover {
+  color: var(--primary-dark);
+}
+
+/* QR Code area */
+.download-qr {
+  display: flex;
+  justify-content: center;
+}
+
+.qr-placeholder {
+  width: 160px;
+  height: 180px;
+  background: var(--white);
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+}
+
+.qr-icon {
+  width: 80px;
+  height: 80px;
+  color: var(--dark);
+}
+
+.qr-placeholder p {
+  font-size: 13px;
+  color: var(--gray-500);
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ========================================
+   Responsive
+   ======================================== */
+
+@media (max-width: 1024px) {
+  .app-features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .app-showcase {
+    grid-template-columns: 1fr;
+    gap: 50px;
+  }
+
+  .app-showcase-phone {
+    order: -1;
+  }
+
+  .steps-grid {
+    grid-template-columns: 1fr;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .download-section {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}
+
+@media (max-width: 600px) {
+  .app-features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .app-showcase-content h2 {
+    font-size: 28px;
+  }
+
+  .download-content h2 {
+    font-size: 28px;
+  }
+
+  .phone-frame {
+    width: 250px;
+  }
+
+  .phone-screen {
+    min-height: 440px;
+  }
+
+  .download-qr {
+    display: none;
+  }
+}
