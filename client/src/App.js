@@ -26,6 +26,7 @@ import {
   AdminCMS,
   AdminSettings,
   AdminAuditLog,
+  AdminInquiries,
 } from './pages/admin';
 import { KioskHome, KioskParent, KioskEmployee } from './pages/kiosk';
 import {
@@ -92,6 +93,7 @@ function App() {
           <Route path="attendance" element={<AdminAttendance />} />
           <Route path="hr" element={<AdminHR />} />
           <Route path="content" element={<AdminCMS />} />
+          <Route path="inquiries" element={<AdminInquiries />} />
           <Route path="reports" element={<AdminReports />} />
           <Route path="audit-log" element={<AdminAuditLog />} />
           <Route path="settings" element={<AdminSettings />} />
