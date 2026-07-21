@@ -5,7 +5,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret-change-in-production';
 
 // Token expiry times
-const ACCESS_TOKEN_EXPIRY = '15m';
+const ACCESS_TOKEN_EXPIRY = '4h';
 const REFRESH_TOKEN_EXPIRY = '14d';
 
 /**
@@ -55,27 +55,7 @@ const verifyToken = async (req, res, next) => {
       lastName: user.last_name
     };
 
-    // Check admin inactivity (30 min timeout)
-    const isAdminRole = ['super_admin', 'admin'].includes(user.role);
-    if (isAdminRole) {
-      const activityResult = await db.query(
-        'SELECT last_activity FROM users WHERE id = $1',
-        [user.id]
-      );
-      const lastActivity = activityResult.rows[0]?.last_activity;
-      if (lastActivity) {
-        const elapsed = Date.now() - new Date(lastActivity).getTime();
-        if (elapsed > 30 * 60 * 1000) {
-          return res.status(401).json({
-            success: false,
-            error: 'Session expired due to inactivity. Please log in again.',
-            code: 'INACTIVITY_TIMEOUT',
-          });
-        }
-      }
-    }
-
-    // Update last_activity (fire-and-forget)
+    // Update last_activity for all authenticated requests (fire-and-forget)
     db.query('UPDATE users SET last_activity = CURRENT_TIMESTAMP WHERE id = $1', [user.id]).catch(() => {});
 
     next();
@@ -83,7 +63,8 @@ const verifyToken = async (req, res, next) => {
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({
         success: false,
-        error: 'Access token expired'
+        error: 'Access token expired',
+        code: 'TOKEN_EXPIRED'
       });
     }
     return res.status(403).json({
