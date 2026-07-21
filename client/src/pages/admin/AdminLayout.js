@@ -62,6 +62,7 @@ const AdminLayout = () => {
     { path: '/admin/children', icon: '👶', label: 'Children' },
     { path: '/admin/parents', icon: '👨‍👩‍👧', label: 'Parents' },
     { path: '/admin/attendance', icon: '📋', label: 'Attendance' },
+    { path: '/admin/inquiries', icon: '📬', label: 'Inquiries' },
     { path: '/admin/hr', icon: '👥', label: 'HR' },
     { path: '/admin/content', icon: '📝', label: 'Content' },
     { path: '/admin/reports', icon: '📊', label: 'Reports' },
