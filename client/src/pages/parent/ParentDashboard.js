@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { portalAPI } from '../../services/api';
+import { formatTimeET, formatDateET, parseDateOnly } from '../../utils/dateTime';
 import './ParentPages.css';
 
 const ParentDashboard = () => {
@@ -41,8 +42,8 @@ const ParentDashboard = () => {
 
       setUpcomingAbsences(
         absences.filter(a => {
-          const startDate = new Date(a.start_date);
-          return startDate >= today && a.status !== 'cancelled';
+          const startDate = parseDateOnly(a.start_date);
+          return startDate && startDate >= today && a.status !== 'cancelled';
         }).slice(0, 3)
       );
     } catch (error) {
@@ -54,9 +55,8 @@ const ParentDashboard = () => {
 
   const formatTime = (timeString) => {
     if (!timeString) return '';
-    const date = new Date(timeString);
-    if (isNaN(date.getTime())) return timeString; // already formatted
-    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    const formatted = formatTimeET(timeString, null);
+    return formatted || timeString; // pass through values that are already formatted
   };
 
   const getStatusDisplay = (child) => {
@@ -187,10 +187,10 @@ const ParentDashboard = () => {
               <div key={absence.id} className="absence-card">
                 <div className="absence-date">
                   <span className="date-day">
-                    {new Date(absence.start_date).getDate()}
+                    {parseDateOnly(absence.start_date)?.getDate()}
                   </span>
                   <span className="date-month">
-                    {new Date(absence.start_date).toLocaleDateString('en-US', { month: 'short' })}
+                    {formatDateET(absence.start_date, { month: 'short' }, '')}
                   </span>
                 </div>
                 <div className="absence-details">
@@ -198,7 +198,7 @@ const ParentDashboard = () => {
                   <p>{absence.reason}</p>
                   {absence.end_date && absence.end_date !== absence.start_date && (
                     <span className="absence-range">
-                      Through {new Date(absence.end_date).toLocaleDateString()}
+                      Through {formatDateET(absence.end_date, { month: 'numeric', day: 'numeric', year: 'numeric' })}
                     </span>
                   )}
                 </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { portalAPI } from '../../services/api';
+import { parseTimestamp, TIME_ZONE } from '../../utils/dateTime';
 import './ParentPages.css';
 
 const Messages = () => {
@@ -42,7 +43,8 @@ const Messages = () => {
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '';
-    const date = new Date(dateStr);
+    const date = parseTimestamp(dateStr);
+    if (!date) return '';
     const now = new Date();
     const diffMs = now - date;
     const diffMins = Math.floor(diffMs / 60000);
@@ -53,7 +55,7 @@ const Messages = () => {
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHrs < 24) return `${diffHrs}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return date.toLocaleDateString('en-US', { timeZone: TIME_ZONE, month: 'short', day: 'numeric' });
   };
 
   const roleLabel = (role) => {
