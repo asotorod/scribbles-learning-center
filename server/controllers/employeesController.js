@@ -94,13 +94,11 @@ const create = async (req, res) => {
   try {
     const { email, password, firstName, lastName, phone, role = 'staff', position, department, hireDate, pinCode, hourlyRate, emergencyContactName, emergencyContactPhone } = req.body;
     await client.query('BEGIN');
-    // Only check ACTIVE users — inactive/deleted users shouldn't block new accounts
     const existingUser = await client.query('SELECT id FROM users WHERE email = $1 AND is_active = true', [email.toLowerCase()]);
     if (existingUser.rows.length > 0) {
       await client.query('ROLLBACK');
       return res.status(400).json({ success: false, error: 'Email already in use' });
     }
-    // Clean up any inactive orphaned users with this email
     await client.query('DELETE FROM users WHERE email = $1 AND is_active = false', [email.toLowerCase()]);
     if (pinCode) {
       const pinExists = await client.query(`
@@ -114,14 +112,14 @@ const create = async (req, res) => {
     }
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
     const userResult = await client.query(`
-      INSERT INTO users (email, password_hash, role, first_name, last_name, phone, email_verified)
-      VALUES ($1, $2, $3, $4, $5, $6, true) RETURNING id, email, role, first_name, last_name, phone
-    `, [email.toLowerCase(), passwordHash, role, firstName, lastName, phone]);
+      INSERT INTO users (email, password_hash, role, first_name, last_name, phone)
+      VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, email, role, first_name, last_name, phone
+    `, [email.toLowerCase(), passwordHash, role, firstName, lastName, phone || null]);
     const user = userResult.rows[0];
     const employeeResult = await client.query(`
       INSERT INTO employees (user_id, position, department, hire_date, pin_code, hourly_rate, emergency_contact_name, emergency_contact_phone)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *
-    `, [user.id, position, department, hireDate || new Date(), pinCode, hourlyRate, emergencyContactName, emergencyContactPhone]);
+    `, [user.id, position || null, department || null, hireDate || null, pinCode || null, hourlyRate || null, emergencyContactName || null, emergencyContactPhone || null]);
     const employee = employeeResult.rows[0];
     await client.query('COMMIT');
     res.status(201).json({ success: true, data: {
@@ -199,7 +197,6 @@ const update = async (req, res) => {
   } finally { client.release(); }
 };
 
-// DELETE /api/v1/employees/:id - Hard delete employee AND their user account
 const remove = async (req, res) => {
   const client = await db.pool.connect();
   try {
@@ -211,11 +208,10 @@ const remove = async (req, res) => {
       return res.status(404).json({ success: false, error: 'Employee not found' });
     }
     const userId = empResult.rows[0].user_id;
-    // Delete employee first (or let CASCADE handle it)
     await client.query('DELETE FROM employee_certifications WHERE employee_id = $1', [id]);
     await client.query('DELETE FROM employee_timeclock WHERE employee_id = $1', [id]);
+    await client.query('DELETE FROM refresh_tokens WHERE user_id = $1', [userId]);
     await client.query('DELETE FROM employees WHERE id = $1', [id]);
-    // Delete the user account — no orphan left behind
     await client.query('DELETE FROM users WHERE id = $1', [userId]);
     await client.query('COMMIT');
     res.json({ success: true, data: { message: 'Employee deleted successfully' } });
