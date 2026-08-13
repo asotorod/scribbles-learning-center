@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { portalAPI } from '../../services/api';
+import { formatDateET } from '../../utils/dateTime';
 import './ParentPages.css';
 
 const ReportAbsence = () => {
@@ -135,14 +136,14 @@ const ReportAbsence = () => {
 
       setSubmittedData({
         childName: `${selectedChild.first_name} ${selectedChild.last_name}`,
-        startDate: new Date(formData.start_date).toLocaleDateString('en-US', {
+        startDate: formatDateET(formData.start_date, {
           weekday: 'long',
           month: 'long',
           day: 'numeric',
           year: 'numeric',
         }),
         endDate: formData.date_type === 'multiple'
-          ? new Date(formData.end_date).toLocaleDateString('en-US', {
+          ? formatDateET(formData.end_date, {
               weekday: 'long',
               month: 'long',
               day: 'numeric',

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { portalAPI } from '../../services/api';
 import { compressImage, validateImageFile, ACCEPTED_IMAGE_TYPES } from '../../utils/imageUtils';
+import { formatDateET, formatTimestampDateET, parseDateOnly } from '../../utils/dateTime';
 import PhotoConsentModal from '../../components/PhotoConsentModal';
 import './ParentPages.css';
 
@@ -137,19 +138,14 @@ const MyChildren = () => {
     setExpandedChild(expandedChild === childId ? null : childId);
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  };
+  const formatDate = (dateString) =>
+    formatDateET(dateString, { month: 'long', day: 'numeric', year: 'numeric' }, 'N/A');
 
   const calculateAge = (birthDate) => {
     if (!birthDate) return 'N/A';
     const today = new Date();
-    const birth = new Date(birthDate);
+    const birth = parseDateOnly(birthDate);
+    if (!birth) return 'N/A';
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
@@ -217,7 +213,7 @@ const MyChildren = () => {
                 <p>{child.program}</p>
                 {child.photo_consent_given && child.photo_consent_date && (
                   <span className="photo-consent-status given">
-                    Photo consent given on {new Date(child.photo_consent_date).toLocaleDateString()}
+                    Photo consent given on {formatTimestampDateET(child.photo_consent_date)}
                   </span>
                 )}
               </div>
