@@ -4,6 +4,7 @@ import { StatCard } from '../../components/ui/Card';
 import { Button } from '../../components/ui';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
+import { formatTimeET, formatDateET } from '../../utils/dateTime';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -54,9 +55,7 @@ const AdminDashboard = () => {
           id: checkin.id || idx,
           type: isCheckedOut ? 'checkout' : 'checkin',
           message: `${name} checked ${isCheckedOut ? 'out' : 'in'}`,
-          time: time
-            ? new Date(time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
-            : '',
+          time: time ? formatTimeET(time, '') : '',
           icon: isCheckedOut ? '👋' : '✅',
         };
       });
@@ -148,7 +147,7 @@ const AdminDashboard = () => {
                       <h4>{absence.child_name || 'Child Name'}</h4>
                       <p>{absence.reason || 'Sick - Fever'}</p>
                       <span className="absence-date">
-                        {new Date(absence.start_date || Date.now()).toLocaleDateString()}
+                        {formatDateET(absence.start_date, { month: 'numeric', day: 'numeric', year: 'numeric' }, new Date().toLocaleDateString())}
                       </span>
                     </div>
                     <Button

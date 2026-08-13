@@ -3,6 +3,7 @@ import { StatCard } from '../../components/ui/Card';
 import Table from '../../components/ui/Table';
 import Button from '../../components/ui/Button';
 import api from '../../services/api';
+import { formatTimeET, formatDateET } from '../../utils/dateTime';
 import './AdminAttendance.css';
 
 const AdminAttendance = () => {
@@ -153,8 +154,9 @@ const AdminAttendance = () => {
       key: 'dates',
       title: 'Date(s)',
       render: (_, row) => {
-        const start = new Date(row.start_date).toLocaleDateString();
-        const end = row.end_date ? new Date(row.end_date).toLocaleDateString() : null;
+        const opts = { month: 'numeric', day: 'numeric', year: 'numeric' };
+        const start = formatDateET(row.start_date, opts);
+        const end = row.end_date ? formatDateET(row.end_date, opts) : null;
         return end && end !== start ? `${start} - ${end}` : start;
       },
     },
@@ -200,11 +202,7 @@ const AdminAttendance = () => {
     },
   ];
 
-  const formatTime = (timeString) => {
-    if (!timeString) return '-';
-    const date = new Date(timeString);
-    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-  };
+  const formatTime = (timeString) => formatTimeET(timeString);
 
   if (loading) {
     return (
