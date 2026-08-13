@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import api from '../../services/api';
 import './AdminInquiries.css';
+
+const AUTO_REFRESH_INTERVAL = 60000; // 60 seconds
 
 const AdminInquiries = () => {
   const [inquiries, setInquiries] = useState([]);
@@ -9,10 +11,13 @@ const AdminInquiries = () => {
   const [filter, setFilter] = useState('all');
   const [selectedInquiry, setSelectedInquiry] = useState(null);
   const [stats, setStats] = useState({ total: 0, unread: 0, read: 0 });
+  const [lastRefreshed, setLastRefreshed] = useState(null);
+  const intervalRef = useRef(null);
 
-  const fetchInquiries = useCallback(async () => {
+  const fetchInquiries = useCallback(async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
+      setError('');
       const params = {};
       if (filter !== 'all') params.status = filter;
       const res = await api.get('/contact', { params });
@@ -23,16 +28,26 @@ const AdminInquiries = () => {
         unread: data.filter(i => !i.isRead).length,
         read: data.filter(i => i.isRead).length,
       });
+      setLastRefreshed(new Date());
     } catch (err) {
       console.error('Failed to fetch inquiries:', err);
-      setError('Failed to load inquiries');
+      if (!silent) setError('Failed to load inquiries');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [filter]);
 
+  // Initial fetch + auto-refresh every 60 seconds
   useEffect(() => {
     fetchInquiries();
+
+    intervalRef.current = setInterval(() => {
+      fetchInquiries(true); // silent refresh — no loading spinner
+    }, AUTO_REFRESH_INTERVAL);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
   }, [fetchInquiries]);
 
   const markAsRead = async (id, isRead) => {
@@ -63,11 +78,37 @@ const AdminInquiries = () => {
     }
   };
 
+  /**
+   * Format a database timestamp to Eastern Time.
+   * Railway/PostgreSQL stores timestamps in UTC. We force display
+   * to America/New_York so the daycare always sees local NJ time.
+   */
   const formatDate = (dateStr) => {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('en-US', {
-      month: 'short', day: 'numeric', year: 'numeric',
-      hour: 'numeric', minute: '2-digit',
+    if (!dateStr) return '';
+    // Ensure the string is treated as UTC if it has no timezone indicator
+    let isoStr = dateStr;
+    if (!isoStr.endsWith('Z') && !isoStr.includes('+') && !isoStr.includes('-', 10)) {
+      isoStr += 'Z';
+    }
+    const d = new Date(isoStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleString('en-US', {
+      timeZone: 'America/New_York',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  };
+
+  const formatLastRefreshed = () => {
+    if (!lastRefreshed) return '';
+    return lastRefreshed.toLocaleTimeString('en-US', {
+      timeZone: 'America/New_York',
+      hour: 'numeric',
+      minute: '2-digit',
+      second: '2-digit',
     });
   };
 
@@ -89,8 +130,13 @@ const AdminInquiries = () => {
         <div>
           <h1>Contact Inquiries</h1>
           <p>Messages submitted through the website contact form</p>
+          {lastRefreshed && (
+            <p className="last-refreshed">
+              Auto-refreshes every 60s &middot; Last updated: {formatLastRefreshed()}
+            </p>
+          )}
         </div>
-        <button className="btn btn-outline" onClick={fetchInquiries}>
+        <button className="btn btn-outline" onClick={() => fetchInquiries(false)}>
           &#x21bb; Refresh
         </button>
       </div>
