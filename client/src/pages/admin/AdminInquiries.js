@@ -12,6 +12,7 @@ const AdminInquiries = () => {
   const [selectedInquiry, setSelectedInquiry] = useState(null);
   const [stats, setStats] = useState({ total: 0, unread: 0, read: 0 });
   const [lastRefreshed, setLastRefreshed] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
   const intervalRef = useRef(null);
 
   const fetchInquiries = useCallback(async (silent = false) => {
@@ -40,11 +41,9 @@ const AdminInquiries = () => {
   // Initial fetch + auto-refresh every 60 seconds
   useEffect(() => {
     fetchInquiries();
-
     intervalRef.current = setInterval(() => {
-      fetchInquiries(true); // silent refresh — no loading spinner
+      fetchInquiries(true);
     }, AUTO_REFRESH_INTERVAL);
-
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
@@ -54,9 +53,7 @@ const AdminInquiries = () => {
     try {
       await api.put(`/contact/${id}/read`, { isRead });
       setInquiries(prev =>
-        prev.map(inq =>
-          inq.id === id ? { ...inq, isRead } : inq
-        )
+        prev.map(inq => inq.id === id ? { ...inq, isRead } : inq)
       );
       if (selectedInquiry?.id === id) {
         setSelectedInquiry(prev => ({ ...prev, isRead }));
@@ -71,21 +68,35 @@ const AdminInquiries = () => {
     }
   };
 
+  const deleteInquiry = async (id) => {
+    try {
+      await api.delete(`/contact/${id}`);
+      setInquiries(prev => prev.filter(inq => inq.id !== id));
+      if (selectedInquiry?.id === id) {
+        setSelectedInquiry(null);
+      }
+      setStats(prev => ({
+        ...prev,
+        total: prev.total - 1,
+        unread: inquiries.find(i => i.id === id)?.isRead ? prev.unread : prev.unread - 1,
+        read: inquiries.find(i => i.id === id)?.isRead ? prev.read - 1 : prev.read,
+      }));
+      setDeleteConfirm(null);
+    } catch (err) {
+      console.error('Failed to delete inquiry:', err);
+    }
+  };
+
   const openInquiry = (inquiry) => {
     setSelectedInquiry(inquiry);
+    setDeleteConfirm(null);
     if (!inquiry.isRead) {
       markAsRead(inquiry.id, true);
     }
   };
 
-  /**
-   * Format a database timestamp to Eastern Time.
-   * Railway/PostgreSQL stores timestamps in UTC. We force display
-   * to America/New_York so the daycare always sees local NJ time.
-   */
   const formatDate = (dateStr) => {
     if (!dateStr) return '';
-    // Ensure the string is treated as UTC if it has no timezone indicator
     let isoStr = dateStr;
     if (!isoStr.endsWith('Z') && !isoStr.includes('+') && !isoStr.includes('-', 10)) {
       isoStr += 'Z';
@@ -94,11 +105,8 @@ const AdminInquiries = () => {
     if (isNaN(d.getTime())) return dateStr;
     return d.toLocaleString('en-US', {
       timeZone: 'America/New_York',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
+      month: 'short', day: 'numeric', year: 'numeric',
+      hour: 'numeric', minute: '2-digit',
     });
   };
 
@@ -106,9 +114,7 @@ const AdminInquiries = () => {
     if (!lastRefreshed) return '';
     return lastRefreshed.toLocaleTimeString('en-US', {
       timeZone: 'America/New_York',
-      hour: 'numeric',
-      minute: '2-digit',
-      second: '2-digit',
+      hour: 'numeric', minute: '2-digit', second: '2-digit',
     });
   };
 
@@ -159,24 +165,9 @@ const AdminInquiries = () => {
 
       {/* Filters */}
       <div className="inquiry-filters">
-        <button
-          className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
-          onClick={() => setFilter('all')}
-        >
-          All
-        </button>
-        <button
-          className={`filter-btn ${filter === 'unread' ? 'active' : ''}`}
-          onClick={() => setFilter('unread')}
-        >
-          Unread
-        </button>
-        <button
-          className={`filter-btn ${filter === 'read' ? 'active' : ''}`}
-          onClick={() => setFilter('read')}
-        >
-          Read
-        </button>
+        <button className={`filter-btn ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>All</button>
+        <button className={`filter-btn ${filter === 'unread' ? 'active' : ''}`} onClick={() => setFilter('unread')}>Unread</button>
+        <button className={`filter-btn ${filter === 'read' ? 'active' : ''}`} onClick={() => setFilter('read')}>Read</button>
       </div>
 
       {error && <div className="error-message">{error}</div>}
@@ -222,13 +213,36 @@ const AdminInquiries = () => {
             <div className="inquiry-detail">
               <div className="detail-header">
                 <h2>{selectedInquiry.name}</h2>
-                <button
-                  className="btn btn-sm btn-outline"
-                  onClick={() => markAsRead(selectedInquiry.id, !selectedInquiry.isRead)}
-                >
-                  {selectedInquiry.isRead ? 'Mark Unread' : 'Mark Read'}
-                </button>
+                <div className="detail-header-actions">
+                  <button
+                    className="btn btn-sm btn-outline"
+                    onClick={() => markAsRead(selectedInquiry.id, !selectedInquiry.isRead)}
+                  >
+                    {selectedInquiry.isRead ? 'Mark Unread' : 'Mark Read'}
+                  </button>
+                  <button
+                    className="btn btn-sm btn-danger"
+                    onClick={() => setDeleteConfirm(selectedInquiry.id)}
+                  >
+                    &#x1F5D1; Delete
+                  </button>
+                </div>
               </div>
+
+              {/* Delete confirmation */}
+              {deleteConfirm === selectedInquiry.id && (
+                <div className="delete-confirm">
+                  <p>Delete this inquiry from <strong>{selectedInquiry.name}</strong>? This cannot be undone.</p>
+                  <div className="delete-confirm-actions">
+                    <button className="btn btn-sm btn-danger" onClick={() => deleteInquiry(selectedInquiry.id)}>
+                      Yes, Delete
+                    </button>
+                    <button className="btn btn-sm btn-outline" onClick={() => setDeleteConfirm(null)}>
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <div className="detail-meta">
                 <div className="meta-item">
@@ -264,10 +278,7 @@ const AdminInquiries = () => {
                   &#x2709; Reply via Email
                 </a>
                 {selectedInquiry.phone && (
-                  <a
-                    href={`tel:${selectedInquiry.phone}`}
-                    className="btn btn-outline"
-                  >
+                  <a href={`tel:${selectedInquiry.phone}`} className="btn btn-outline">
                     &#x1F4DE; Call {selectedInquiry.name.split(' ')[0]}
                   </a>
                 )}
