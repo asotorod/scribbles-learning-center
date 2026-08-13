@@ -146,7 +146,6 @@ const update = async (req, res) => {
 };
 
 // DELETE /api/v1/parents/:id - Hard delete parent AND their user account
-// Uses CASCADE (set on parents.user_id FK) so deleting the user auto-deletes the parent record
 const remove = async (req, res) => {
   const client = await db.pool.connect();
   try {
@@ -160,7 +159,12 @@ const remove = async (req, res) => {
     }
     const userId = parentCheck.rows[0].user_id;
 
-    // Delete child links (this table definitely exists)
+    // Nullify references in tables that should keep historical records
+    await client.query('UPDATE absences SET reported_by = NULL WHERE reported_by = $1', [id]);
+    await client.query('UPDATE child_checkins SET checked_in_by_parent_id = NULL WHERE checked_in_by_parent_id = $1', [id]);
+    await client.query('UPDATE child_checkins SET checked_out_by_parent_id = NULL WHERE checked_out_by_parent_id = $1', [id]);
+
+    // Delete child links
     await client.query('DELETE FROM parent_children WHERE parent_id = $1', [id]);
 
     // Delete refresh tokens for this user
