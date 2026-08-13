@@ -4,6 +4,7 @@ import Modal, { ConfirmDialog } from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
 import api from '../../services/api';
 import { compressImage, validateImageFile, ACCEPTED_IMAGE_TYPES } from '../../utils/imageUtils';
+import { formatDateET, formatTimestampDateET } from '../../utils/dateTime';
 import './AdminChildren.css';
 
 // Convert API camelCase response to snake_case for frontend usage
@@ -258,7 +259,7 @@ const AdminChildren = () => {
           <div>
             <span className="child-name">{child.first_name} {child.last_name}</span>
             <span className="child-dob">
-              DOB: {new Date(child.date_of_birth).toLocaleDateString()}
+              DOB: {formatDateET(child.date_of_birth, { month: 'numeric', day: 'numeric', year: 'numeric' })}
             </span>
           </div>
         </div>
@@ -557,7 +558,7 @@ const AdminChildren = () => {
                   <span className="detail-label">Date of Birth</span>
                   <span className="detail-value">
                     {viewData.child?.dateOfBirth
-                      ? new Date(viewData.child.dateOfBirth).toLocaleDateString()
+                      ? formatDateET(viewData.child.dateOfBirth, { month: 'numeric', day: 'numeric', year: 'numeric' })
                       : 'N/A'}
                   </span>
                 </div>
@@ -578,7 +579,7 @@ const AdminChildren = () => {
                           <polyline points="20 6 9 17 4 12"></polyline>
                         </svg>
                         Yes (given {viewData.child.photoConsentDate
-                          ? new Date(viewData.child.photoConsentDate).toLocaleDateString()
+                          ? formatTimestampDateET(viewData.child.photoConsentDate)
                           : 'date unknown'})
                       </span>
                     ) : (
