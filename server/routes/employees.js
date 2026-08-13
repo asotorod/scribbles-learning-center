@@ -61,46 +61,50 @@ router.post('/', [
     .isLength({ max: 100 })
     .withMessage('Last name must not exceed 100 characters'),
   body('phone')
-    .optional()
+    .optional({ values: 'falsy' })
     .isString()
     .trim(),
   body('role')
-    .optional()
+    .optional({ values: 'falsy' })
     .isIn(['staff', 'admin'])
     .withMessage('Role must be staff or admin'),
   body('position')
-    .optional()
+    .optional({ values: 'falsy' })
     .isString()
     .trim()
     .isLength({ max: 100 })
     .withMessage('Position must not exceed 100 characters'),
   body('department')
-    .optional()
+    .optional({ values: 'falsy' })
     .isString()
     .trim()
     .isLength({ max: 100 })
     .withMessage('Department must not exceed 100 characters'),
   body('hireDate')
-    .optional()
+    .optional({ values: 'falsy' })
     .isISO8601()
-    .withMessage('Hire date must be in ISO8601 format'),
+    .withMessage('Hire date must be a valid date'),
   body('pinCode')
-    .optional()
+    .optional({ values: 'falsy' })
     .isString()
     .isLength({ min: 4, max: 6 })
     .withMessage('PIN must be 4-6 characters'),
+  body('hourlyRate')
+    .optional({ values: 'falsy' })
+    .isDecimal()
+    .withMessage('Hourly rate must be a number'),
   body('emergencyContactName')
-    .optional()
+    .optional({ values: 'falsy' })
     .isString()
     .trim()
     .isLength({ max: 200 })
     .withMessage('Emergency contact name must not exceed 200 characters'),
   body('emergencyContactPhone')
-    .optional()
+    .optional({ values: 'falsy' })
     .isString()
     .trim(),
   body('notes')
-    .optional()
+    .optional({ values: 'falsy' })
     .isString()
     .trim()
 ], employeesController.create);
@@ -118,52 +122,52 @@ router.put('/:id', [
     .isUUID()
     .withMessage('Employee ID must be a valid UUID'),
   body('email')
-    .optional()
+    .optional({ values: 'falsy' })
     .isEmail()
     .withMessage('Must be a valid email')
     .normalizeEmail(),
   body('firstName')
-    .optional()
+    .optional({ values: 'falsy' })
     .isString()
     .trim()
     .isLength({ max: 100 })
     .withMessage('First name must not exceed 100 characters'),
   body('lastName')
-    .optional()
+    .optional({ values: 'falsy' })
     .isString()
     .trim()
     .isLength({ max: 100 })
     .withMessage('Last name must not exceed 100 characters'),
   body('phone')
-    .optional()
+    .optional({ values: 'falsy' })
     .isString()
     .trim(),
   body('role')
-    .optional()
+    .optional({ values: 'falsy' })
     .isIn(['staff', 'admin'])
     .withMessage('Role must be staff or admin'),
   body('position')
-    .optional()
+    .optional({ values: 'falsy' })
     .isString()
     .trim(),
   body('department')
-    .optional()
+    .optional({ values: 'falsy' })
     .isString()
     .trim(),
   body('hireDate')
-    .optional()
+    .optional({ values: 'falsy' })
     .isISO8601()
-    .withMessage('Hire date must be in ISO8601 format'),
+    .withMessage('Hire date must be a valid date'),
   body('emergencyContactName')
-    .optional()
+    .optional({ values: 'falsy' })
     .isString()
     .trim(),
   body('emergencyContactPhone')
-    .optional()
+    .optional({ values: 'falsy' })
     .isString()
     .trim(),
   body('hourlyRate')
-    .optional()
+    .optional({ values: 'falsy' })
     .isDecimal()
     .withMessage('Hourly rate must be a decimal number'),
   body('isActive')
@@ -213,15 +217,15 @@ router.post('/:id/certifications', [
     .isLength({ max: 200 })
     .withMessage('Name must not exceed 200 characters'),
   body('issuedDate')
-    .optional()
+    .optional({ values: 'falsy' })
     .isISO8601()
-    .withMessage('Issued date must be in ISO8601 format'),
+    .withMessage('Issued date must be a valid date'),
   body('expiryDate')
-    .optional()
+    .optional({ values: 'falsy' })
     .isISO8601()
-    .withMessage('Expiry date must be in ISO8601 format'),
+    .withMessage('Expiry date must be a valid date'),
   body('documentUrl')
-    .optional()
+    .optional({ values: 'falsy' })
     .isString()
     .trim()
     .isLength({ max: 500 })
@@ -237,21 +241,21 @@ router.put('/:id/certifications/:certId', [
     .isUUID()
     .withMessage('Certification ID must be a valid UUID'),
   body('name')
-    .optional()
+    .optional({ values: 'falsy' })
     .isString()
     .trim()
     .isLength({ max: 200 })
     .withMessage('Name must not exceed 200 characters'),
   body('issuedDate')
-    .optional()
+    .optional({ values: 'falsy' })
     .isISO8601()
-    .withMessage('Issued date must be in ISO8601 format'),
+    .withMessage('Issued date must be a valid date'),
   body('expiryDate')
-    .optional()
+    .optional({ values: 'falsy' })
     .isISO8601()
-    .withMessage('Expiry date must be in ISO8601 format'),
+    .withMessage('Expiry date must be a valid date'),
   body('documentUrl')
-    .optional()
+    .optional({ values: 'falsy' })
     .isString()
     .trim()
 ], employeesController.updateCertification);
