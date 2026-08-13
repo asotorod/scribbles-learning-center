@@ -1,10 +1,41 @@
 const db = require('../config/database');
 const { validationResult } = require('express-validator');
 
+/**
+ * Eastern Time helpers.
+ * Railway runs in UTC; all date boundaries and "today" calculations
+ * must use America/New_York so punches align with the NJ daycare's
+ * actual workday (7:30 AM – 6:30 PM ET).
+ */
+const TIMEZONE = 'America/New_York';
+
+function getEasternNow() {
+  return new Date(new Date().toLocaleString('en-US', { timeZone: TIMEZONE }));
+}
+
+function getEasternToday() {
+  const et = getEasternNow();
+  return et.toISOString().split('T')[0];
+}
+
+function getWeekStart() {
+  const now = getEasternNow();
+  const dayOfWeek = now.getDay();
+  const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+  return new Date(now.getFullYear(), now.getMonth(), diff).toISOString().split('T')[0];
+}
+
+function getWeekEnd() {
+  const now = getEasternNow();
+  const dayOfWeek = now.getDay();
+  const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? 0 : 7);
+  return new Date(now.getFullYear(), now.getMonth(), diff).toISOString().split('T')[0];
+}
+
 // GET /api/v1/timeclock/today - Today's punches for all employees
 const getToday = async (req, res) => {
   try {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getEasternToday();
 
     const result = await db.query(`
       SELECT
@@ -22,10 +53,10 @@ const getToday = async (req, res) => {
       FROM employees e
       JOIN users u ON e.user_id = u.id
       LEFT JOIN employee_timeclock tr ON e.id = tr.employee_id
-        AND DATE(tr.clock_in) = $1
+        AND DATE(tr.clock_in AT TIME ZONE 'UTC' AT TIME ZONE $2) = $1
       WHERE e.is_active = true AND u.is_active = true
       ORDER BY u.last_name, u.first_name, tr.clock_in
-    `, [today]);
+    `, [today, TIMEZONE]);
 
     const employeeMap = new Map();
 
@@ -130,11 +161,11 @@ const getEmployeeRecords = async (req, res) => {
     let paramIndex = 2;
 
     if (startDate) {
-      query += ` AND DATE(clock_in) >= $${paramIndex++}`;
+      query += ` AND DATE(clock_in AT TIME ZONE 'UTC' AT TIME ZONE '${TIMEZONE}') >= $${paramIndex++}`;
       params.push(startDate);
     }
     if (endDate) {
-      query += ` AND DATE(clock_in) <= $${paramIndex++}`;
+      query += ` AND DATE(clock_in AT TIME ZONE 'UTC' AT TIME ZONE '${TIMEZONE}') <= $${paramIndex++}`;
       params.push(endDate);
     }
 
@@ -157,8 +188,8 @@ const getEmployeeRecords = async (req, res) => {
     `;
     const totalParams = [id];
     let tpi = 2;
-    if (startDate) { totalQuery += ` AND DATE(clock_in) >= $${tpi++}`; totalParams.push(startDate); }
-    if (endDate) { totalQuery += ` AND DATE(clock_in) <= $${tpi++}`; totalParams.push(endDate); }
+    if (startDate) { totalQuery += ` AND DATE(clock_in AT TIME ZONE 'UTC' AT TIME ZONE '${TIMEZONE}') >= $${tpi++}`; totalParams.push(startDate); }
+    if (endDate) { totalQuery += ` AND DATE(clock_in AT TIME ZONE 'UTC' AT TIME ZONE '${TIMEZONE}') <= $${tpi++}`; totalParams.push(endDate); }
 
     const totalResult = await db.query(totalQuery, totalParams);
 
@@ -395,8 +426,8 @@ const getReport = async (req, res) => {
       FROM employees e
       JOIN users u ON e.user_id = u.id
       LEFT JOIN employee_timeclock tr ON e.id = tr.employee_id
-        AND DATE(tr.clock_in) >= $1
-        AND DATE(tr.clock_in) <= $2
+        AND DATE(tr.clock_in AT TIME ZONE 'UTC' AT TIME ZONE '${TIMEZONE}') >= $1
+        AND DATE(tr.clock_in AT TIME ZONE 'UTC' AT TIME ZONE '${TIMEZONE}') <= $2
       WHERE e.is_active = true
     `;
     const params = [start, end];
@@ -415,15 +446,16 @@ const getReport = async (req, res) => {
     // Daily breakdown
     const dailyQuery = `
       SELECT
-        DATE(tr.clock_in) as work_date,
+        DATE(tr.clock_in AT TIME ZONE 'UTC' AT TIME ZONE '${TIMEZONE}') as work_date,
         COUNT(DISTINCT tr.employee_id) as employees_worked,
         SUM(CASE WHEN (tr.entry_type = 'shift' OR tr.entry_type IS NULL) AND tr.total_minutes IS NOT NULL THEN tr.total_minutes ELSE 0 END) as work_minutes,
         SUM(CASE WHEN tr.entry_type = 'lunch_break' AND tr.total_minutes IS NOT NULL THEN tr.total_minutes ELSE 0 END) as lunch_minutes
       FROM employee_timeclock tr
       JOIN employees e ON tr.employee_id = e.id
-      WHERE DATE(tr.clock_in) >= $1 AND DATE(tr.clock_in) <= $2
+      WHERE DATE(tr.clock_in AT TIME ZONE 'UTC' AT TIME ZONE '${TIMEZONE}') >= $1
+        AND DATE(tr.clock_in AT TIME ZONE 'UTC' AT TIME ZONE '${TIMEZONE}') <= $2
       ${department ? `AND e.department ILIKE $3` : ''}
-      GROUP BY DATE(tr.clock_in)
+      GROUP BY DATE(tr.clock_in AT TIME ZONE 'UTC' AT TIME ZONE '${TIMEZONE}')
       ORDER BY work_date
     `;
     const dailyResult = await db.query(dailyQuery, department ? [start, end, `%${department}%`] : [start, end]);
@@ -483,7 +515,7 @@ const getReport = async (req, res) => {
 const getDailyReport = async (req, res) => {
   try {
     const { date } = req.query;
-    const reportDate = date || new Date().toISOString().split('T')[0];
+    const reportDate = date || getEasternToday();
 
     const result = await db.query(`
       SELECT
@@ -504,10 +536,10 @@ const getDailyReport = async (req, res) => {
       FROM employees e
       JOIN users u ON e.user_id = u.id
       LEFT JOIN employee_timeclock tr ON e.id = tr.employee_id
-        AND DATE(tr.clock_in) = $1
+        AND DATE(tr.clock_in AT TIME ZONE 'UTC' AT TIME ZONE $2) = $1
       WHERE e.is_active = true
       ORDER BY u.last_name, u.first_name, tr.clock_in
-    `, [reportDate]);
+    `, [reportDate, TIMEZONE]);
 
     const employeeMap = new Map();
 
@@ -591,21 +623,6 @@ const getDailyReport = async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to generate daily report' });
   }
 };
-
-// Helper functions
-function getWeekStart() {
-  const now = new Date();
-  const dayOfWeek = now.getDay();
-  const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-  return new Date(now.getFullYear(), now.getMonth(), diff).toISOString().split('T')[0];
-}
-
-function getWeekEnd() {
-  const now = new Date();
-  const dayOfWeek = now.getDay();
-  const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? 0 : 7);
-  return new Date(now.getFullYear(), now.getMonth(), diff).toISOString().split('T')[0];
-}
 
 module.exports = {
   getToday,
