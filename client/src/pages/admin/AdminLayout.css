@@ -91,6 +91,7 @@
   transition: var(--transition);
   text-decoration: none;
   border-left: 3px solid transparent;
+  position: relative;
 }
 
 .sidebar-link:hover {
@@ -114,6 +115,40 @@
 .sidebar-label {
   white-space: nowrap;
   overflow: hidden;
+  flex: 1;
+}
+
+/* Unread badge */
+.sidebar-badge {
+  background: #dc2626;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  animation: badge-pop 0.3s ease;
+}
+
+.sidebar-collapsed .sidebar-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  min-width: 18px;
+  height: 18px;
+  font-size: 10px;
+  padding: 0 4px;
+}
+
+@keyframes badge-pop {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
 }
 
 .sidebar-collapsed .sidebar-link {
