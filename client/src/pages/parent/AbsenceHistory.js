@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { portalAPI } from '../../services/api';
+import { formatDateET, parseDateOnly } from '../../utils/dateTime';
 import './ParentPages.css';
 
 const AbsenceHistory = () => {
@@ -92,8 +93,8 @@ const AbsenceHistory = () => {
       return false;
     }
 
-    const startDate = new Date(absence.start_date);
-    const endDate = absence.end_date ? new Date(absence.end_date) : startDate;
+    const startDate = parseDateOnly(absence.start_date);
+    const endDate = absence.end_date ? parseDateOnly(absence.end_date) : startDate;
 
     if (activeTab === 'upcoming') {
       return endDate >= today;
@@ -104,23 +105,17 @@ const AbsenceHistory = () => {
 
   const upcomingCount = absences.filter(a => {
     if (a.status === 'cancelled') return false;
-    const endDate = a.end_date ? new Date(a.end_date) : new Date(a.start_date);
+    const endDate = a.end_date ? parseDateOnly(a.end_date) : parseDateOnly(a.start_date);
     return endDate >= today;
   }).length;
 
   const pastCount = absences.filter(a => {
     if (a.status === 'cancelled') return false;
-    const endDate = a.end_date ? new Date(a.end_date) : new Date(a.start_date);
+    const endDate = a.end_date ? parseDateOnly(a.end_date) : parseDateOnly(a.start_date);
     return endDate < today;
   }).length;
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  };
+  const formatDate = (dateString) => formatDateET(dateString);
 
   const formatDateRange = (startDate, endDate) => {
     const start = formatDate(startDate);
@@ -204,10 +199,10 @@ const AbsenceHistory = () => {
             <div key={absence.id} className="history-card">
               <div className="absence-date">
                 <span className="date-day">
-                  {new Date(absence.start_date).getDate()}
+                  {parseDateOnly(absence.start_date)?.getDate()}
                 </span>
                 <span className="date-month">
-                  {new Date(absence.start_date).toLocaleDateString('en-US', { month: 'short' })}
+                  {formatDateET(absence.start_date, { month: 'short' }, '')}
                 </span>
               </div>
 
