@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../../services/api';
+import { formatDateTimeET } from '../../utils/dateTime';
 
 const ACTION_OPTIONS = [
   'LOGIN_SUCCESS', 'LOGIN_FAILED', 'LOGOUT', 'PASSWORD_CHANGE',
@@ -40,10 +41,7 @@ const AdminAuditLog = () => {
     fetchLogs(1);
   }, [fetchLogs]);
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '-';
-    return new Date(dateStr).toLocaleString();
-  };
+  const formatDate = (dateStr) => formatDateTimeET(dateStr);
 
   return (
     <div className="admin-page">
