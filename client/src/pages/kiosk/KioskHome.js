@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { kioskAPI } from '../../services/api';
+import { formatTimeET, TIME_ZONE } from '../../utils/dateTime';
 import './Kiosk.css';
 
 const KioskHome = () => {
@@ -65,8 +66,8 @@ const KioskHome = () => {
               photo_url: c.photoUrl,
               program: c.programName,
               status: c.status,
-              check_in_time: c.checkInTime ? new Date(c.checkInTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : null,
-              check_out_time: c.checkOutTime ? new Date(c.checkOutTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : null,
+              check_in_time: c.checkInTime ? formatTimeET(c.checkInTime, null) : null,
+              check_out_time: c.checkOutTime ? formatTimeET(c.checkOutTime, null) : null,
               authorizedPickups: c.authorizedPickups || [],
               emergencyContacts: c.emergencyContacts || [],
             })),
@@ -208,10 +209,10 @@ const CurrentTime = () => {
   return (
     <div className="time-display">
       <span className="time-value">
-        {time.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+        {time.toLocaleTimeString('en-US', { timeZone: TIME_ZONE, hour: 'numeric', minute: '2-digit', hour12: true })}
       </span>
       <span className="date-value">
-        {time.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+        {time.toLocaleDateString('en-US', { timeZone: TIME_ZONE, weekday: 'long', month: 'long', day: 'numeric' })}
       </span>
     </div>
   );

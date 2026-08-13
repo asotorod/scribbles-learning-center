@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { kioskAPI } from '../../services/api';
+import { parseTimestamp, formatTimeET, TIME_ZONE } from '../../utils/dateTime';
 import './Kiosk.css';
 
 const INACTIVITY_TIMEOUT = 30000; // 30 seconds
@@ -11,7 +12,7 @@ const KioskEmployee = () => {
   const { user, isClockedIn, clockInTime: initialClockInTime, pin } = location.state || {};
 
   const [clockedIn, setClockedIn] = useState(isClockedIn || false);
-  const [clockInTime, setClockInTime] = useState(initialClockInTime ? new Date(initialClockInTime) : null);
+  const [clockInTime, setClockInTime] = useState(initialClockInTime ? parseTimestamp(initialClockInTime) : null);
   const [hoursWorked, setHoursWorked] = useState('0:00');
   const [loading, setLoading] = useState(false);
   const [lastActivity, setLastActivity] = useState(Date.now());
@@ -114,9 +115,7 @@ const KioskEmployee = () => {
     navigate('/kiosk', { replace: true });
   };
 
-  const formatClockTime = (date) => {
-    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-  };
+  const formatClockTime = (date) => formatTimeET(date);
 
   if (!user) {
     return null;
@@ -250,10 +249,10 @@ const CurrentTime = () => {
   return (
     <div className="time-display">
       <span className="time-value">
-        {time.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+        {time.toLocaleTimeString('en-US', { timeZone: TIME_ZONE, hour: 'numeric', minute: '2-digit', hour12: true })}
       </span>
       <span className="date-value">
-        {time.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+        {time.toLocaleDateString('en-US', { timeZone: TIME_ZONE, weekday: 'long', month: 'long', day: 'numeric' })}
       </span>
     </div>
   );

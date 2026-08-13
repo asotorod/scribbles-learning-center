@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { kioskAPI } from '../../services/api';
+import { formatTimeET, TIME_ZONE } from '../../utils/dateTime';
 import './Kiosk.css';
 
 const INACTIVITY_TIMEOUT = 30000; // 30 seconds
@@ -57,7 +58,7 @@ const KioskParent = () => {
       });
 
       // Update local state on success
-      const now = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+      const now = formatTimeET(new Date());
       setChildren(prev => prev.map(c =>
         c.id === child.id
           ? { ...c, status: 'checked_in', check_in_time: now }
@@ -83,7 +84,7 @@ const KioskParent = () => {
       });
 
       // Update local state on success
-      const now = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+      const now = formatTimeET(new Date());
       setChildren(prev => prev.map(c =>
         c.id === child.id
           ? { ...c, status: 'checked_out', check_out_time: now }
@@ -234,10 +235,10 @@ const CurrentTime = () => {
   return (
     <div className="time-display">
       <span className="time-value">
-        {time.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+        {time.toLocaleTimeString('en-US', { timeZone: TIME_ZONE, hour: 'numeric', minute: '2-digit', hour12: true })}
       </span>
       <span className="date-value">
-        {time.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+        {time.toLocaleDateString('en-US', { timeZone: TIME_ZONE, weekday: 'long', month: 'long', day: 'numeric' })}
       </span>
     </div>
   );
