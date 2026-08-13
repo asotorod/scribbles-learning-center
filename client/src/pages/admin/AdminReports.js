@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StatCard } from '../../components/ui/Card';
 import { attendanceAPI, timeclockAPI } from '../../services/api';
+import { formatTimeET, TIME_ZONE } from '../../utils/dateTime';
 import './AdminReports.css';
 
 const getLocalDateString = (d = new Date()) => {
@@ -85,10 +86,7 @@ const AdminReports = () => {
   const handleDateChange = (e) => setSelectedDate(e.target.value);
   const handlePrint = () => window.print();
 
-  const formatTime = (timeString) => {
-    if (!timeString) return '-';
-    return new Date(timeString).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-  };
+  const formatTime = (timeString) => formatTimeET(timeString);
 
   const formatDateDisplay = (dateStr) => {
     return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', {
@@ -130,7 +128,7 @@ const AdminReports = () => {
         <p className="print-date">
           {activeTab === 'employee-weekly' ? `${formatDateDisplay(weekStart)} - ${formatDateDisplay(weekEnd)}` : formatDateDisplay(selectedDate)}
         </p>
-        <p className="print-generated">Generated: {new Date().toLocaleString('en-US')}</p>
+        <p className="print-generated">Generated: {new Date().toLocaleString('en-US', { timeZone: TIME_ZONE })}</p>
       </div>
 
       {/* Tabs */}
