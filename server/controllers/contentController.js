@@ -1,5 +1,6 @@
 const db = require('../config/database');
 const { validationResult } = require('express-validator');
+const { sendContactNotification } = require('../services/emailService');
 
 // ==================== SITE CONTENT ====================
 
@@ -285,6 +286,8 @@ const submitContact = async (req, res) => {
   try {
     const { name, email, phone, subject, message } = req.body;
     await db.query(`INSERT INTO contact_inquiries (name, email, phone, subject, message) VALUES ($1, $2, $3, $4, $5) RETURNING *`, [name, email, phone, subject, message]);
+    // Notify the center by email (fire-and-forget; never blocks or fails the response)
+    sendContactNotification({ name, email, phone, subject, message });
     res.status(201).json({ success: true, data: { message: 'Your message has been received. We will get back to you soon!' } });
   } catch (error) {
     console.error('Submit contact error:', error);
