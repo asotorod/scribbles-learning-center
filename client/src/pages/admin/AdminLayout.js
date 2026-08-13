@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../services/api';
 import './AdminLayout.css';
 
 const WARN_TIMEOUT = 25 * 60 * 1000; // 25 minutes
 const LOGOUT_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+const INQUIRY_POLL_INTERVAL = 60000; // 60 seconds
 
 const AdminLayout = () => {
   const { user, logout } = useAuth();
@@ -13,9 +15,11 @@ const AdminLayout = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
+  const [unreadInquiries, setUnreadInquiries] = useState(0);
   const lastActivityRef = useRef(Date.now());
   const warnTimerRef = useRef(null);
   const logoutTimerRef = useRef(null);
+  const inquiryIntervalRef = useRef(null);
 
   const handleLogout = useCallback(() => {
     logout();
@@ -38,6 +42,17 @@ const AdminLayout = () => {
     }, LOGOUT_TIMEOUT);
   }, [handleLogout]);
 
+  // Fetch unread inquiry count
+  const fetchUnreadCount = useCallback(async () => {
+    try {
+      const res = await api.get('/contact', { params: { status: 'unread' } });
+      const data = res.data?.data?.inquiries || [];
+      setUnreadInquiries(data.length);
+    } catch (err) {
+      // Silently fail — don't disrupt the admin portal
+    }
+  }, []);
+
   useEffect(() => {
     resetTimers();
 
@@ -57,12 +72,23 @@ const AdminLayout = () => {
     };
   }, [resetTimers]);
 
+  // Poll for unread inquiries every 60 seconds
+  useEffect(() => {
+    fetchUnreadCount();
+
+    inquiryIntervalRef.current = setInterval(fetchUnreadCount, INQUIRY_POLL_INTERVAL);
+
+    return () => {
+      if (inquiryIntervalRef.current) clearInterval(inquiryIntervalRef.current);
+    };
+  }, [fetchUnreadCount]);
+
   const menuItems = [
     { path: '/admin', icon: '🏠', label: 'Dashboard', exact: true },
     { path: '/admin/children', icon: '👶', label: 'Children' },
     { path: '/admin/parents', icon: '👨‍👩‍👧', label: 'Parents' },
     { path: '/admin/attendance', icon: '📋', label: 'Attendance' },
-    { path: '/admin/inquiries', icon: '📬', label: 'Inquiries' },
+    { path: '/admin/inquiries', icon: '📬', label: 'Inquiries', badge: unreadInquiries },
     { path: '/admin/hr', icon: '👥', label: 'HR' },
     { path: '/admin/content', icon: '📝', label: 'Content' },
     { path: '/admin/reports', icon: '📊', label: 'Reports' },
@@ -151,6 +177,9 @@ const AdminLayout = () => {
             >
               <span className="sidebar-icon">{item.icon}</span>
               {!sidebarCollapsed && <span className="sidebar-label">{item.label}</span>}
+              {item.badge > 0 && (
+                <span className="sidebar-badge">{item.badge > 99 ? '99+' : item.badge}</span>
+              )}
             </Link>
           ))}
         </nav>
