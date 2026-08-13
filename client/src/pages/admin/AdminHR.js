@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { employeesAPI, timeclockAPI } from '../../services/api';
+import { formatTimeET, formatDateET, toEasternInputValue, nowEasternInputValue } from '../../utils/dateTime';
 import './AdminHR.css';
 
 const AdminHR = () => {
@@ -181,15 +182,9 @@ const AdminHR = () => {
     }
   };
 
-  const formatTime = (ts) => {
-    if (!ts) return '-';
-    return new Date(ts).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-  };
+  const formatTime = (ts) => formatTimeET(ts);
 
-  const formatDate = (d) => {
-    if (!d) return '-';
-    return new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  };
+  const formatDate = (d) => formatDateET(d);
 
   const getStatusBadge = (status) => {
     const map = {
@@ -370,8 +365,8 @@ const AdminHR = () => {
                                   <button className="punch-edit-btn" onClick={() => {
                                     setEditingPunch({
                                       id: tr.id,
-                                      clockIn: tr.clockIn ? new Date(new Date(tr.clockIn).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : '',
-                                      clockOut: tr.clockOut ? new Date(new Date(tr.clockOut).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : '',
+                                      clockIn: tr.clockIn ? toEasternInputValue(tr.clockIn) : '',
+                                      clockOut: tr.clockOut ? toEasternInputValue(tr.clockOut) : '',
                                       adjustmentReason: ''
                                     });
                                     setShowPunchModal(true);
@@ -386,7 +381,7 @@ const AdminHR = () => {
                         <td>{emp.totalLunchMinutes > 0 ? `${(emp.totalLunchMinutes / 60).toFixed(1)}h` : '-'}</td>
                         <td>
                           <button className="hr-btn-sm" onClick={() => {
-                            const now = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+                            const now = nowEasternInputValue();
                             setEditingPunch({ employeeId: emp.employeeId, clockIn: now, clockOut: '', entryType: 'shift', notes: '' });
                             setShowAddPunchModal(true);
                           }}>+ Punch</button>
