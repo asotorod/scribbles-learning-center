@@ -78,4 +78,16 @@ router.put('/:id/read',
   contentController.markInquiryRead
 );
 
+// DELETE /api/v1/contact/:id - Delete inquiry (admin)
+router.delete('/:id',
+  verifyToken,
+  requireRole('super_admin', 'admin'),
+  [
+    param('id')
+      .isUUID()
+      .withMessage('Inquiry ID must be a valid UUID')
+  ],
+  contentController.deleteInquiry
+);
+
 module.exports = router;
