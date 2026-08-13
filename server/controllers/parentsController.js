@@ -77,13 +77,11 @@ const create = async (req, res) => {
   try {
     const { email, password, firstName, lastName, phone, address, employer, workPhone, pinCode } = req.body;
     await client.query('BEGIN');
-    // Only check ACTIVE users — deleted users shouldn't block new accounts
     const existingUser = await client.query('SELECT id FROM users WHERE email = $1 AND is_active = true', [email.toLowerCase()]);
     if (existingUser.rows.length > 0) {
       await client.query('ROLLBACK');
       return res.status(400).json({ success: false, error: 'Email already registered' });
     }
-    // Clean up any inactive orphaned users with this email
     await client.query('DELETE FROM users WHERE email = $1 AND is_active = false', [email.toLowerCase()]);
     if (pinCode) {
       const pinExists = await client.query(`
@@ -148,26 +146,29 @@ const update = async (req, res) => {
 };
 
 // DELETE /api/v1/parents/:id - Hard delete parent AND their user account
+// Uses CASCADE (set on parents.user_id FK) so deleting the user auto-deletes the parent record
 const remove = async (req, res) => {
   const client = await db.pool.connect();
   try {
     const { id } = req.params;
     await client.query('BEGIN');
+
     const parentCheck = await client.query('SELECT user_id FROM parents WHERE id = $1', [id]);
     if (parentCheck.rows.length === 0) {
       await client.query('ROLLBACK');
       return res.status(404).json({ success: false, error: 'Parent not found' });
     }
     const userId = parentCheck.rows[0].user_id;
-    // Clean up all related data
+
+    // Delete child links (this table definitely exists)
     await client.query('DELETE FROM parent_children WHERE parent_id = $1', [id]);
-    await client.query('DELETE FROM parent_messages WHERE parent_id = $1', [id]).catch(() => {});
-    await client.query('DELETE FROM absence_reports WHERE parent_id = $1', [id]).catch(() => {});
-    await client.query('DELETE FROM authorized_pickups WHERE parent_id = $1', [id]).catch(() => {});
-    await client.query('DELETE FROM parents WHERE id = $1', [id]);
-    // Delete the user account — no orphan left behind
+
+    // Delete refresh tokens for this user
     await client.query('DELETE FROM refresh_tokens WHERE user_id = $1', [userId]);
+
+    // Delete the user — CASCADE automatically removes the parent record
     await client.query('DELETE FROM users WHERE id = $1', [userId]);
+
     await client.query('COMMIT');
     res.json({ success: true, data: { message: 'Parent deleted successfully' } });
   } catch (error) {
